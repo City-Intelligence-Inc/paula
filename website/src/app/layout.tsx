@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Lora } from "next/font/google";
+import { Poppins, Lora, Original_Surfer } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
@@ -15,6 +15,12 @@ const lora = Lora({
   weight: ["400", "500", "600", "700"],
 });
 
+const originalSurfer = Original_Surfer({
+  variable: "--font-original-surfer",
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
 export const metadata: Metadata = {
   title: "Mathitude — It's All About the Attitude",
   description:
@@ -28,7 +34,10 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${poppins.variable} ${lora.variable}`}>
+      <html
+        lang="en"
+        className={`${poppins.variable} ${lora.variable} ${originalSurfer.variable}`}
+      >
         <body className="min-h-screen flex flex-col font-sans antialiased">
           {children}
         </body>

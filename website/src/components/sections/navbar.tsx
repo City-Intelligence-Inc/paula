@@ -27,7 +27,7 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <span className="text-2xl sm:text-3xl font-bold font-serif tracking-tight">
+            <span className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
               <span className="text-mathitude-teal">Math</span>
               <span className="text-mathitude-navy">itude</span>
             </span>
