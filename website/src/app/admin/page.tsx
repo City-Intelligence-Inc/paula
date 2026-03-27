@@ -1,168 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Plus, Phone, Mail } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-
-interface Student {
-  id: number;
-  name: string;
-  grade: string;
-  status: "Active" | "Waitlist";
-  nextSession: string;
-  parentName: string;
-  parentPhone: string;
-  parentEmail: string;
-}
-
-const students: Student[] = [
-  {
-    id: 1,
-    name: "Aarav Patel",
-    grade: "5th",
-    status: "Active",
-    nextSession: "Mon 3:30 PM",
-    parentName: "Priya Patel",
-    parentPhone: "(408) 555-1201",
-    parentEmail: "priya.p@email.com",
-  },
-  {
-    id: 2,
-    name: "Sofia Martinez",
-    grade: "7th",
-    status: "Active",
-    nextSession: "Tue 4:00 PM",
-    parentName: "Maria Martinez",
-    parentPhone: "(650) 555-2302",
-    parentEmail: "maria.m@email.com",
-  },
-  {
-    id: 3,
-    name: "Ethan Chen",
-    grade: "4th",
-    status: "Active",
-    nextSession: "Mon 4:30 PM",
-    parentName: "Wei Chen",
-    parentPhone: "(408) 555-3403",
-    parentEmail: "wei.c@email.com",
-  },
-  {
-    id: 4,
-    name: "Olivia Thompson",
-    grade: "6th",
-    status: "Waitlist",
-    nextSession: "---",
-    parentName: "Sarah Thompson",
-    parentPhone: "(510) 555-4504",
-    parentEmail: "sarah.t@email.com",
-  },
-  {
-    id: 5,
-    name: "Rohan Gupta",
-    grade: "8th",
-    status: "Active",
-    nextSession: "Wed 3:00 PM",
-    parentName: "Anita Gupta",
-    parentPhone: "(408) 555-5605",
-    parentEmail: "anita.g@email.com",
-  },
-  {
-    id: 6,
-    name: "Emma Wilson",
-    grade: "3rd",
-    status: "Active",
-    nextSession: "Thu 4:00 PM",
-    parentName: "Jessica Wilson",
-    parentPhone: "(650) 555-6706",
-    parentEmail: "jessica.w@email.com",
-  },
-  {
-    id: 7,
-    name: "Liam Nakamura",
-    grade: "5th",
-    status: "Active",
-    nextSession: "Tue 3:30 PM",
-    parentName: "Yuki Nakamura",
-    parentPhone: "(408) 555-7807",
-    parentEmail: "yuki.n@email.com",
-  },
-  {
-    id: 8,
-    name: "Isabella Rivera",
-    grade: "6th",
-    status: "Waitlist",
-    nextSession: "---",
-    parentName: "Carlos Rivera",
-    parentPhone: "(510) 555-8908",
-    parentEmail: "carlos.r@email.com",
-  },
-  {
-    id: 9,
-    name: "Noah Kim",
-    grade: "4th",
-    status: "Active",
-    nextSession: "Wed 4:30 PM",
-    parentName: "Jae Kim",
-    parentPhone: "(408) 555-9009",
-    parentEmail: "jae.k@email.com",
-  },
-  {
-    id: 10,
-    name: "Zara Ahmed",
-    grade: "7th",
-    status: "Active",
-    nextSession: "Fri 3:00 PM",
-    parentName: "Fatima Ahmed",
-    parentPhone: "(650) 555-1110",
-    parentEmail: "fatima.a@email.com",
-  },
-  {
-    id: 11,
-    name: "Aiden O'Brien",
-    grade: "5th",
-    status: "Active",
-    nextSession: "Thu 3:30 PM",
-    parentName: "Megan O'Brien",
-    parentPhone: "(408) 555-1211",
-    parentEmail: "megan.o@email.com",
-  },
-  {
-    id: 12,
-    name: "Priya Sharma",
-    grade: "8th",
-    status: "Active",
-    nextSession: "Sat 10:00 AM",
-    parentName: "Deepak Sharma",
-    parentPhone: "(510) 555-1312",
-    parentEmail: "deepak.s@email.com",
-  },
-  {
-    id: 13,
-    name: "Lucas Park",
-    grade: "3rd",
-    status: "Waitlist",
-    nextSession: "---",
-    parentName: "Soo-Min Park",
-    parentPhone: "(408) 555-1413",
-    parentEmail: "soomin.p@email.com",
-  },
-];
+import type { Student } from "@/lib/types";
 
 export default function AdminStudentsPage() {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    fetch("/api/students")
+      .then((res) => res.json())
+      .then((json) => {
+        setStudents(json.students || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-mathitude-navy">Students</h1>
+          <p className="text-sm text-gray-500 mt-1">Loading students...</p>
+        </div>
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-mathitude-teal border-t-transparent" />
+        </div>
+      </div>
+    );
+  }
 
   const filtered = students.filter(
     (s) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
+      `${s.firstName} ${s.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
       s.parentName.toLowerCase().includes(search.toLowerCase()) ||
       s.grade.toLowerCase().includes(search.toLowerCase())
   );
 
-  const activeCount = students.filter((s) => s.status === "Active").length;
-  const waitlistCount = students.filter((s) => s.status === "Waitlist").length;
+  const activeCount = students.filter((s) => s.status === "active").length;
+  const waitlistCount = students.filter((s) => s.status === "waitlist").length;
 
   return (
     <div className="space-y-6">
@@ -194,6 +77,12 @@ export default function AdminStudentsPage() {
 
       {/* Student cards */}
       <div className="space-y-3">
+        {students.length === 0 && !search && (
+          <div className="text-center py-12 text-gray-500">
+            <p className="text-sm">No students yet. Add your first student to get started.</p>
+          </div>
+        )}
+
         {filtered.map((student) => (
           <Card key={student.id} className="py-0 overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4">
@@ -201,16 +90,16 @@ export default function AdminStudentsPage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-mathitude-navy truncate">
-                    {student.name}
+                    {student.firstName} {student.lastName}
                   </h3>
                   <Badge
                     className={
-                      student.status === "Active"
+                      student.status === "active"
                         ? "bg-mathitude-teal/10 text-mathitude-teal border-mathitude-teal/20"
                         : "bg-mathitude-purple/10 text-mathitude-purple border-mathitude-purple/20"
                     }
                   >
-                    {student.status}
+                    {student.status === "active" ? "Active" : student.status === "waitlist" ? "Waitlist" : "Inactive"}
                   </Badge>
                 </div>
                 <p className="text-sm text-gray-500 mt-0.5">
@@ -218,13 +107,13 @@ export default function AdminStudentsPage() {
                 </p>
               </div>
 
-              {/* Next session */}
+              {/* Session type */}
               <div className="sm:text-center sm:min-w-[120px]">
                 <p className="text-xs text-gray-400 uppercase tracking-wider">
-                  Next Session
+                  Session Type
                 </p>
                 <p className="text-sm font-medium text-mathitude-navy">
-                  {student.nextSession}
+                  {student.sessionType === "individual" ? "Individual" : "Group"}
                 </p>
               </div>
 
@@ -256,7 +145,7 @@ export default function AdminStudentsPage() {
           </Card>
         ))}
 
-        {filtered.length === 0 && (
+        {filtered.length === 0 && students.length > 0 && (
           <div className="text-center py-12 text-gray-500">
             <p className="text-sm">No students found matching your search.</p>
           </div>

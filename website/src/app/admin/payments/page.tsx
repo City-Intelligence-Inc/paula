@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   DollarSign,
   CreditCard,
@@ -18,214 +18,130 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import type { Student, Payment } from "@/lib/types";
 
-type PaymentStatus = "Paid" | "Pending" | "Overdue";
-
-interface StudentPayment {
-  id: number;
-  name: string;
-  grade: string;
-  monthlyRate: number;
-  status: PaymentStatus;
-  lastPayment: string;
-  balance: number;
-}
-
-interface PaymentRecord {
-  id: number;
-  date: string;
-  student: string;
-  amount: number;
-  method: string;
-  status: PaymentStatus;
-}
-
-const studentPayments: StudentPayment[] = [
-  {
-    id: 1,
-    name: "Aarav Patel",
-    grade: "5th",
-    monthlyRate: 280,
-    status: "Paid",
-    lastPayment: "Mar 1, 2026",
-    balance: 0,
-  },
-  {
-    id: 2,
-    name: "Sofia Martinez",
-    grade: "7th",
-    monthlyRate: 280,
-    status: "Paid",
-    lastPayment: "Mar 3, 2026",
-    balance: 0,
-  },
-  {
-    id: 3,
-    name: "Ethan Chen",
-    grade: "4th",
-    monthlyRate: 240,
-    status: "Pending",
-    lastPayment: "Feb 5, 2026",
-    balance: 240,
-  },
-  {
-    id: 4,
-    name: "Rohan Gupta",
-    grade: "8th",
-    monthlyRate: 320,
-    status: "Paid",
-    lastPayment: "Mar 2, 2026",
-    balance: 0,
-  },
-  {
-    id: 5,
-    name: "Emma Wilson",
-    grade: "3rd",
-    monthlyRate: 240,
-    status: "Overdue",
-    lastPayment: "Jan 15, 2026",
-    balance: 480,
-  },
-  {
-    id: 6,
-    name: "Liam Nakamura",
-    grade: "5th",
-    monthlyRate: 280,
-    status: "Paid",
-    lastPayment: "Mar 1, 2026",
-    balance: 0,
-  },
-  {
-    id: 7,
-    name: "Noah Kim",
-    grade: "4th",
-    monthlyRate: 240,
-    status: "Pending",
-    lastPayment: "Feb 3, 2026",
-    balance: 240,
-  },
-  {
-    id: 8,
-    name: "Zara Ahmed",
-    grade: "7th",
-    monthlyRate: 280,
-    status: "Paid",
-    lastPayment: "Mar 5, 2026",
-    balance: 0,
-  },
-  {
-    id: 9,
-    name: "Aiden O'Brien",
-    grade: "5th",
-    monthlyRate: 280,
-    status: "Paid",
-    lastPayment: "Mar 1, 2026",
-    balance: 0,
-  },
-  {
-    id: 10,
-    name: "Priya Sharma",
-    grade: "8th",
-    monthlyRate: 320,
-    status: "Overdue",
-    lastPayment: "Jan 20, 2026",
-    balance: 640,
-  },
-];
-
-const paymentHistory: PaymentRecord[] = [
-  {
-    id: 1,
-    date: "Mar 5, 2026",
-    student: "Zara Ahmed",
-    amount: 280,
-    method: "Card",
-    status: "Paid",
-  },
-  {
-    id: 2,
-    date: "Mar 3, 2026",
-    student: "Sofia Martinez",
-    amount: 280,
-    method: "Card",
-    status: "Paid",
-  },
-  {
-    id: 3,
-    date: "Mar 2, 2026",
-    student: "Rohan Gupta",
-    amount: 320,
-    method: "ACH",
-    status: "Paid",
-  },
-  {
-    id: 4,
-    date: "Mar 1, 2026",
-    student: "Aarav Patel",
-    amount: 280,
-    method: "Card",
-    status: "Paid",
-  },
-  {
-    id: 5,
-    date: "Mar 1, 2026",
-    student: "Liam Nakamura",
-    amount: 280,
-    method: "Card",
-    status: "Paid",
-  },
-  {
-    id: 6,
-    date: "Mar 1, 2026",
-    student: "Aiden O'Brien",
-    amount: 280,
-    method: "ACH",
-    status: "Paid",
-  },
-  {
-    id: 7,
-    date: "Feb 5, 2026",
-    student: "Ethan Chen",
-    amount: 240,
-    method: "Card",
-    status: "Paid",
-  },
-  {
-    id: 8,
-    date: "Feb 3, 2026",
-    student: "Noah Kim",
-    amount: 240,
-    method: "Card",
-    status: "Paid",
-  },
-];
+type PaymentStatus = "paid" | "pending" | "overdue" | "failed";
 
 function statusBadgeClass(status: PaymentStatus) {
   switch (status) {
-    case "Paid":
+    case "paid":
       return "bg-mathitude-teal/10 text-mathitude-teal border-mathitude-teal/20";
-    case "Pending":
+    case "pending":
       return "bg-mathitude-purple/10 text-mathitude-purple border-mathitude-purple/20";
-    case "Overdue":
+    case "overdue":
+    case "failed":
       return "bg-red-50 text-red-600 border-red-200";
   }
 }
 
+function statusLabel(status: PaymentStatus) {
+  switch (status) {
+    case "paid":
+      return "Paid";
+    case "pending":
+      return "Pending";
+    case "overdue":
+      return "Overdue";
+    case "failed":
+      return "Failed";
+  }
+}
+
+function formatDate(isoString: string): string {
+  const date = new Date(isoString);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatAmount(cents: number): string {
+  return `$${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+}
+
 export default function AdminPaymentsPage() {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  const filtered = studentPayments.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/students").then((res) => res.json()),
+      fetch("/api/payments").then((res) => res.json()),
+    ])
+      .then(([studentsJson, paymentsJson]) => {
+        setStudents(studentsJson.students || []);
+        setPayments(paymentsJson.payments || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
-  const totalCollected = paymentHistory.reduce((sum, p) => sum + p.amount, 0);
-  const totalOutstanding = studentPayments.reduce(
-    (sum, s) => sum + s.balance,
-    0
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-mathitude-navy">Payments</h1>
+          <p className="text-sm text-gray-500 mt-1">Loading payment data...</p>
+        </div>
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-mathitude-teal border-t-transparent" />
+        </div>
+      </div>
+    );
+  }
+
+  // Build a map of studentId -> Student for lookups
+  const studentMap = new Map(students.map((s) => [s.id, s]));
+
+  // Build student name helper
+  function studentName(studentId: string): string {
+    const s = studentMap.get(studentId);
+    return s ? `${s.firstName} ${s.lastName}` : studentId;
+  }
+
+  // Calculate summary stats from payments
+  const totalCollected = payments
+    .filter((p) => p.paymentStatus === "paid")
+    .reduce((sum, p) => sum + p.amount, 0);
+  const totalOutstanding = payments
+    .filter((p) => p.paymentStatus === "pending" || p.paymentStatus === "overdue")
+    .reduce((sum, p) => sum + p.amount, 0);
+  const overdueCount = new Set(
+    payments.filter((p) => p.paymentStatus === "overdue").map((p) => p.studentId)
+  ).size;
+
+  // Get recent payments sorted by date
+  const recentPayments = [...payments]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 20);
+
+  // Build per-student billing view: aggregate latest payment status per student
+  const studentBilling = students
+    .filter((s) => s.status === "active")
+    .map((student) => {
+      const studentPayments = payments
+        .filter((p) => p.studentId === student.id)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const latestPayment = studentPayments[0];
+      const balance = studentPayments
+        .filter((p) => p.paymentStatus === "pending" || p.paymentStatus === "overdue")
+        .reduce((sum, p) => sum + p.amount, 0);
+      return {
+        student,
+        latestStatus: latestPayment?.paymentStatus || ("pending" as PaymentStatus),
+        lastPaymentDate: latestPayment?.createdAt || "",
+        balance,
+      };
+    });
+
+  const filteredBilling = studentBilling.filter((sb) =>
+    `${sb.student.firstName} ${sb.student.lastName}`
+      .toLowerCase()
+      .includes(search.toLowerCase())
   );
-  const overdueCount = studentPayments.filter(
-    (s) => s.status === "Overdue"
-  ).length;
 
   return (
     <div className="space-y-6">
@@ -245,9 +161,9 @@ export default function AdminPaymentsPage() {
               <DollarSign className="h-5 w-5 text-mathitude-teal" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Collected (Mar)</p>
+              <p className="text-xs text-gray-500">Collected</p>
               <p className="text-xl font-bold text-mathitude-navy">
-                ${totalCollected.toLocaleString()}
+                {formatAmount(totalCollected)}
               </p>
             </div>
           </CardContent>
@@ -260,7 +176,7 @@ export default function AdminPaymentsPage() {
             <div>
               <p className="text-xs text-gray-500">Outstanding</p>
               <p className="text-xl font-bold text-mathitude-navy">
-                ${totalOutstanding.toLocaleString()}
+                {formatAmount(totalOutstanding)}
               </p>
             </div>
           </CardContent>
@@ -323,42 +239,48 @@ export default function AdminPaymentsPage() {
 
           {/* Rows */}
           <div className="divide-y divide-gray-100">
-            {filtered.map((student) => (
+            {filteredBilling.length === 0 && students.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <p className="text-sm">No students yet.</p>
+              </div>
+            )}
+
+            {filteredBilling.map((sb) => (
               <div
-                key={student.id}
+                key={sb.student.id}
                 className="grid grid-cols-1 sm:grid-cols-[1fr_80px_100px_100px_80px_100px] gap-2 sm:gap-4 items-center px-4 py-3"
               >
                 <div>
                   <p className="font-medium text-mathitude-navy text-sm">
-                    {student.name}
+                    {sb.student.firstName} {sb.student.lastName}
                   </p>
                   <p className="text-xs text-gray-400 sm:hidden">
-                    Grade {student.grade} &middot; ${student.monthlyRate}/mo
+                    Grade {sb.student.grade} &middot; ${sb.student.rate}/mo
                   </p>
                 </div>
                 <span className="hidden sm:block text-sm text-gray-600">
-                  {student.grade}
+                  {sb.student.grade}
                 </span>
                 <span className="hidden sm:block text-sm text-gray-600">
-                  ${student.monthlyRate}
+                  ${sb.student.rate}
                 </span>
                 <span
                   className={`hidden sm:block text-sm font-medium ${
-                    student.balance > 0 ? "text-red-600" : "text-gray-400"
+                    sb.balance > 0 ? "text-red-600" : "text-gray-400"
                   }`}
                 >
-                  {student.balance > 0
-                    ? `$${student.balance}`
+                  {sb.balance > 0
+                    ? formatAmount(sb.balance)
                     : "$0"}
                 </span>
-                <Badge className={statusBadgeClass(student.status)}>
-                  {student.status}
+                <Badge className={statusBadgeClass(sb.latestStatus)}>
+                  {statusLabel(sb.latestStatus)}
                 </Badge>
                 <Button
                   size="sm"
                   variant="outline"
                   className="w-fit text-xs border-mathitude-teal text-mathitude-teal hover:bg-mathitude-teal hover:text-white"
-                  disabled={student.status === "Paid"}
+                  disabled={sb.latestStatus === "paid"}
                 >
                   <DollarSign className="h-3 w-3" />
                   Charge
@@ -366,7 +288,7 @@ export default function AdminPaymentsPage() {
               </div>
             ))}
 
-            {filtered.length === 0 && (
+            {filteredBilling.length === 0 && students.length > 0 && (
               <div className="text-center py-8 text-gray-500">
                 <p className="text-sm">No students found.</p>
               </div>
@@ -386,28 +308,34 @@ export default function AdminPaymentsPage() {
             <span>Date</span>
             <span>Student</span>
             <span>Amount</span>
-            <span>Method</span>
+            <span>Desc</span>
             <span>Status</span>
           </div>
 
           <div className="divide-y divide-gray-100">
-            {paymentHistory.map((payment) => (
+            {recentPayments.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <p className="text-sm">No payment history yet.</p>
+              </div>
+            )}
+
+            {recentPayments.map((payment, idx) => (
               <div
-                key={payment.id}
+                key={`${payment.studentId}-${payment.createdAt}-${idx}`}
                 className="grid grid-cols-1 sm:grid-cols-[120px_1fr_100px_80px_80px] gap-2 sm:gap-4 items-center px-4 py-3"
               >
-                <span className="text-sm text-gray-500">{payment.date}</span>
+                <span className="text-sm text-gray-500">{formatDate(payment.createdAt)}</span>
                 <span className="text-sm font-medium text-mathitude-navy">
-                  {payment.student}
+                  {studentName(payment.studentId)}
                 </span>
                 <span className="text-sm text-gray-700">
-                  ${payment.amount}
+                  {formatAmount(payment.amount)}
                 </span>
-                <span className="hidden sm:block text-sm text-gray-500">
-                  {payment.method}
+                <span className="hidden sm:block text-sm text-gray-500 truncate">
+                  {payment.description}
                 </span>
-                <Badge className={statusBadgeClass(payment.status)}>
-                  {payment.status}
+                <Badge className={statusBadgeClass(payment.paymentStatus)}>
+                  {statusLabel(payment.paymentStatus)}
                 </Badge>
               </div>
             ))}
