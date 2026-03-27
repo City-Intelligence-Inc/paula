@@ -60,6 +60,36 @@ resource "vercel_project_environment_variable" "stripe_publishable_key" {
   target     = ["production", "preview", "development"]
 }
 
+# ---- AWS / DynamoDB environment variables ----
+
+resource "vercel_project_environment_variable" "aws_region" {
+  project_id = vercel_project.website.id
+  key        = "AWS_REGION"
+  value      = var.aws_region
+  target     = ["production", "preview", "development"]
+}
+
+resource "vercel_project_environment_variable" "aws_access_key_id" {
+  project_id = vercel_project.website.id
+  key        = "AWS_ACCESS_KEY_ID"
+  value      = var.aws_access_key_id
+  target     = ["production", "preview", "development"]
+}
+
+resource "vercel_project_environment_variable" "aws_secret_access_key" {
+  project_id = vercel_project.website.id
+  key        = "AWS_SECRET_ACCESS_KEY"
+  value      = var.aws_secret_access_key
+  target     = ["production", "preview", "development"]
+}
+
+resource "vercel_project_environment_variable" "dynamodb_table_prefix" {
+  project_id = vercel_project.website.id
+  key        = "DYNAMODB_TABLE_PREFIX"
+  value      = var.table_prefix
+  target     = ["production", "preview", "development"]
+}
+
 # ---- Deployment ----
 
 resource "vercel_deployment" "website" {

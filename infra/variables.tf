@@ -45,3 +45,35 @@ variable "stripe_publishable_key" {
   description = "Stripe publishable key (NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)"
   type        = string
 }
+
+# ---- AWS ----
+
+variable "aws_region" {
+  description = "AWS region for DynamoDB and other resources"
+  type        = string
+  default     = "us-west-2"
+}
+
+variable "environment" {
+  description = "Deployment environment (e.g. production, staging)"
+  type        = string
+  default     = "production"
+}
+
+variable "table_prefix" {
+  description = "Prefix for DynamoDB table names"
+  type        = string
+  default     = "mathitude"
+}
+
+variable "aws_access_key_id" {
+  description = "AWS access key ID for programmatic access"
+  type        = string
+  sensitive   = true
+}
+
+variable "aws_secret_access_key" {
+  description = "AWS secret access key for programmatic access"
+  type        = string
+  sensitive   = true
+}

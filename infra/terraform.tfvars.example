@@ -16,3 +16,10 @@ clerk_secret_key      = "sk_test_xxxxxxxxxxxxxxxxxxxx"
 # Stripe payments
 stripe_secret_key      = "sk_test_xxxxxxxxxxxxxxxxxxxx"
 stripe_publishable_key = "pk_test_xxxxxxxxxxxxxxxxxxxx"
+
+# AWS credentials and configuration
+aws_region            = "us-west-2"
+environment           = "production"
+table_prefix          = "mathitude"
+aws_access_key_id     = "AKIAXXXXXXXXXXXXXXXX"
+aws_secret_access_key = "your-aws-secret-access-key"
