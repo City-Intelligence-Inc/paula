@@ -3,27 +3,27 @@ import { User } from "lucide-react";
 export function AboutPaula() {
   return (
     <section className="bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
         <div className="grid lg:grid-cols-5 gap-12 lg:gap-16 items-start">
           {/* Photo placeholder */}
           <div className="lg:col-span-2 flex justify-center">
-            <div className="w-64 h-72 sm:w-72 sm:h-80 bg-gradient-to-b from-mathitude-light to-mathitude-cream rounded-2xl flex items-center justify-center border border-gray-200 shadow-sm">
-              <User className="w-20 h-20 text-mathitude-teal/40" />
+            <div className="w-64 h-72 sm:w-72 sm:h-80 bg-neutral-100 rounded-xl flex items-center justify-center">
+              <User className="w-20 h-20 text-neutral-300" />
             </div>
           </div>
 
           {/* Bio */}
           <div className="lg:col-span-3 space-y-6">
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-mathitude-navy">
+            <h2 className="text-3xl sm:text-4xl font-serif italic font-medium text-neutral-900 tracking-tight">
               Meet Paula Hamilton!
             </h2>
 
-            <p className="text-lg font-serif text-mathitude-teal font-medium italic">
+            <p className="text-xl font-serif italic text-neutral-900 leading-relaxed">
               Paula&apos;s vision of lifetime math engagement for all is at the
               heart of everything we do.
             </p>
 
-            <div className="space-y-4 text-gray-700 leading-relaxed">
+            <div className="space-y-4 text-neutral-600 leading-relaxed">
               <p>
                 When she founded Mathitude in 2013, Paula set out to pioneer
                 math enrichment that fostered big mathematical thinking through

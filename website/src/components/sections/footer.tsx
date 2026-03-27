@@ -42,7 +42,7 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="bg-mathitude-navy text-white">
+    <footer className="bg-neutral-950 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Social links */}
         <div className="flex justify-center gap-5">
@@ -51,7 +51,7 @@ export function Footer() {
               key={social.label}
               href={social.href}
               aria-label={social.label}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-mathitude-teal flex items-center justify-center transition-colors"
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -60,15 +60,15 @@ export function Footer() {
           ))}
         </div>
 
-        <Separator className="my-8 bg-white/20" />
+        <Separator className="my-8 bg-white/10" />
 
-        <div className="text-center space-y-2 text-sm text-white/70">
+        <div className="text-center space-y-2 text-sm text-white/50">
           <p>&copy; Copyright {new Date().getFullYear()} by Mathitude LLC</p>
           <p>
             Tel:{" "}
             <a
               href="tel:5102052633"
-              className="hover:text-mathitude-teal transition-colors"
+              className="hover:text-white/70 transition-colors"
             >
               510.205.2633
             </a>
@@ -77,7 +77,7 @@ export function Footer() {
             Email:{" "}
             <a
               href="mailto:info@mathitude.com"
-              className="hover:text-mathitude-teal transition-colors"
+              className="hover:text-white/70 transition-colors"
             >
               info@mathitude.com
             </a>

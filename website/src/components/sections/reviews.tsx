@@ -28,7 +28,7 @@ function Stars({ count }: { count: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <Star
           key={i}
-          className="w-4 h-4 fill-mathitude-teal text-mathitude-teal"
+          className="w-4 h-4 fill-neutral-900 text-neutral-900"
         />
       ))}
     </div>
@@ -38,26 +38,26 @@ function Stars({ count }: { count: number }) {
 export function Reviews() {
   return (
     <section className="bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-        <h2 className="text-3xl sm:text-4xl font-serif font-bold text-mathitude-navy text-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+        <h2 className="text-3xl sm:text-4xl font-serif italic font-medium text-neutral-900 text-center tracking-tight">
           What Parents Are Saying
         </h2>
         <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {reviews.map((review) => (
             <Card
               key={review.name}
-              className="border border-gray-100 shadow-sm"
+              className="border border-neutral-200 rounded-lg shadow-none"
             >
               <CardContent className="pt-6 pb-6 px-6">
                 <Stars count={review.rating} />
-                <p className="mt-4 text-gray-700 leading-relaxed italic">
+                <p className="mt-4 text-neutral-600 leading-relaxed italic">
                   &ldquo;{review.text}&rdquo;
                 </p>
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <p className="font-semibold text-mathitude-navy text-sm">
+                <div className="mt-4 pt-4 border-t border-neutral-200">
+                  <p className="font-medium text-neutral-900 text-sm">
                     {review.name}
                   </p>
-                  <p className="text-xs text-gray-500">{review.role}</p>
+                  <p className="text-xs text-neutral-400">{review.role}</p>
                 </div>
               </CardContent>
             </Card>
