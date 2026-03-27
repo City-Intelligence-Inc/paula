@@ -1,0 +1,18 @@
+# ---------------------------------------------------------
+# Example Terraform variables for the Mathitude project
+# Copy this file to terraform.tfvars and fill in real values.
+# NEVER commit terraform.tfvars — it contains secrets.
+# ---------------------------------------------------------
+
+vercel_api_token = "your-vercel-api-token"
+
+team_id      = "city-intelligence-inc"
+project_name = "mathitude-website"
+
+# Clerk authentication
+clerk_publishable_key = "pk_test_xxxxxxxxxxxxxxxxxxxx"
+clerk_secret_key      = "sk_test_xxxxxxxxxxxxxxxxxxxx"
+
+# Stripe payments
+stripe_secret_key      = "sk_test_xxxxxxxxxxxxxxxxxxxx"
+stripe_publishable_key = "pk_test_xxxxxxxxxxxxxxxxxxxx"

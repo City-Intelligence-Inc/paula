@@ -1,0 +1,71 @@
+# ---------------------------------------------------------
+# Vercel project for the Mathitude K-12 math enrichment site
+# ---------------------------------------------------------
+
+resource "vercel_project" "website" {
+  name      = var.project_name
+  framework = "nextjs"
+
+  git_repository = {
+    type = "github"
+    repo = "City-Intelligence-Inc/paula"
+  }
+
+  root_directory = "website"
+}
+
+# ---- Clerk authentication environment variables ----
+
+resource "vercel_project_environment_variable" "clerk_publishable_key" {
+  project_id = vercel_project.website.id
+  key        = "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"
+  value      = var.clerk_publishable_key
+  target     = ["production", "preview", "development"]
+}
+
+resource "vercel_project_environment_variable" "clerk_secret_key" {
+  project_id = vercel_project.website.id
+  key        = "CLERK_SECRET_KEY"
+  value      = var.clerk_secret_key
+  target     = ["production", "preview", "development"]
+}
+
+resource "vercel_project_environment_variable" "clerk_sign_in_url" {
+  project_id = vercel_project.website.id
+  key        = "NEXT_PUBLIC_CLERK_SIGN_IN_URL"
+  value      = "/sign-in"
+  target     = ["production", "preview", "development"]
+}
+
+resource "vercel_project_environment_variable" "clerk_sign_up_url" {
+  project_id = vercel_project.website.id
+  key        = "NEXT_PUBLIC_CLERK_SIGN_UP_URL"
+  value      = "/sign-up"
+  target     = ["production", "preview", "development"]
+}
+
+# ---- Stripe payment environment variables ----
+
+resource "vercel_project_environment_variable" "stripe_secret_key" {
+  project_id = vercel_project.website.id
+  key        = "STRIPE_SECRET_KEY"
+  value      = var.stripe_secret_key
+  target     = ["production", "preview", "development"]
+}
+
+resource "vercel_project_environment_variable" "stripe_publishable_key" {
+  project_id = vercel_project.website.id
+  key        = "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
+  value      = var.stripe_publishable_key
+  target     = ["production", "preview", "development"]
+}
+
+# ---- Deployment ----
+
+resource "vercel_deployment" "website" {
+  project_id = vercel_project.website.id
+  production = true
+
+  # Path ref is informational; actual deploy is triggered via Vercel git
+  # integration or the Vercel CLI.  The resource tracks deployment state.
+}
