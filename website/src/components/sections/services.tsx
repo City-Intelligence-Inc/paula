@@ -7,32 +7,32 @@ const services = [
     title: "Enrichment Books",
     description:
       "Signature math engagement workbooks for elementary and middle-grade students.",
-    color: "text-mathitude-orange",
-    bg: "bg-mathitude-orange/10",
+    color: "text-mathitude-teal",
+    bg: "bg-mathitude-teal/10",
   },
   {
     icon: MessageSquare,
     title: "Advisory Services",
     description:
       "Expert guidance for parents navigating their student's math education journey.",
-    color: "text-mathitude-blue",
-    bg: "bg-mathitude-blue/10",
+    color: "text-mathitude-purple",
+    bg: "bg-mathitude-purple/10",
   },
   {
     icon: Users,
     title: "Solo & Group Tutoring",
     description:
       "Private math coaching for all ages, individually or in small groups.",
-    color: "text-mathitude-purple",
-    bg: "bg-mathitude-purple/10",
+    color: "text-mathitude-teal",
+    bg: "bg-mathitude-teal/10",
   },
   {
     icon: Puzzle,
     title: "Puzzles & Activities",
     description:
       "Fun, engaging math challenges that build deep thinking and problem-solving skills.",
-    color: "text-mathitude-green",
-    bg: "bg-mathitude-green/10",
+    color: "text-mathitude-purple",
+    bg: "bg-mathitude-purple/10",
   },
 ];
 

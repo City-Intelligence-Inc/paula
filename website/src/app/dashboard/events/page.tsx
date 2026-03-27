@@ -63,9 +63,9 @@ const events: Event[] = [
 ];
 
 const typeStyles = {
-  festival: { badge: "bg-mathitude-orange/10 text-mathitude-orange border-mathitude-orange/20", label: "Festival" },
+  festival: { badge: "bg-mathitude-teal/10 text-mathitude-teal border-mathitude-teal/20", label: "Festival" },
   workshop: { badge: "bg-mathitude-purple/10 text-mathitude-purple border-mathitude-purple/20", label: "Workshop" },
-  announcement: { badge: "bg-mathitude-blue/10 text-mathitude-blue border-mathitude-blue/20", label: "News" },
+  announcement: { badge: "bg-mathitude-teal/10 text-mathitude-teal border-mathitude-teal/20", label: "News" },
 };
 
 export default function EventsPage() {

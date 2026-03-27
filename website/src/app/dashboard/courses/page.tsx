@@ -153,10 +153,10 @@ const typeIcon = {
 };
 
 const typeColor = {
-  workbook: "bg-mathitude-orange/10 text-mathitude-orange",
-  worksheet: "bg-mathitude-blue/10 text-mathitude-blue",
-  video: "bg-mathitude-red/10 text-mathitude-red",
-  activity: "bg-mathitude-green/10 text-mathitude-green",
+  workbook: "bg-mathitude-teal/10 text-mathitude-teal",
+  worksheet: "bg-mathitude-purple/10 text-mathitude-purple",
+  video: "bg-mathitude-teal/10 text-mathitude-teal",
+  activity: "bg-mathitude-purple/10 text-mathitude-purple",
 };
 
 export default function CoursesPage() {

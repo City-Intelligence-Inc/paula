@@ -91,7 +91,13 @@ function AuthButtons({ mobile }: { mobile?: boolean }) {
 
   if (isSignedIn) {
     return (
-      <div className={mobile ? "mt-2 px-3" : "ml-3"}>
+      <div className={mobile ? "mt-2 px-3 flex items-center gap-3" : "ml-3 flex items-center gap-3"}>
+        <Link
+          href="/dashboard"
+          className="text-sm font-medium text-mathitude-teal hover:text-mathitude-teal-dark transition-colors"
+        >
+          Dashboard
+        </Link>
         <UserButton />
       </div>
     );

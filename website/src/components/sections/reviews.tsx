@@ -28,7 +28,7 @@ function Stars({ count }: { count: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <Star
           key={i}
-          className="w-4 h-4 fill-mathitude-orange text-mathitude-orange"
+          className="w-4 h-4 fill-mathitude-teal text-mathitude-teal"
         />
       ))}
     </div>
