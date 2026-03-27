@@ -1,0 +1,99 @@
+import { Card, CardContent } from "@/components/ui/card";
+import { Calendar, Clock, Video, MapPin } from "lucide-react";
+
+export default function SchedulePage() {
+  return (
+    <div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-serif font-bold text-mathitude-navy">
+          Schedule a Meeting
+        </h1>
+        <p className="mt-2 text-gray-600">
+          Book an introductory meet-and-greet session with Paula to discuss your
+          student&apos;s needs and goals.
+        </p>
+      </div>
+
+      {/* Info cards */}
+      <div className="grid sm:grid-cols-3 gap-4 mb-8">
+        <Card className="border border-gray-100">
+          <CardContent className="pt-5 pb-5 px-5 flex items-start gap-3">
+            <Clock className="w-5 h-5 text-mathitude-teal shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-sm text-mathitude-navy">
+                30-Minute Session
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Free introductory consultation
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border border-gray-100">
+          <CardContent className="pt-5 pb-5 px-5 flex items-start gap-3">
+            <Video className="w-5 h-5 text-mathitude-teal shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-sm text-mathitude-navy">
+                Virtual or In-Person
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Zoom or Bay Area location
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border border-gray-100">
+          <CardContent className="pt-5 pb-5 px-5 flex items-start gap-3">
+            <Calendar className="w-5 h-5 text-mathitude-teal shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-sm text-mathitude-navy">
+                Flexible Scheduling
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Mon-Sat availability
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Calendly Embed */}
+      <Card className="border border-gray-100 overflow-hidden">
+        <CardContent className="p-0">
+          <div className="bg-mathitude-light px-6 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-mathitude-navy flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Select a Time
+            </h2>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Choose a convenient time for your introductory meeting with Paula.
+            </p>
+          </div>
+          {/*
+            Replace the Calendly URL below with Paula's actual Calendly link.
+            Example: https://calendly.com/paula-mathitude/meet-and-greet
+          */}
+          <div
+            className="w-full"
+            style={{ minHeight: "660px" }}
+          >
+            <iframe
+              src="https://calendly.com/d/placeholder"
+              width="100%"
+              height="660"
+              frameBorder="0"
+              title="Schedule a meeting with Paula"
+              className="w-full"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <p className="mt-4 text-xs text-gray-400 text-center">
+        This is an initial meet-and-greet, not an official class session. Paula
+        will discuss your student&apos;s needs and recommend the best path
+        forward.
+      </p>
+    </div>
+  );
+}
