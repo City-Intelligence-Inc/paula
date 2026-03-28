@@ -23,4 +23,5 @@ export const Tables = {
   payments: `${prefix}-payments`,
   events: `${prefix}-events`,
   resources: `${prefix}-resources`,
+  subscribers: `${prefix}-subscribers`,
 } as const;

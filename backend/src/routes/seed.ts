@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { requireAuth } from "../lib/auth";
+import { requireAdmin } from "../lib/roles";
 import { dynamodb, Tables } from "../lib/dynamodb";
 import { BatchWriteCommand } from "@aws-sdk/lib-dynamodb";
 import {
@@ -40,10 +41,11 @@ async function batchWrite(
   }
 }
 
-// POST /api/seed
+// POST /api/seed (admin only)
 router.post(
   "/",
   requireAuth(),
+  requireAdmin,
   async (req: Request, res: Response): Promise<void> => {
     // Only allow in development or with a special header
     const isDev = process.env.NODE_ENV === "development";

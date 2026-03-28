@@ -4,6 +4,7 @@ import { CtaBanner } from "@/components/sections/cta-banner";
 import { AboutPaula } from "@/components/sections/about-paula";
 import { Services } from "@/components/sections/services";
 import { Reviews } from "@/components/sections/reviews";
+import { Newsletter } from "@/components/sections/newsletter";
 import { InfoBar } from "@/components/sections/info-bar";
 import { Footer } from "@/components/sections/footer";
 import { ScrollReveal } from "@/components/scroll-reveal";
@@ -25,6 +26,9 @@ export default function Home() {
         </ScrollReveal>
         <ScrollReveal delay={100}>
           <Reviews />
+        </ScrollReveal>
+        <ScrollReveal delay={50}>
+          <Newsletter />
         </ScrollReveal>
         <ScrollReveal>
           <InfoBar />

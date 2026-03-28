@@ -10,6 +10,7 @@ import eventRoutes from "./routes/events";
 import resourceRoutes from "./routes/resources";
 import stripeRoutes from "./routes/stripe";
 import seedRoutes from "./routes/seed";
+import newsletterRoutes from "./routes/newsletter";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -48,6 +49,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/resources", resourceRoutes);
 app.use("/api/stripe", stripeRoutes);
 app.use("/api/seed", seedRoutes);
+app.use("/api/newsletter", newsletterRoutes);
 
 // 404 handler
 app.use((_req, res) => {

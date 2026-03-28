@@ -9,6 +9,8 @@ import {
   Calendar,
   CalendarDays,
   CreditCard,
+  Mail,
+  Upload,
   Settings,
   Menu,
   ShieldCheck,
@@ -36,6 +38,16 @@ const navItems = [
     label: "Calendar",
     href: "/admin/calendar",
     icon: CalendarDays,
+  },
+  {
+    label: "Newsletter",
+    href: "/admin/newsletter",
+    icon: Mail,
+  },
+  {
+    label: "Import",
+    href: "/admin/import",
+    icon: Upload,
   },
   {
     label: "Settings",

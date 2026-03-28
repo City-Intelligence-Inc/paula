@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { requireAuth } from "../lib/auth";
+import { requireAdmin } from "../lib/roles";
 import { getAuth } from "@clerk/express";
 import { getStripe } from "../lib/stripe";
 
@@ -25,8 +26,8 @@ router.post("/create-setup-intent", async (req: Request, res: Response): Promise
   }
 });
 
-// POST /api/stripe/charge
-router.post("/charge", async (req: Request, res: Response): Promise<void> => {
+// POST /api/stripe/charge (admin only)
+router.post("/charge", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const { paymentMethodId, amount, customerId, description } = req.body;
 

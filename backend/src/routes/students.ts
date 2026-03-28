@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { requireAuth } from "../lib/auth";
+import { requireAdmin } from "../lib/roles";
 import { dynamodb, Tables } from "../lib/dynamodb";
 import {
   ScanCommand,
@@ -40,8 +41,8 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// POST /api/students — create
-router.post("/", async (req: Request, res: Response): Promise<void> => {
+// POST /api/students — create (admin only)
+router.post("/", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const body = req.body;
     const now = new Date().toISOString();
@@ -100,8 +101,8 @@ router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// PUT /api/students/:id — update
-router.put("/:id", async (req: Request, res: Response): Promise<void> => {
+// PUT /api/students/:id — update (admin only)
+router.put("/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const body = req.body;
@@ -126,8 +127,8 @@ router.put("/:id", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// DELETE /api/students/:id — delete
-router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
+// DELETE /api/students/:id — delete (admin only)
+router.delete("/:id", requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     await dynamodb.send(

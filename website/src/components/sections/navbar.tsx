@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 
 const navLinks = [
   { label: "Math Engagement", href: "/math-engagement" },
+  { label: "Pascal's Triangle", href: "/pascals-triangle" },
   { label: "Events & News", href: "/events" },
   { label: "Contact Us", href: "/contact" },
   { label: "Shop Books", href: "/shop" },
