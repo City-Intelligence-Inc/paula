@@ -8,9 +8,9 @@ import { Calendar, MapPin, Clock, Megaphone } from "lucide-react";
 import type { MathitudeEvent } from "@/lib/types";
 
 const typeStyles = {
-  festival: { badge: "bg-mathitude-teal/10 text-mathitude-teal border-mathitude-teal/20", label: "Festival" },
-  workshop: { badge: "bg-mathitude-purple/10 text-mathitude-purple border-mathitude-purple/20", label: "Workshop" },
-  announcement: { badge: "bg-mathitude-teal/10 text-mathitude-teal border-mathitude-teal/20", label: "News" },
+  festival: { badge: "bg-neutral-900/5 text-neutral-900 border-neutral-200", label: "Festival" },
+  workshop: { badge: "bg-neutral-100 text-neutral-600 border-neutral-200", label: "Workshop" },
+  announcement: { badge: "bg-neutral-100 text-neutral-600 border-neutral-200", label: "News" },
 };
 
 export default function EventsPage() {
@@ -31,15 +31,15 @@ export default function EventsPage() {
     return (
       <div>
         <div className="mb-8">
-          <h1 className="text-3xl font-serif font-bold text-mathitude-navy">
+          <h1 className="text-3xl font-serif italic font-medium text-neutral-900 tracking-tight">
             Events & News
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-neutral-600">
             Upcoming math festivals, workshops, and Mathitude announcements.
           </p>
         </div>
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-mathitude-teal border-t-transparent" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-900 border-t-transparent" />
         </div>
       </div>
     );
@@ -51,16 +51,16 @@ export default function EventsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-serif font-bold text-mathitude-navy">
+        <h1 className="text-3xl font-serif italic font-medium text-neutral-900 tracking-tight">
           Events & News
         </h1>
-        <p className="mt-2 text-gray-600">
+        <p className="mt-2 text-neutral-600">
           Upcoming math festivals, workshops, and Mathitude announcements.
         </p>
       </div>
 
       {events.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-neutral-500">
           <p className="text-sm">No events yet. Check back soon!</p>
         </div>
       )}
@@ -68,15 +68,15 @@ export default function EventsPage() {
       {/* Featured */}
       {featured.length > 0 && (
         <div className="mb-10">
-          <h2 className="text-lg font-semibold text-mathitude-navy mb-4 flex items-center gap-2">
-            <Megaphone className="w-5 h-5 text-mathitude-teal" />
+          <h2 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center gap-2">
+            <Megaphone className="w-5 h-5 text-neutral-400" />
             Featured
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
             {featured.map((event) => (
               <Card
                 key={event.id}
-                className="border-2 border-mathitude-teal/20 shadow-sm bg-mathitude-light/50"
+                className="border border-neutral-200 rounded-lg bg-white hover:shadow-sm transition-shadow"
               >
                 <CardContent className="pt-5 pb-5 px-5">
                   <div className="flex items-center gap-2 mb-3">
@@ -88,29 +88,29 @@ export default function EventsPage() {
                     </Badge>
                     <Badge
                       variant="outline"
-                      className="bg-mathitude-teal/10 text-mathitude-teal border-mathitude-teal/20"
+                      className="bg-neutral-900 text-white border-neutral-900"
                     >
                       Featured
                     </Badge>
                   </div>
-                  <h3 className="text-lg font-semibold text-mathitude-navy">
+                  <h3 className="text-lg font-semibold text-neutral-900">
                     {event.title}
                   </h3>
-                  <p className="mt-2 text-sm text-gray-600">
+                  <p className="mt-2 text-sm text-neutral-600">
                     {event.description}
                   </p>
                   <div className="mt-3 space-y-1">
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-2 text-xs text-neutral-500">
                       <Calendar className="w-3.5 h-3.5" />
                       {event.date}
                     </div>
                     {event.time && (
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-2 text-xs text-neutral-500">
                         <Clock className="w-3.5 h-3.5" />
                         {event.time}
                       </div>
                     )}
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-2 text-xs text-neutral-500">
                       <MapPin className="w-3.5 h-3.5" />
                       {event.location}
                     </div>
@@ -125,15 +125,15 @@ export default function EventsPage() {
       {/* Upcoming */}
       {upcoming.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-mathitude-navy mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-mathitude-teal" />
+          <h2 className="text-lg font-semibold text-neutral-900 mb-4 flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-neutral-400" />
             Upcoming
           </h2>
           <div className="grid gap-4">
             {upcoming.map((event) => (
               <Card
                 key={event.id}
-                className="border border-gray-100 shadow-sm"
+                className="border border-neutral-200 rounded-lg bg-white hover:shadow-sm transition-shadow"
               >
                 <CardContent className="pt-5 pb-5 px-5">
                   <div className="flex items-start gap-4">
@@ -146,24 +146,24 @@ export default function EventsPage() {
                           {typeStyles[event.type].label}
                         </Badge>
                       </div>
-                      <h3 className="font-semibold text-mathitude-navy">
+                      <h3 className="font-semibold text-neutral-900">
                         {event.title}
                       </h3>
-                      <p className="mt-1 text-sm text-gray-600">
+                      <p className="mt-1 text-sm text-neutral-600">
                         {event.description}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-3">
-                        <span className="flex items-center gap-1 text-xs text-gray-500">
+                        <span className="flex items-center gap-1 text-xs text-neutral-500">
                           <Calendar className="w-3 h-3" />
                           {event.date}
                         </span>
                         {event.time && (
-                          <span className="flex items-center gap-1 text-xs text-gray-500">
+                          <span className="flex items-center gap-1 text-xs text-neutral-500">
                             <Clock className="w-3 h-3" />
                             {event.time}
                           </span>
                         )}
-                        <span className="flex items-center gap-1 text-xs text-gray-500">
+                        <span className="flex items-center gap-1 text-xs text-neutral-500">
                           <MapPin className="w-3 h-3" />
                           {event.location}
                         </span>

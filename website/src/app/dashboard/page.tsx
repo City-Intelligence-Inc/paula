@@ -1,76 +1,34 @@
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { BookOpen, Calendar, FolderOpen, Newspaper } from "lucide-react";
 
-const quickLinks = [
-  {
-    title: "Course Materials",
-    description: "Browse materials by grade level, from preschool to college.",
-    href: "/dashboard/courses",
-    icon: BookOpen,
-    color: "text-mathitude-teal",
-    bg: "bg-mathitude-teal/10",
-  },
-  {
-    title: "Schedule a Meeting",
-    description: "Book a meet-and-greet session with Paula.",
-    href: "/dashboard/schedule",
-    icon: Calendar,
-    color: "text-mathitude-purple",
-    bg: "bg-mathitude-purple/10",
-  },
-  {
-    title: "Resources",
-    description: "Books, videos, puzzles, downloadable PDFs, and more.",
-    href: "/dashboard/resources",
-    icon: FolderOpen,
-    color: "text-mathitude-teal",
-    bg: "bg-mathitude-teal/10",
-  },
-  {
-    title: "Events & News",
-    description: "Upcoming math festivals and Mathitude announcements.",
-    href: "/dashboard/events",
-    icon: Newspaper,
-    color: "text-mathitude-purple",
-    bg: "bg-mathitude-purple/10",
-  },
+const sections = [
+  { title: "Course Materials", description: "Browse materials by grade level, from preschool to college.", href: "/dashboard/courses" },
+  { title: "Schedule a Meeting", description: "Book a meet-and-greet session with Paula.", href: "/dashboard/schedule" },
+  { title: "Resources", description: "Books, videos, puzzles, downloadable PDFs, and more.", href: "/dashboard/resources" },
+  { title: "Events & News", description: "Upcoming math festivals and Mathitude announcements.", href: "/dashboard/events" },
 ];
 
 export default function DashboardPage() {
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-serif font-bold text-mathitude-navy">
+      <div className="mb-10">
+        <h1 className="text-3xl sm:text-4xl font-serif italic font-medium text-neutral-900 tracking-tight">
           Welcome to Mathitude
         </h1>
-        <p className="mt-2 text-gray-600">
+        <p className="mt-3 text-neutral-500 max-w-lg">
           Your client portal for course materials, scheduling, and resources.
         </p>
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-6">
-        {quickLinks.map((link) => (
-          <Link key={link.href} href={link.href}>
-            <Card className="h-full border border-gray-100 shadow-sm hover:shadow-md hover:border-mathitude-teal/30 transition-all cursor-pointer">
-              <CardContent className="pt-6 pb-6 px-6">
-                <div className="flex items-start gap-4">
-                  <div
-                    className={`shrink-0 w-12 h-12 ${link.bg} rounded-xl flex items-center justify-center`}
-                  >
-                    <link.icon className={`w-6 h-6 ${link.color}`} />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-mathitude-navy">
-                      {link.title}
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-600">
-                      {link.description}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+      <div className="divide-y divide-neutral-200 border-y border-neutral-200">
+        {sections.map((s) => (
+          <Link key={s.href} href={s.href} className="flex items-center justify-between py-5 group">
+            <div>
+              <h2 className="text-base font-medium text-neutral-900 group-hover:text-neutral-600 transition-colors">
+                {s.title}
+              </h2>
+              <p className="mt-0.5 text-sm text-neutral-500">{s.description}</p>
+            </div>
+            <span className="text-neutral-300 group-hover:text-neutral-500 transition-colors ml-4 shrink-0">&rarr;</span>
           </Link>
         ))}
       </div>

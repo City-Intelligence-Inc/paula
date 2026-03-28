@@ -152,32 +152,25 @@ const typeIcon = {
   activity: BookOpen,
 };
 
-const typeColor = {
-  workbook: "bg-mathitude-teal/10 text-mathitude-teal",
-  worksheet: "bg-mathitude-purple/10 text-mathitude-purple",
-  video: "bg-mathitude-teal/10 text-mathitude-teal",
-  activity: "bg-mathitude-purple/10 text-mathitude-purple",
-};
-
 export default function CoursesPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-serif font-bold text-mathitude-navy">
+        <h1 className="text-3xl font-serif italic font-medium text-neutral-900 tracking-tight">
           Course Materials
         </h1>
-        <p className="mt-2 text-gray-600">
+        <p className="mt-2 text-neutral-600">
           Browse enrichment materials organized by grade level.
         </p>
       </div>
 
       <Tabs defaultValue="elementary" className="w-full">
-        <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-gray-100/80 p-1 rounded-lg">
+        <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-neutral-100/80 p-1 rounded-lg">
           {gradeLevels.map((grade) => (
             <TabsTrigger
               key={grade.value}
               value={grade.value}
-              className="flex-1 min-w-[80px] text-xs sm:text-sm data-[state=active]:bg-mathitude-teal data-[state=active]:text-white"
+              className="flex-1 min-w-[80px] text-xs sm:text-sm data-[state=active]:bg-neutral-900 data-[state=active]:text-white"
             >
               <span className="hidden sm:inline">{grade.label}</span>
               <span className="sm:hidden">{grade.shortLabel}</span>
@@ -193,18 +186,16 @@ export default function CoursesPage() {
                 return (
                   <Card
                     key={material.title}
-                    className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+                    className="border border-neutral-200 rounded-lg bg-white hover:shadow-sm transition-shadow"
                   >
                     <CardContent className="pt-5 pb-5 px-5">
                       <div className="flex items-start gap-4">
-                        <div
-                          className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${typeColor[material.type]}`}
-                        >
-                          <Icon className="w-5 h-5" />
+                        <div className="shrink-0 mt-0.5">
+                          <Icon className="w-5 h-5 text-neutral-400" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold text-mathitude-navy">
+                            <h3 className="font-semibold text-neutral-900">
                               {material.title}
                             </h3>
                             <Badge
@@ -214,7 +205,7 @@ export default function CoursesPage() {
                               {material.type}
                             </Badge>
                           </div>
-                          <p className="mt-1 text-sm text-gray-600">
+                          <p className="mt-1 text-sm text-neutral-600">
                             {material.description}
                           </p>
                           {material.tags && (

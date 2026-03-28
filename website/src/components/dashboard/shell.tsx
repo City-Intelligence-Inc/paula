@@ -12,7 +12,6 @@ import {
   LayoutDashboard,
   Menu,
   X,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -61,13 +60,12 @@ function NavLink({
       onClick={onClick}
       className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
         active
-          ? "bg-mathitude-teal text-white"
-          : "text-gray-700 hover:bg-mathitude-light hover:text-mathitude-teal"
+          ? "bg-neutral-900 text-white"
+          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
       }`}
     >
       <item.icon className="h-4 w-4 shrink-0" />
       {item.label}
-      {active && <ChevronRight className="ml-auto h-4 w-4" />}
     </Link>
   );
 }
@@ -82,14 +80,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const sidebar = (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-gray-100">
+      <div className="px-4 py-5 border-b border-neutral-200">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
             <span className="text-mathitude-purple">Math</span>
-            <span className="text-mathitude-navy">itude</span>
+            <span className="text-neutral-900">itude</span>
           </span>
         </Link>
-        <p className="mt-1 text-xs text-gray-500">Client Portal</p>
+        <p className="mt-1 text-xs text-neutral-400">Client Portal</p>
       </div>
 
       {/* Nav */}
@@ -107,14 +105,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="border-t border-gray-100 px-4 py-4">
+      <div className="border-t border-neutral-200 px-4 py-4">
         <div className="flex items-center gap-3">
           <UserButton />
           <div className="text-sm">
-            <p className="font-medium text-gray-900">My Account</p>
+            <p className="font-medium text-neutral-900">My Account</p>
             <Link
               href="/"
-              className="text-xs text-gray-500 hover:text-mathitude-teal"
+              className="text-xs text-neutral-500 hover:text-neutral-900"
             >
               Back to site
             </Link>
@@ -125,16 +123,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-neutral-50">
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-gray-200 lg:bg-white">
+      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-neutral-200 lg:bg-white">
         {sidebar}
       </aside>
 
       {/* Mobile sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetTrigger>
-          <span className="lg:hidden fixed top-3 left-3 z-50 inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 hover:bg-gray-100 transition-colors">
+          <span className="lg:hidden fixed top-3 left-3 z-50 inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 hover:bg-neutral-100 transition-colors">
             <Menu className="h-5 w-5" />
           </span>
         </SheetTrigger>

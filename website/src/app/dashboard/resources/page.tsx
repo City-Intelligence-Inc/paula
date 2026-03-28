@@ -60,16 +60,16 @@ export default function ResourcesPage() {
     return (
       <div>
         <div className="mb-8">
-          <h1 className="text-3xl font-serif font-bold text-mathitude-navy">
+          <h1 className="text-3xl font-serif italic font-medium text-neutral-900 tracking-tight">
             Resources
           </h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-neutral-600">
             Paula&apos;s published books, videos, downloadable puzzles, and
             curated math engagement tools.
           </p>
         </div>
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-mathitude-teal border-t-transparent" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-900 border-t-transparent" />
         </div>
       </div>
     );
@@ -87,22 +87,22 @@ export default function ResourcesPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-serif font-bold text-mathitude-navy">
+        <h1 className="text-3xl font-serif italic font-medium text-neutral-900 tracking-tight">
           Resources
         </h1>
-        <p className="mt-2 text-gray-600">
+        <p className="mt-2 text-neutral-600">
           Paula&apos;s published books, videos, downloadable puzzles, and
           curated math engagement tools.
         </p>
       </div>
 
       <Tabs defaultValue="books" className="w-full">
-        <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-gray-100/80 p-1 rounded-lg">
+        <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-neutral-100/80 p-1 rounded-lg">
           {tabConfig.map((tab) => (
             <TabsTrigger
               key={tab.value}
               value={tab.value}
-              className="flex-1 min-w-[100px] text-xs sm:text-sm gap-1.5 data-[state=active]:bg-mathitude-teal data-[state=active]:text-white"
+              className="flex-1 min-w-[100px] text-xs sm:text-sm gap-1.5 data-[state=active]:bg-neutral-900 data-[state=active]:text-white"
             >
               <tab.icon className="w-3.5 h-3.5 hidden sm:inline" />
               {tab.label}
@@ -115,7 +115,7 @@ export default function ResourcesPage() {
           return (
             <TabsContent key={tab.value} value={tab.value} className="mt-6">
               {items.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-neutral-500">
                   <p className="text-sm">No {tab.label.toLowerCase()} available yet.</p>
                 </div>
               ) : (
@@ -123,15 +123,15 @@ export default function ResourcesPage() {
                   {items.map((item) => (
                     <Card
                       key={item.id}
-                      className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+                      className="border border-neutral-200 rounded-lg bg-white hover:shadow-sm transition-shadow"
                     >
                       <CardContent className="pt-5 pb-5 px-5">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-mathitude-navy">
+                            <h3 className="font-semibold text-neutral-900">
                               {item.title}
                             </h3>
-                            <p className="mt-1 text-sm text-gray-600">
+                            <p className="mt-1 text-sm text-neutral-600">
                               {item.description}
                             </p>
                             {item.tags && item.tags.length > 0 && (
@@ -153,7 +153,7 @@ export default function ResourcesPage() {
                               href={item.href || "#"}
                               target={item.href ? "_blank" : undefined}
                               rel={item.href ? "noopener noreferrer" : undefined}
-                              className="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-mathitude-teal hover:text-mathitude-teal-dark transition-colors"
+                              className="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-neutral-900 hover:text-neutral-600 transition-colors"
                             >
                               <tab.actionIcon className="w-4 h-4" />
                               <span className="hidden sm:inline">

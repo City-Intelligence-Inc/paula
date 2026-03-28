@@ -106,7 +106,7 @@ export default function AdminStudentsPage() {
           <p className="text-sm text-neutral-500 mt-1">Loading students...</p>
         </div>
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-mathitude-purple border-t-transparent" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-900 border-t-transparent" />
         </div>
       </div>
     );
@@ -346,7 +346,7 @@ export default function AdminStudentsPage() {
                   <Badge
                     className={
                       student.status === "active"
-                        ? "bg-mathitude-purple/10 text-mathitude-purple border-mathitude-purple/20"
+                        ? "bg-neutral-900/5 text-neutral-900 border-neutral-200"
                         : "bg-neutral-100 text-neutral-600 border-neutral-200"
                     }
                   >

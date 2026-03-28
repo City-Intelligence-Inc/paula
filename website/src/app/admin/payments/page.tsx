@@ -26,9 +26,9 @@ type PaymentStatus = "paid" | "pending" | "overdue" | "failed";
 function statusBadgeClass(status: PaymentStatus) {
   switch (status) {
     case "paid":
-      return "bg-mathitude-teal/10 text-mathitude-teal border-mathitude-teal/20";
+      return "bg-neutral-900/5 text-neutral-900 border-neutral-200";
     case "pending":
-      return "bg-mathitude-purple/10 text-mathitude-purple border-mathitude-purple/20";
+      return "bg-neutral-100 text-neutral-600 border-neutral-200";
     case "overdue":
     case "failed":
       return "bg-red-50 text-red-600 border-red-200";
@@ -84,11 +84,11 @@ export default function AdminPaymentsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-mathitude-navy">Payments</h1>
-          <p className="text-sm text-gray-500 mt-1">Loading payment data...</p>
+          <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">Payments</h1>
+          <p className="text-sm text-neutral-500 mt-1">Loading payment data...</p>
         </div>
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-mathitude-teal border-t-transparent" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-900 border-t-transparent" />
         </div>
       </div>
     );
@@ -148,48 +148,42 @@ export default function AdminPaymentsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-mathitude-navy">Payments</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">Payments</h1>
+        <p className="text-sm text-neutral-500 mt-1">
           Manage billing and track payment status
         </p>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="py-4">
+        <Card className="py-4 border border-neutral-200 rounded-lg bg-white">
           <CardContent className="flex items-center gap-3">
-            <div className="rounded-lg bg-mathitude-teal/10 p-2.5">
-              <DollarSign className="h-5 w-5 text-mathitude-teal" />
-            </div>
+            <DollarSign className="h-5 w-5 text-neutral-400" />
             <div>
-              <p className="text-xs text-gray-500">Collected</p>
-              <p className="text-xl font-bold text-mathitude-navy">
+              <p className="text-xs text-neutral-500">Collected</p>
+              <p className="text-xl font-bold text-neutral-900">
                 {formatAmount(totalCollected)}
               </p>
             </div>
           </CardContent>
         </Card>
-        <Card className="py-4">
+        <Card className="py-4 border border-neutral-200 rounded-lg bg-white">
           <CardContent className="flex items-center gap-3">
-            <div className="rounded-lg bg-mathitude-purple/10 p-2.5">
-              <Clock className="h-5 w-5 text-mathitude-purple" />
-            </div>
+            <Clock className="h-5 w-5 text-neutral-400" />
             <div>
-              <p className="text-xs text-gray-500">Outstanding</p>
-              <p className="text-xl font-bold text-mathitude-navy">
+              <p className="text-xs text-neutral-500">Outstanding</p>
+              <p className="text-xl font-bold text-neutral-900">
                 {formatAmount(totalOutstanding)}
               </p>
             </div>
           </CardContent>
         </Card>
-        <Card className="py-4">
+        <Card className="py-4 border border-neutral-200 rounded-lg bg-white">
           <CardContent className="flex items-center gap-3">
-            <div className="rounded-lg bg-red-50 p-2.5">
-              <AlertCircle className="h-5 w-5 text-red-500" />
-            </div>
+            <AlertCircle className="h-5 w-5 text-neutral-400" />
             <div>
-              <p className="text-xs text-gray-500">Overdue</p>
-              <p className="text-xl font-bold text-mathitude-navy">
+              <p className="text-xs text-neutral-500">Overdue</p>
+              <p className="text-xl font-bold text-neutral-900">
                 {overdueCount} student{overdueCount !== 1 ? "s" : ""}
               </p>
             </div>
@@ -198,10 +192,10 @@ export default function AdminPaymentsPage() {
       </div>
 
       {/* Stripe note */}
-      <Card className="py-3 border-mathitude-purple/20 bg-mathitude-purple/5">
+      <Card className="py-3 border border-neutral-200 rounded-lg bg-neutral-50">
         <CardContent className="flex items-center gap-3">
-          <CreditCard className="h-5 w-5 text-mathitude-purple shrink-0" />
-          <p className="text-sm text-mathitude-purple">
+          <CreditCard className="h-5 w-5 text-neutral-400 shrink-0" />
+          <p className="text-sm text-neutral-600">
             <span className="font-medium">Stripe integration coming soon.</span>{" "}
             Charge buttons are placeholders for the upcoming payment processing
             feature.
@@ -212,24 +206,24 @@ export default function AdminPaymentsPage() {
       {/* Student billing */}
       <div>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
-          <h2 className="text-lg font-semibold text-mathitude-navy">
+          <h2 className="text-lg font-semibold text-neutral-900">
             Student Billing
           </h2>
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
             <input
               type="text"
               placeholder="Search students..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-mathitude-teal focus:outline-none focus:ring-2 focus:ring-mathitude-teal/20"
+              className="w-full rounded-lg border border-neutral-200 bg-white py-2 pl-10 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
             />
           </div>
         </div>
 
-        <Card className="py-0 overflow-hidden">
+        <Card className="py-0 overflow-hidden border border-neutral-200 rounded-lg">
           {/* Table header */}
-          <div className="hidden sm:grid grid-cols-[1fr_80px_100px_100px_80px_100px] gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
+          <div className="hidden sm:grid grid-cols-[1fr_80px_100px_100px_80px_100px] gap-4 px-4 py-3 bg-neutral-50 text-xs font-medium text-neutral-500 uppercase tracking-wider border-b border-neutral-200">
             <span>Student</span>
             <span>Grade</span>
             <span>Rate/mo</span>
@@ -239,9 +233,9 @@ export default function AdminPaymentsPage() {
           </div>
 
           {/* Rows */}
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-neutral-200">
             {filteredBilling.length === 0 && students.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-neutral-500">
                 <p className="text-sm">No students yet.</p>
               </div>
             )}
@@ -252,22 +246,22 @@ export default function AdminPaymentsPage() {
                 className="grid grid-cols-1 sm:grid-cols-[1fr_80px_100px_100px_80px_100px] gap-2 sm:gap-4 items-center px-4 py-3"
               >
                 <div>
-                  <p className="font-medium text-mathitude-navy text-sm">
+                  <p className="font-medium text-neutral-900 text-sm">
                     {sb.student.firstName} {sb.student.lastName}
                   </p>
-                  <p className="text-xs text-gray-400 sm:hidden">
+                  <p className="text-xs text-neutral-400 sm:hidden">
                     Grade {sb.student.grade} &middot; ${sb.student.rate}/mo
                   </p>
                 </div>
-                <span className="hidden sm:block text-sm text-gray-600">
+                <span className="hidden sm:block text-sm text-neutral-600">
                   {sb.student.grade}
                 </span>
-                <span className="hidden sm:block text-sm text-gray-600">
+                <span className="hidden sm:block text-sm text-neutral-600">
                   ${sb.student.rate}
                 </span>
                 <span
                   className={`hidden sm:block text-sm font-medium ${
-                    sb.balance > 0 ? "text-red-600" : "text-gray-400"
+                    sb.balance > 0 ? "text-red-600" : "text-neutral-400"
                   }`}
                 >
                   {sb.balance > 0
@@ -280,7 +274,7 @@ export default function AdminPaymentsPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="w-fit text-xs border-mathitude-teal text-mathitude-teal hover:bg-mathitude-teal hover:text-white"
+                  className="w-fit text-xs border-neutral-200 text-neutral-900 hover:bg-neutral-900 hover:text-white"
                   disabled={sb.latestStatus === "paid"}
                 >
                   <DollarSign className="h-3 w-3" />
@@ -290,7 +284,7 @@ export default function AdminPaymentsPage() {
             ))}
 
             {filteredBilling.length === 0 && students.length > 0 && (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-neutral-500">
                 <p className="text-sm">No students found.</p>
               </div>
             )}
@@ -300,12 +294,12 @@ export default function AdminPaymentsPage() {
 
       {/* Payment history */}
       <div>
-        <h2 className="text-lg font-semibold text-mathitude-navy mb-4">
+        <h2 className="text-lg font-semibold text-neutral-900 mb-4">
           Recent Payment History
         </h2>
-        <Card className="py-0 overflow-hidden">
+        <Card className="py-0 overflow-hidden border border-neutral-200 rounded-lg">
           {/* Table header */}
-          <div className="hidden sm:grid grid-cols-[120px_1fr_100px_80px_80px] gap-4 px-4 py-3 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
+          <div className="hidden sm:grid grid-cols-[120px_1fr_100px_80px_80px] gap-4 px-4 py-3 bg-neutral-50 text-xs font-medium text-neutral-500 uppercase tracking-wider border-b border-neutral-200">
             <span>Date</span>
             <span>Student</span>
             <span>Amount</span>
@@ -313,9 +307,9 @@ export default function AdminPaymentsPage() {
             <span>Status</span>
           </div>
 
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-neutral-200">
             {recentPayments.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-neutral-500">
                 <p className="text-sm">No payment history yet.</p>
               </div>
             )}
@@ -325,14 +319,14 @@ export default function AdminPaymentsPage() {
                 key={`${payment.studentId}-${payment.createdAt}-${idx}`}
                 className="grid grid-cols-1 sm:grid-cols-[120px_1fr_100px_80px_80px] gap-2 sm:gap-4 items-center px-4 py-3"
               >
-                <span className="text-sm text-gray-500">{formatDate(payment.createdAt)}</span>
-                <span className="text-sm font-medium text-mathitude-navy">
+                <span className="text-sm text-neutral-500">{formatDate(payment.createdAt)}</span>
+                <span className="text-sm font-medium text-neutral-900">
                   {studentName(payment.studentId)}
                 </span>
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-neutral-600">
                   {formatAmount(payment.amount)}
                 </span>
-                <span className="hidden sm:block text-sm text-gray-500 truncate">
+                <span className="hidden sm:block text-sm text-neutral-500 truncate">
                   {payment.description}
                 </span>
                 <Badge className={statusBadgeClass(payment.paymentStatus)}>

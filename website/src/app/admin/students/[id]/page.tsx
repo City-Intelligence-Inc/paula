@@ -183,7 +183,7 @@ export default function StudentDetailPage({
           <p className="text-sm text-neutral-500 mt-1">Loading...</p>
         </div>
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-mathitude-purple border-t-transparent" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-900 border-t-transparent" />
         </div>
       </div>
     );
@@ -233,7 +233,7 @@ export default function StudentDetailPage({
                     <Badge
                       className={
                         student.status === "active"
-                          ? "bg-mathitude-purple/10 text-mathitude-purple border-mathitude-purple/20"
+                          ? "bg-neutral-900/5 text-neutral-900 border-neutral-200"
                           : "bg-neutral-100 text-neutral-600 border-neutral-200"
                       }
                     >
@@ -469,7 +469,7 @@ export default function StudentDetailPage({
       <Card className="border border-neutral-200 rounded-lg overflow-hidden">
         <div className="p-6">
           <div className="flex items-center gap-2 mb-4">
-            <FileText className="h-5 w-5 text-mathitude-purple" />
+            <FileText className="h-5 w-5 text-neutral-400" />
             <h2 className="text-lg font-serif italic font-medium text-neutral-900 tracking-tight">
               Session Notes
             </h2>
@@ -508,7 +508,7 @@ export default function StudentDetailPage({
               {notes.map((note) => (
                 <div
                   key={note.dateTime}
-                  className="border-l-2 border-mathitude-teal pl-4 py-1"
+                  className="border-l-2 border-neutral-200 pl-4 py-1"
                 >
                   <p className="text-xs text-neutral-400 mb-1">
                     {formatNoteDate(note.dateTime)}

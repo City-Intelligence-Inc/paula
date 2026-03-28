@@ -57,20 +57,16 @@ function SessionCard({ session }: { session: ScheduleSession }) {
 
   return (
     <Card
-      className={`py-0 overflow-hidden border-l-4 border border-neutral-200 rounded-lg ${
-        isGroup
-          ? "border-l-mathitude-purple"
-          : "border-l-mathitude-teal"
-      }`}
+      className={`py-0 overflow-hidden border border-neutral-200 rounded-lg`}
     >
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               {isGroup ? (
-                <Users className="h-4 w-4 text-mathitude-purple shrink-0" />
+                <Users className="h-4 w-4 text-neutral-400 shrink-0" />
               ) : (
-                <User className="h-4 w-4 text-mathitude-teal shrink-0" />
+                <User className="h-4 w-4 text-neutral-400 shrink-0" />
               )}
               <h4 className="font-semibold text-neutral-900 text-sm truncate">
                 {isGroup ? `Group Session` : `Student: ${session.studentId}`}
@@ -84,8 +80,8 @@ function SessionCard({ session }: { session: ScheduleSession }) {
           <Badge
             className={
               isGroup
-                ? "bg-mathitude-purple/10 text-mathitude-purple border-mathitude-purple/20"
-                : "bg-mathitude-teal/10 text-mathitude-teal border-mathitude-teal/20"
+                ? "bg-neutral-100 text-neutral-600 border-neutral-200"
+                : "bg-neutral-900/5 text-neutral-900 border-neutral-200"
             }
           >
             {isGroup ? "Group" : "1-on-1"}
@@ -143,7 +139,7 @@ export default function AdminSchedulePage() {
           <p className="text-sm text-neutral-500 mt-1">Loading schedule...</p>
         </div>
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-mathitude-purple border-t-transparent" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-900 border-t-transparent" />
         </div>
       </div>
     );
@@ -193,11 +189,11 @@ export default function AdminSchedulePage() {
           {/* Legend */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-sm bg-mathitude-teal" />
+              <div className="w-3 h-3 rounded-sm bg-neutral-900" />
               <span className="text-xs text-neutral-600">Individual</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-sm bg-mathitude-purple" />
+              <div className="w-3 h-3 rounded-sm bg-neutral-400" />
               <span className="text-xs text-neutral-600">Group</span>
             </div>
           </div>

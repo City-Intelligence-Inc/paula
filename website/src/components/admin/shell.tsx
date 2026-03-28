@@ -10,7 +10,6 @@ import {
   CreditCard,
   Settings,
   Menu,
-  ChevronRight,
   ShieldCheck,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -54,13 +53,12 @@ function NavLink({
       onClick={onClick}
       className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
         active
-          ? "bg-mathitude-purple text-white"
-          : "text-neutral-700 hover:bg-purple-50 hover:text-mathitude-purple"
+          ? "bg-neutral-900 text-white"
+          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
       }`}
     >
       <item.icon className="h-4 w-4 shrink-0" />
       {item.label}
-      {active && <ChevronRight className="ml-auto h-4 w-4" />}
     </Link>
   );
 }
@@ -75,13 +73,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const sidebar = (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-neutral-100">
+      <div className="px-4 py-5 border-b border-neutral-200">
         <Link href="/" className="flex items-center gap-2">
           <span
             className="text-xl font-bold tracking-tight"
             style={{ fontFamily: "var(--font-original-surfer)" }}
           >
-            <span className="text-mathitude-teal">Math</span>
+            <span className="text-mathitude-purple">Math</span>
             <span className="text-neutral-900">itude</span>
           </span>
         </Link>
@@ -108,14 +106,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="border-t border-neutral-100 px-4 py-4">
+      <div className="border-t border-neutral-200 px-4 py-4">
         <div className="flex items-center gap-3">
           <UserButton />
           <div className="text-sm">
             <p className="font-medium text-neutral-900">Admin Account</p>
             <Link
               href="/"
-              className="text-xs text-neutral-500 hover:text-mathitude-purple"
+              className="text-xs text-neutral-500 hover:text-neutral-900"
             >
               Back to site
             </Link>
