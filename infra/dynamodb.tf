@@ -168,3 +168,26 @@ resource "aws_dynamodb_table" "resources" {
     Project = "mathitude"
   }
 }
+
+# ---- Content table (CMS) ----
+
+resource "aws_dynamodb_table" "content" {
+  name         = "${var.table_prefix}-content"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "pageId"
+  range_key    = "blockId"
+
+  attribute {
+    name = "pageId"
+    type = "S"
+  }
+
+  attribute {
+    name = "blockId"
+    type = "S"
+  }
+
+  tags = {
+    Project = "mathitude"
+  }
+}

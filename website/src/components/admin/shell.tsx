@@ -11,6 +11,7 @@ import {
   CreditCard,
   Mail,
   Upload,
+  FileText,
   Settings,
   Menu,
   ShieldCheck,
@@ -48,6 +49,11 @@ const navItems = [
     label: "Import",
     href: "/admin/import",
     icon: Upload,
+  },
+  {
+    label: "Pages",
+    href: "/admin/pages",
+    icon: FileText,
   },
   {
     label: "Settings",

@@ -11,6 +11,7 @@ import resourceRoutes from "./routes/resources";
 import stripeRoutes from "./routes/stripe";
 import seedRoutes from "./routes/seed";
 import newsletterRoutes from "./routes/newsletter";
+import contentRoutes, { contentAdminRouter } from "./routes/content";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -50,6 +51,8 @@ app.use("/api/resources", resourceRoutes);
 app.use("/api/stripe", stripeRoutes);
 app.use("/api/seed", seedRoutes);
 app.use("/api/newsletter", newsletterRoutes);
+app.use("/api/content", contentRoutes);
+app.use("/api/content-admin", contentAdminRouter);
 
 // 404 handler
 app.use((_req, res) => {
