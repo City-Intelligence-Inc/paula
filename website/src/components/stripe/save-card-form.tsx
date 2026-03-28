@@ -10,9 +10,9 @@ import {
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-);
+const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const isConfigured = publishableKey && !publishableKey.includes("placeholder");
+const stripePromise = isConfigured ? loadStripe(publishableKey) : null;
 
 function CardForm() {
   const stripe = useStripe();
@@ -29,7 +29,6 @@ function CardForm() {
     setMessage(null);
 
     try {
-      // Create a SetupIntent on the server
       const res = await api("/api/stripe/create-setup-intent", {
         method: "POST",
       });
@@ -41,7 +40,6 @@ function CardForm() {
         return;
       }
 
-      // Confirm the SetupIntent with the card details
       const { error: stripeError } = await stripe.confirmCardSetup(
         clientSecret,
         {
@@ -66,7 +64,7 @@ function CardForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="rounded-lg border border-neutral-200 bg-white p-4">
         <CardElement
           options={{
             style: {
@@ -103,23 +101,39 @@ function CardForm() {
   );
 }
 
+function NotConfigured() {
+  return (
+    <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-6 text-center">
+      <p className="text-sm text-neutral-600">
+        Payment processing is being set up. You&apos;ll be able to save your
+        card here soon.
+      </p>
+      <p className="mt-2 text-xs text-neutral-400">
+        Contact info@mathitude.com if you need to update your payment method.
+      </p>
+    </div>
+  );
+}
+
 export function SaveCardForm() {
   return (
     <div className="mx-auto max-w-md">
       <div className="mb-4">
-        <h2
-          className="text-lg font-semibold text-neutral-900"
-        >
+        <h2 className="text-lg font-semibold text-neutral-900">
           Payment Method
         </h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-neutral-500">
           Securely save your card for future payments.
         </p>
       </div>
 
-      <Elements stripe={stripePromise}>
-        <CardForm />
-      </Elements>
+      {isConfigured && stripePromise ? (
+        <Elements stripe={stripePromise}>
+          <CardForm />
+        </Elements>
+      ) : (
+        <NotConfigured />
+      )}
     </div>
   );
 }
