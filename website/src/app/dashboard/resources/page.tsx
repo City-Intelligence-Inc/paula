@@ -9,6 +9,7 @@ import {
   BookOpen,
   ExternalLink,
   FileDown,
+  FolderOpen,
   Play,
   Puzzle,
   Link2,
@@ -115,8 +116,11 @@ export default function ResourcesPage() {
           return (
             <TabsContent key={tab.value} value={tab.value} className="mt-6">
               {items.length === 0 ? (
-                <div className="text-center py-12 text-neutral-500">
-                  <p className="text-sm">No {tab.label.toLowerCase()} available yet.</p>
+                <div className="text-center py-12">
+                  <FolderOpen className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
+                  <p className="text-sm text-neutral-500">
+                    No {tab.label.toLowerCase()} available yet. Paula is adding new content regularly — check back soon!
+                  </p>
                 </div>
               ) : (
                 <div className="grid gap-4">

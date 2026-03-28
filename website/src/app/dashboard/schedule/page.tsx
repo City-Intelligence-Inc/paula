@@ -73,18 +73,16 @@ export default function SchedulePage() {
             Replace the Calendly URL below with Paula's actual Calendly link.
             Example: https://calendly.com/paula-mathitude/meet-and-greet
           */}
-          <div
-            className="w-full"
-            style={{ minHeight: "660px" }}
-          >
-            <iframe
-              src="https://calendly.com/d/placeholder"
-              width="100%"
-              height="660"
-              frameBorder="0"
-              title="Schedule a meeting with Paula"
-              className="w-full"
-            />
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Calendar className="w-12 h-12 text-neutral-300 mb-4" />
+            <h3 className="text-lg font-medium text-neutral-900">Scheduling coming soon</h3>
+            <p className="text-sm text-neutral-500 mt-2 max-w-md">
+              We&apos;re setting up online scheduling. In the meantime, call{" "}
+              <a href="tel:5102052633" className="font-medium text-neutral-900 hover:underline underline-offset-4">510.205.2633</a>
+              {" "}or email{" "}
+              <a href="mailto:info@mathitude.com" className="font-medium text-neutral-900 hover:underline underline-offset-4">info@mathitude.com</a>
+              {" "}to book your free 30-minute meet-and-greet with Paula.
+            </p>
           </div>
         </CardContent>
       </Card>

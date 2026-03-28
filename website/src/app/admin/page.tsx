@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { api } from "@/lib/api";
 import { Clock, User, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -167,6 +168,29 @@ export default function AdminSchedulePage() {
 
   return (
     <div className="space-y-6">
+      {/* First-time admin guide */}
+      <div className="mb-8 p-5 rounded-lg bg-neutral-50 border border-neutral-200">
+        <h2 className="text-sm font-medium text-neutral-900 mb-2">Quick Start Guide</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+          <Link href="/admin/students" className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 transition-colors">
+            <span className="w-5 h-5 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-600">1</span>
+            Add your students
+          </Link>
+          <Link href="/admin/calendar" className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 transition-colors">
+            <span className="w-5 h-5 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-600">2</span>
+            Set up the calendar
+          </Link>
+          <Link href="/admin/payments" className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 transition-colors">
+            <span className="w-5 h-5 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-600">3</span>
+            Review payments
+          </Link>
+          <Link href="/admin/pages" className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 transition-colors">
+            <span className="w-5 h-5 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-600">4</span>
+            Edit page content
+          </Link>
+        </div>
+      </div>
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">

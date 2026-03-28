@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, MapPin, Clock, Megaphone } from "lucide-react";
+import { Calendar, MapPin, Clock, Megaphone, Newspaper } from "lucide-react";
 import type { MathitudeEvent } from "@/lib/types";
 
 const typeStyles = {
@@ -60,8 +60,12 @@ export default function EventsPage() {
       </div>
 
       {events.length === 0 && (
-        <div className="text-center py-12 text-neutral-500">
-          <p className="text-sm">No events yet. Check back soon!</p>
+        <div className="text-center py-16">
+          <Newspaper className="w-10 h-10 text-neutral-300 mx-auto mb-3" />
+          <p className="text-neutral-900 font-medium">No upcoming events yet</p>
+          <p className="text-sm text-neutral-500 mt-1 max-w-sm mx-auto">
+            When Paula announces math festivals, workshops, or other events, they&apos;ll appear here. Check back soon!
+          </p>
         </div>
       )}
 

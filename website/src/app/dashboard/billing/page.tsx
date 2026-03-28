@@ -83,6 +83,20 @@ export default function BillingPage() {
 
       {/* Save Card */}
       <div className="max-w-md">
+        <div className="mb-8 space-y-3">
+          <div className="flex items-start gap-3">
+            <span className="shrink-0 w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-600">1</span>
+            <p className="text-sm text-neutral-600">Enter your card details below. Your card is stored securely by Stripe — Mathitude never sees your card number.</p>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="shrink-0 w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-600">2</span>
+            <p className="text-sm text-neutral-600">Paula will manually charge your card after each tutoring session. You&apos;ll see a record of each charge below.</p>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="shrink-0 w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-600">3</span>
+            <p className="text-sm text-neutral-600">To update your card, simply save a new one — it will replace the old one automatically.</p>
+          </div>
+        </div>
         <SaveCardForm />
         <p className="mt-4 text-sm text-neutral-500 leading-relaxed">
           Your card is stored securely by Stripe. Mathitude staff will manually

@@ -26,6 +26,21 @@ export function Hero() {
             big mathematical thinking through fun, collaborative learning.
           </p>
 
+          <div className="mt-6 flex items-center justify-center gap-6 text-sm text-neutral-400">
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
+              Pre-K to College
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
+              Menlo Park &amp; Virtual
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
+              Since 2013
+            </span>
+          </div>
+
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/shop"

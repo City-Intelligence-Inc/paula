@@ -35,6 +35,9 @@ export function Services() {
         <h2 className="text-3xl sm:text-4xl font-serif italic font-medium text-neutral-900 text-center tracking-tight">
           We offer:
         </h2>
+        <p className="mt-3 text-neutral-500 text-center max-w-lg mx-auto">
+          Everything Paula offers to help your student fall in love with math.
+        </p>
 
         <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-6 stagger-in">
           {services.map((service) => (
