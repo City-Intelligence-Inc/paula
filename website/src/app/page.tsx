@@ -6,6 +6,7 @@ import { Services } from "@/components/sections/services";
 import { Reviews } from "@/components/sections/reviews";
 import { InfoBar } from "@/components/sections/info-bar";
 import { Footer } from "@/components/sections/footer";
+import { ScrollReveal } from "@/components/scroll-reveal";
 
 export default function Home() {
   return (
@@ -13,11 +14,21 @@ export default function Home() {
       <Navbar />
       <main className="flex-1">
         <Hero />
-        <CtaBanner />
-        <AboutPaula />
-        <Services />
-        <Reviews />
-        <InfoBar />
+        <ScrollReveal>
+          <CtaBanner />
+        </ScrollReveal>
+        <ScrollReveal delay={100}>
+          <AboutPaula />
+        </ScrollReveal>
+        <ScrollReveal delay={50}>
+          <Services />
+        </ScrollReveal>
+        <ScrollReveal delay={100}>
+          <Reviews />
+        </ScrollReveal>
+        <ScrollReveal>
+          <InfoBar />
+        </ScrollReveal>
       </main>
       <Footer />
     </>
