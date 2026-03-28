@@ -85,7 +85,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       <div className="px-4 py-5 border-b border-gray-100">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
-            <span className="text-mathitude-teal">Math</span>
+            <span className="text-mathitude-purple">Math</span>
             <span className="text-mathitude-navy">itude</span>
           </span>
         </Link>

@@ -28,7 +28,7 @@ export function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <span className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
-              <span className="text-mathitude-teal">Math</span>
+              <span className="text-mathitude-purple">Math</span>
               <span className="text-neutral-900">itude</span>
             </span>
           </Link>
@@ -39,7 +39,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="px-3 py-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors rounded-md"
+                className="px-3 py-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:underline underline-offset-4 decoration-neutral-300 transition-colors rounded-md"
               >
                 {link.label}
               </Link>
@@ -109,8 +109,8 @@ function AuthButtons({ mobile }: { mobile?: boolean }) {
         size="sm"
         className={
           mobile
-            ? "mt-2 w-full bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
-            : "ml-2 bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
+            ? "mt-2 w-full h-11 bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
+            : "ml-2 h-11 bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
         }
       >
         Log In

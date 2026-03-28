@@ -51,7 +51,7 @@ export function Footer() {
               key={social.label}
               href={social.href}
               aria-label={social.label}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+              className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -68,7 +68,7 @@ export function Footer() {
             Tel:{" "}
             <a
               href="tel:5102052633"
-              className="hover:text-white/70 transition-colors"
+              className="py-1 hover:text-white/70 transition-colors"
             >
               510.205.2633
             </a>
@@ -77,7 +77,7 @@ export function Footer() {
             Email:{" "}
             <a
               href="mailto:info@mathitude.com"
-              className="hover:text-white/70 transition-colors"
+              className="py-1 hover:text-white/70 transition-colors"
             >
               info@mathitude.com
             </a>

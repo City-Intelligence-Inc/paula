@@ -2,7 +2,7 @@ import { User } from "lucide-react";
 
 export function AboutPaula() {
   return (
-    <section className="bg-white">
+    <section className="bg-white animate-fade-in-up">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
         <div className="grid lg:grid-cols-5 gap-12 lg:gap-16 items-start">
           {/* Photo placeholder */}
@@ -65,7 +65,7 @@ export function AboutPaula() {
                 professional practice.
               </p>
 
-              <p className="font-semibold text-mathitude-teal">
+              <p className="font-semibold text-mathitude-purple">
                 Join Paula and the Mathitude team in striving towards lifetime
                 math engagement for all!
               </p>

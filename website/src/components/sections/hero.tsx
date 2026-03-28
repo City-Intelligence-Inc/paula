@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function Hero() {
   return (
-    <section className="bg-white">
+    <section className="bg-white animate-fade-in-up">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 lg:py-40">
         <div className="text-center max-w-4xl mx-auto">
           <h1
@@ -14,11 +14,11 @@ export function Hero() {
               className="not-italic"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
-              <span className="text-mathitude-teal">Math</span>
+              <span className="text-mathitude-purple">Math</span>
               <span className="text-neutral-900">itude</span>
             </span>
             , it&apos;s all about{" "}
-            <span className="text-mathitude-teal">the attitude.</span>
+            <span className="text-mathitude-purple">the attitude.</span>
           </h1>
 
           <p className="mt-8 text-lg md:text-xl text-neutral-500 max-w-2xl mx-auto leading-relaxed">

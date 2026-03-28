@@ -24,7 +24,7 @@ const infoItems = [
 
 export function InfoBar() {
   return (
-    <section className="bg-neutral-50">
+    <section className="bg-neutral-50 animate-fade-in-up">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="grid sm:grid-cols-3 gap-8">
           {infoItems.map((item) => (
