@@ -1,18 +1,19 @@
-import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import { dynamodb, Tables } from "@/lib/dynamodb";
+import { Router, Request, Response } from "express";
+import { requireAuth } from "../lib/auth";
+import { dynamodb, Tables } from "../lib/dynamodb";
 import { ScanCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "crypto";
-import type { MathitudeEvent } from "@/lib/types";
+import type { MathitudeEvent } from "../lib/types";
 
-export async function GET(req: Request) {
-  const { userId } = await auth();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+const router = Router();
 
+// All routes require authentication
+router.use(requireAuth());
+
+// GET /api/events — list (with ?type= filter)
+router.get("/", async (req: Request, res: Response): Promise<void> => {
   try {
-    const { searchParams } = new URL(req.url);
-    const type = searchParams.get("type");
+    const type = req.query.type as string | undefined;
 
     if (type) {
       // Use the by-type GSI
@@ -25,30 +26,25 @@ export async function GET(req: Request) {
           ExpressionAttributeValues: { ":type": type },
         })
       );
-      return NextResponse.json({ events: result.Items || [] });
+      res.json({ events: result.Items || [] });
+      return;
     }
 
     // Full scan
     const result = await dynamodb.send(
       new ScanCommand({ TableName: Tables.events })
     );
-    return NextResponse.json({ events: result.Items || [] });
+    res.json({ events: result.Items || [] });
   } catch (error) {
     console.error("Failed to fetch events:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch events" },
-      { status: 500 }
-    );
+    res.status(500).json({ error: "Failed to fetch events" });
   }
-}
+});
 
-export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+// POST /api/events — create
+router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
-    const body = await req.json();
+    const body = req.body;
 
     const event: MathitudeEvent = {
       id: body.id || randomUUID(),
@@ -68,12 +64,11 @@ export async function POST(req: Request) {
       })
     );
 
-    return NextResponse.json({ event }, { status: 201 });
+    res.status(201).json({ event });
   } catch (error) {
     console.error("Failed to create event:", error);
-    return NextResponse.json(
-      { error: "Failed to create event" },
-      { status: 500 }
-    );
+    res.status(500).json({ error: "Failed to create event" });
   }
-}
+});
+
+export default router;

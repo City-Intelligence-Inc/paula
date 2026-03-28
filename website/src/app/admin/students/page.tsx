@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { Search, Plus, Phone, Mail, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -37,7 +38,7 @@ export default function AdminStudentsPage() {
 
   function fetchStudents() {
     setLoading(true);
-    fetch("/api/students")
+    api("/api/students")
       .then((res) => res.json())
       .then((json) => {
         setStudents(json.students || []);
@@ -67,7 +68,7 @@ export default function AdminStudentsPage() {
     setSubmitting(true);
 
     try {
-      const res = await fetch("/api/students", {
+      const res = await api("/api/students", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { api } from "@/lib/api";
 import {
   Elements,
   CardElement,
@@ -29,7 +30,7 @@ function CardForm() {
 
     try {
       // Create a SetupIntent on the server
-      const res = await fetch("/api/stripe/create-setup-intent", {
+      const res = await api("/api/stripe/create-setup-intent", {
         method: "POST",
       });
       const { clientSecret, error } = await res.json();

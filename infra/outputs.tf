@@ -63,3 +63,15 @@ output "dynamodb_resources_table_arn" {
   description = "ARN of the Resources DynamoDB table"
   value       = aws_dynamodb_table.resources.arn
 }
+
+# ---- App Runner outputs ----
+
+output "backend_url" {
+  description = "URL of the App Runner backend service"
+  value       = "https://${aws_apprunner_service.backend.service_url}"
+}
+
+output "ecr_repository_url" {
+  description = "URL of the ECR repository for the backend image"
+  value       = aws_ecr_repository.backend.repository_url
+}

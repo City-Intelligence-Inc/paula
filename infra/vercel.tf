@@ -90,6 +90,15 @@ resource "vercel_project_environment_variable" "dynamodb_table_prefix" {
   target     = ["production", "preview", "development"]
 }
 
+# ---- Backend API URL ----
+
+resource "vercel_project_environment_variable" "api_url" {
+  project_id = vercel_project.website.id
+  key        = "NEXT_PUBLIC_API_URL"
+  value      = "https://${aws_apprunner_service.backend.service_url}"
+  target     = ["production", "preview", "development"]
+}
+
 # ---- Deployment ----
 
 resource "vercel_deployment" "website" {

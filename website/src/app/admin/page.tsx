@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
 import { Clock, User, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -118,7 +119,7 @@ export default function AdminSchedulePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/sessions")
+    api("/api/sessions")
       .then((res) => res.json())
       .then((json) => {
         // Filter out notes — only show real sessions

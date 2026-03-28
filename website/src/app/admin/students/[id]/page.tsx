@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
+import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -75,7 +76,7 @@ export default function StudentDetailPage({
   const [savingNote, setSavingNote] = useState(false);
 
   function fetchStudent() {
-    fetch(`/api/students/${id}`)
+    api(`/api/students/${id}`)
       .then((res) => res.json())
       .then((json) => {
         if (json.student) {
@@ -88,7 +89,7 @@ export default function StudentDetailPage({
   }
 
   function fetchNotes() {
-    fetch(`/api/students/${id}/notes`)
+    api(`/api/students/${id}/notes`)
       .then((res) => res.json())
       .then((json) => {
         setNotes(json.notes || []);
@@ -120,7 +121,7 @@ export default function StudentDetailPage({
     setSaving(true);
 
     try {
-      const res = await fetch(`/api/students/${id}`, {
+      const res = await api(`/api/students/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -155,7 +156,7 @@ export default function StudentDetailPage({
     setSavingNote(true);
 
     try {
-      const res = await fetch(`/api/students/${id}/notes`, {
+      const res = await api(`/api/students/${id}/notes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: noteContent }),

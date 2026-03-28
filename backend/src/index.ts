@@ -1,34 +1,53 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import { clerkMiddleware } from "./lib/auth";
 
-import authRoutes from "./routes/auth";
 import studentRoutes from "./routes/students";
-import familyRoutes from "./routes/families";
 import sessionRoutes from "./routes/sessions";
-import notesRoutes from "./routes/notes";
-import billingRoutes from "./routes/billing";
-import dashboardRoutes from "./routes/dashboard";
+import paymentRoutes from "./routes/payments";
+import eventRoutes from "./routes/events";
+import resourceRoutes from "./routes/resources";
+import stripeRoutes from "./routes/stripe";
+import seedRoutes from "./routes/seed";
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8080;
 
-// Middleware
-app.use(cors());
+// Security headers
+app.use(helmet());
+
+// CORS — allow the Vercel frontend origin
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "https://website-sage-three-98.vercel.app",
+    credentials: true,
+  })
+);
+
+// JSON body parser
 app.use(express.json());
 
-// Health check
-app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", service: "mathitude-backend", timestamp: new Date().toISOString() });
+// Clerk middleware — populates req.auth on all requests
+app.use(clerkMiddleware());
+
+// Health check (no auth required)
+app.get("/health", (_req, res) => {
+  res.json({
+    status: "ok",
+    service: "mathitude-backend",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Routes
-app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
-app.use("/api/families", familyRoutes);
 app.use("/api/sessions", sessionRoutes);
-app.use("/api", notesRoutes); // Mounted at /api so paths become /api/sessions/:id/notes and /api/notes/:id
-app.use("/api/billing", billingRoutes);
-app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/resources", resourceRoutes);
+app.use("/api/stripe", stripeRoutes);
+app.use("/api/seed", seedRoutes);
 
 // 404 handler
 app.use((_req, res) => {
@@ -36,14 +55,21 @@ app.use((_req, res) => {
 });
 
 // Global error handler
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error("Unhandled error:", err);
-  res.status(500).json({ error: "Internal server error" });
-});
+app.use(
+  (
+    err: Error,
+    _req: express.Request,
+    res: express.Response,
+    _next: express.NextFunction
+  ) => {
+    console.error("Unhandled error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+);
 
 app.listen(PORT, () => {
   console.log(`Mathitude API running on http://localhost:${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/api/health`);
+  console.log(`Health check: http://localhost:${PORT}/health`);
 });
 
 export default app;

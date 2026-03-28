@@ -1,226 +1,217 @@
-import { Router, Response } from "express";
-import { z } from "zod";
-import prisma from "../lib/prisma";
-import { authMiddleware, AuthRequest } from "../middleware/auth";
-import { requireRoles } from "../middleware/roles";
+import { Router, Request, Response } from "express";
+import { requireAuth } from "../lib/auth";
+import { dynamodb, Tables } from "../lib/dynamodb";
+import {
+  ScanCommand,
+  PutCommand,
+  GetCommand,
+  DeleteCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
+import type { ScanCommandInput } from "@aws-sdk/lib-dynamodb";
+import { randomUUID } from "crypto";
+import type { Student } from "../lib/types";
 
 const router = Router();
 
-router.use(authMiddleware);
-router.use(requireRoles("ADMIN", "TUTOR"));
+// All routes require authentication
+router.use(requireAuth());
 
-const createStudentSchema = z.object({
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-  dateOfBirth: z.string().optional(),
-  gradeLevel: z.string().min(1),
-  notes: z.string().optional(),
-  familyId: z.string().optional(),
-});
-
-const updateStudentSchema = z.object({
-  firstName: z.string().min(1).optional(),
-  lastName: z.string().min(1).optional(),
-  dateOfBirth: z.string().optional(),
-  gradeLevel: z.string().min(1).optional(),
-  notes: z.string().optional(),
-});
-
-// GET /api/students
-router.get("/", async (req: AuthRequest, res: Response): Promise<void> => {
+// GET /api/students — list/search
+router.get("/", async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = req.user!;
+    const query = req.query.q as string | undefined;
 
-    if (user.role === "ADMIN") {
-      const students = await prisma.student.findMany({
-        include: {
-          families: {
-            include: {
-              family: { select: { id: true, name: true } },
-            },
-          },
-          tutorAssignments: {
-            include: {
-              tutor: { select: { id: true, firstName: true, lastName: true } },
-            },
-          },
-        },
-        orderBy: { lastName: "asc" },
-      });
+    const params: ScanCommandInput = {
+      TableName: Tables.students,
+    };
 
-      res.json({ students });
-    } else {
-      const assignments = await prisma.tutorAssignment.findMany({
-        where: { tutorId: user.id },
-        include: {
-          student: {
-            include: {
-              families: {
-                include: {
-                  family: { select: { id: true, name: true } },
-                },
-              },
-            },
-          },
-        },
-      });
-
-      const students = assignments.map((a) => a.student);
-      res.json({ students });
+    if (query) {
+      params.FilterExpression =
+        "contains(firstName, :q) OR contains(lastName, :q) OR contains(parentName, :q) OR contains(grade, :q)";
+      params.ExpressionAttributeValues = { ":q": query };
     }
+
+    const result = await dynamodb.send(new ScanCommand(params));
+    res.json({ students: result.Items || [] });
   } catch (error) {
-    console.error("List students error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Failed to fetch students:", error);
+    res.status(500).json({ error: "Failed to fetch students" });
   }
 });
 
-// GET /api/students/:id
-router.get("/:id", async (req: AuthRequest, res: Response): Promise<void> => {
+// POST /api/students — create
+router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = req.user!;
-    const id = req.params.id as string;
+    const body = req.body;
+    const now = new Date().toISOString();
 
-    if (user.role === "TUTOR") {
-      const assignment = await prisma.tutorAssignment.findUnique({
-        where: {
-          tutorId_studentId: { tutorId: user.id, studentId: id },
-        },
-      });
-      if (!assignment) {
-        res.status(403).json({ error: "Not assigned to this student" });
-        return;
-      }
-    }
+    const student: Student = {
+      id: randomUUID(),
+      firstName: body.firstName,
+      lastName: body.lastName,
+      grade: body.grade,
+      status: body.status || "active",
+      parentName: body.parentName,
+      parentEmail: body.parentEmail,
+      parentPhone: body.parentPhone,
+      sessionType: body.sessionType || "individual",
+      rate: body.rate,
+      notes: body.notes,
+      stripeCustomerId: body.stripeCustomerId,
+      createdAt: now,
+      updatedAt: now,
+    };
 
-    const student = await prisma.student.findUnique({
-      where: { id },
-      include: {
-        families: {
-          include: {
-            family: { select: { id: true, name: true } },
-          },
-        },
-        sessions: {
-          include: {
-            tutor: { select: { id: true, firstName: true, lastName: true } },
-          },
-          orderBy: { scheduledAt: "desc" },
-          take: 10,
-        },
-        tutorAssignments: {
-          include: {
-            tutor: { select: { id: true, firstName: true, lastName: true } },
-          },
-        },
-      },
-    });
+    await dynamodb.send(
+      new PutCommand({
+        TableName: Tables.students,
+        Item: student,
+      })
+    );
 
-    if (!student) {
+    res.status(201).json({ student });
+  } catch (error) {
+    console.error("Failed to create student:", error);
+    res.status(500).json({ error: "Failed to create student" });
+  }
+});
+
+// GET /api/students/:id — single
+router.get("/:id", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const result = await dynamodb.send(
+      new GetCommand({
+        TableName: Tables.students,
+        Key: { id },
+      })
+    );
+
+    if (!result.Item) {
       res.status(404).json({ error: "Student not found" });
       return;
     }
 
-    res.json({ student });
+    res.json({ student: result.Item });
   } catch (error) {
-    console.error("Get student error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Failed to fetch student:", error);
+    res.status(500).json({ error: "Failed to fetch student" });
   }
 });
 
-// POST /api/students (admin only)
-router.post(
-  "/",
-  requireRoles("ADMIN"),
-  async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-      const parsed = createStudentSchema.safeParse(req.body);
-      if (!parsed.success) {
-        res.status(400).json({ error: "Validation failed", details: parsed.error.flatten() });
-        return;
-      }
+// PUT /api/students/:id — update
+router.put("/:id", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const body = req.body;
 
-      const { firstName, lastName, dateOfBirth, gradeLevel, notes, familyId } = parsed.data;
+    const student: Student = {
+      ...body,
+      id,
+      updatedAt: new Date().toISOString(),
+    };
 
-      const student = await prisma.student.create({
-        data: {
-          firstName,
-          lastName,
-          dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-          gradeLevel,
-          notes,
-        },
-      });
+    await dynamodb.send(
+      new PutCommand({
+        TableName: Tables.students,
+        Item: student,
+      })
+    );
 
-      if (familyId) {
-        const family = await prisma.family.findUnique({ where: { id: familyId } });
-        if (family) {
-          await prisma.familyStudent.create({
-            data: { studentId: student.id, familyId },
-          });
-        }
-      }
-
-      const fullStudent = await prisma.student.findUnique({
-        where: { id: student.id },
-        include: {
-          families: {
-            include: {
-              family: { select: { id: true, name: true } },
-            },
-          },
-        },
-      });
-
-      res.status(201).json({ student: fullStudent });
-    } catch (error) {
-      console.error("Create student error:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
+    res.json({ student });
+  } catch (error) {
+    console.error("Failed to update student:", error);
+    res.status(500).json({ error: "Failed to update student" });
   }
-);
+});
 
-// PUT /api/students/:id (admin only)
-router.put(
-  "/:id",
-  requireRoles("ADMIN"),
-  async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-      const id = req.params.id as string;
-      const parsed = updateStudentSchema.safeParse(req.body);
-      if (!parsed.success) {
-        res.status(400).json({ error: "Validation failed", details: parsed.error.flatten() });
-        return;
-      }
+// DELETE /api/students/:id — delete
+router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    await dynamodb.send(
+      new DeleteCommand({
+        TableName: Tables.students,
+        Key: { id },
+      })
+    );
 
-      const existing = await prisma.student.findUnique({ where: { id } });
-      if (!existing) {
-        res.status(404).json({ error: "Student not found" });
-        return;
-      }
-
-      const data: Record<string, unknown> = { ...parsed.data };
-      if (data.dateOfBirth && typeof data.dateOfBirth === "string") {
-        data.dateOfBirth = new Date(data.dateOfBirth as string);
-      }
-
-      const student = await prisma.student.update({
-        where: { id },
-        data,
-        include: {
-          families: {
-            include: {
-              family: { select: { id: true, name: true } },
-            },
-          },
-        },
-      });
-
-      res.json({ student });
-    } catch (error) {
-      console.error("Update student error:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Failed to delete student:", error);
+    res.status(500).json({ error: "Failed to delete student" });
   }
-);
+});
+
+// GET /api/students/:id/notes — list notes
+router.get("/:id/notes", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const result = await dynamodb.send(
+      new QueryCommand({
+        TableName: Tables.sessions,
+        KeyConditionExpression: "studentId = :sid",
+        FilterExpression: "#t = :note",
+        ExpressionAttributeNames: { "#t": "type" },
+        ExpressionAttributeValues: {
+          ":sid": id,
+          ":note": "note",
+        },
+      })
+    );
+
+    // Sort newest first
+    const notes = (result.Items || []).sort(
+      (a, b) => (b.dateTime as string).localeCompare(a.dateTime as string)
+    );
+
+    res.json({ notes });
+  } catch (error) {
+    console.error("Failed to fetch notes:", error);
+    res.status(500).json({ error: "Failed to fetch notes" });
+  }
+});
+
+// POST /api/students/:id/notes — create note
+router.post("/:id/notes", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const body = req.body;
+
+    if (!body.content || !body.content.trim()) {
+      res.status(400).json({ error: "Content is required" });
+      return;
+    }
+
+    const now = new Date();
+    const date = now.toISOString().split("T")[0];
+    const time = now.toTimeString().slice(0, 5);
+
+    const note = {
+      studentId: id,
+      dateTime: now.toISOString(),
+      date,
+      time,
+      type: "note" as const,
+      status: "completed" as const,
+      duration: 0,
+      content: body.content.trim(),
+    };
+
+    await dynamodb.send(
+      new PutCommand({
+        TableName: Tables.sessions,
+        Item: note,
+      })
+    );
+
+    res.status(201).json({ note });
+  } catch (error) {
+    console.error("Failed to create note:", error);
+    res.status(500).json({ error: "Failed to create note" });
+  }
+});
 
 export default router;

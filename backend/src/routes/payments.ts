@@ -1,22 +1,19 @@
-import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import { dynamodb, Tables } from "@/lib/dynamodb";
-import {
-  ScanCommand,
-  PutCommand,
-  QueryCommand,
-} from "@aws-sdk/lib-dynamodb";
-import type { Payment } from "@/lib/types";
+import { Router, Request, Response } from "express";
+import { requireAuth } from "../lib/auth";
+import { dynamodb, Tables } from "../lib/dynamodb";
+import { ScanCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import type { Payment } from "../lib/types";
 
-export async function GET(req: Request) {
-  const { userId } = await auth();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+const router = Router();
 
+// All routes require authentication
+router.use(requireAuth());
+
+// GET /api/payments — list (with ?studentId= or ?status= filter)
+router.get("/", async (req: Request, res: Response): Promise<void> => {
   try {
-    const { searchParams } = new URL(req.url);
-    const studentId = searchParams.get("studentId");
-    const status = searchParams.get("status");
+    const studentId = req.query.studentId as string | undefined;
+    const status = req.query.status as string | undefined;
 
     if (studentId) {
       // Query by primary key (studentId)
@@ -28,7 +25,8 @@ export async function GET(req: Request) {
           ScanIndexForward: false, // newest first
         })
       );
-      return NextResponse.json({ payments: result.Items || [] });
+      res.json({ payments: result.Items || [] });
+      return;
     }
 
     if (status) {
@@ -41,30 +39,25 @@ export async function GET(req: Request) {
           ExpressionAttributeValues: { ":status": status },
         })
       );
-      return NextResponse.json({ payments: result.Items || [] });
+      res.json({ payments: result.Items || [] });
+      return;
     }
 
     // Full scan if no filter
     const result = await dynamodb.send(
       new ScanCommand({ TableName: Tables.payments })
     );
-    return NextResponse.json({ payments: result.Items || [] });
+    res.json({ payments: result.Items || [] });
   } catch (error) {
     console.error("Failed to fetch payments:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch payments" },
-      { status: 500 }
-    );
+    res.status(500).json({ error: "Failed to fetch payments" });
   }
-}
+});
 
-export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+// POST /api/payments — create
+router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
-    const body = await req.json();
+    const body = req.body;
     const now = new Date().toISOString();
 
     const payment: Payment = {
@@ -84,12 +77,11 @@ export async function POST(req: Request) {
       })
     );
 
-    return NextResponse.json({ payment }, { status: 201 });
+    res.status(201).json({ payment });
   } catch (error) {
     console.error("Failed to create payment:", error);
-    return NextResponse.json(
-      { error: "Failed to create payment" },
-      { status: 500 }
-    );
+    res.status(500).json({ error: "Failed to create payment" });
   }
-}
+});
+
+export default router;

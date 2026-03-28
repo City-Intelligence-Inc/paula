@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { api } from "@/lib/api";
 import {
   DollarSign,
   CreditCard,
@@ -68,8 +69,8 @@ export default function AdminPaymentsPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/students").then((res) => res.json()),
-      fetch("/api/payments").then((res) => res.json()),
+      api("/api/students").then((res) => res.json()),
+      api("/api/payments").then((res) => res.json()),
     ])
       .then(([studentsJson, paymentsJson]) => {
         setStudents(studentsJson.students || []);

@@ -1,18 +1,19 @@
-import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import { dynamodb, Tables } from "@/lib/dynamodb";
+import { Router, Request, Response } from "express";
+import { requireAuth } from "../lib/auth";
+import { dynamodb, Tables } from "../lib/dynamodb";
 import { ScanCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "crypto";
-import type { Resource } from "@/lib/types";
+import type { Resource } from "../lib/types";
 
-export async function GET(req: Request) {
-  const { userId } = await auth();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+const router = Router();
 
+// All routes require authentication
+router.use(requireAuth());
+
+// GET /api/resources — list (with ?category= filter)
+router.get("/", async (req: Request, res: Response): Promise<void> => {
   try {
-    const { searchParams } = new URL(req.url);
-    const category = searchParams.get("category");
+    const category = req.query.category as string | undefined;
 
     if (category) {
       // Query by primary key (category)
@@ -23,30 +24,25 @@ export async function GET(req: Request) {
           ExpressionAttributeValues: { ":cat": category },
         })
       );
-      return NextResponse.json({ resources: result.Items || [] });
+      res.json({ resources: result.Items || [] });
+      return;
     }
 
     // Full scan
     const result = await dynamodb.send(
       new ScanCommand({ TableName: Tables.resources })
     );
-    return NextResponse.json({ resources: result.Items || [] });
+    res.json({ resources: result.Items || [] });
   } catch (error) {
     console.error("Failed to fetch resources:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch resources" },
-      { status: 500 }
-    );
+    res.status(500).json({ error: "Failed to fetch resources" });
   }
-}
+});
 
-export async function POST(req: Request) {
-  const { userId } = await auth();
-  if (!userId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+// POST /api/resources — create
+router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
-    const body = await req.json();
+    const body = req.body;
 
     const resource: Resource = {
       category: body.category,
@@ -65,12 +61,11 @@ export async function POST(req: Request) {
       })
     );
 
-    return NextResponse.json({ resource }, { status: 201 });
+    res.status(201).json({ resource });
   } catch (error) {
     console.error("Failed to create resource:", error);
-    return NextResponse.json(
-      { error: "Failed to create resource" },
-      { status: 500 }
-    );
+    res.status(500).json({ error: "Failed to create resource" });
   }
-}
+});
+
+export default router;
