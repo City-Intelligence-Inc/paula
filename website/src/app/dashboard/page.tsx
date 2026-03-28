@@ -3,6 +3,7 @@ import Link from "next/link";
 const sections = [
   { title: "Course Materials", description: "Browse materials by grade level, from preschool to college.", href: "/dashboard/courses" },
   { title: "Schedule a Meeting", description: "Book a meet-and-greet session with Paula.", href: "/dashboard/schedule" },
+  { title: "Billing & Payments", description: "Manage your payment method and view payment history.", href: "/dashboard/billing" },
   { title: "Resources", description: "Books, videos, puzzles, downloadable PDFs, and more.", href: "/dashboard/resources" },
   { title: "Events & News", description: "Upcoming math festivals and Mathitude announcements.", href: "/dashboard/events" },
 ];

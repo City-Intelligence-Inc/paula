@@ -7,6 +7,7 @@ import { UserButton, useAuth } from "@clerk/nextjs";
 import {
   Users,
   Calendar,
+  CalendarDays,
   CreditCard,
   Settings,
   Menu,
@@ -30,6 +31,11 @@ const navItems = [
     label: "Payments",
     href: "/admin/payments",
     icon: CreditCard,
+  },
+  {
+    label: "Calendar",
+    href: "/admin/calendar",
+    icon: CalendarDays,
   },
   {
     label: "Settings",

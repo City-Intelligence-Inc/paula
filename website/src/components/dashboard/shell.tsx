@@ -7,6 +7,7 @@ import { UserButton } from "@clerk/nextjs";
 import {
   BookOpen,
   Calendar,
+  CreditCard,
   FolderOpen,
   Newspaper,
   LayoutDashboard,
@@ -32,6 +33,11 @@ const navItems = [
     label: "Schedule a Meeting",
     href: "/dashboard/schedule",
     icon: Calendar,
+  },
+  {
+    label: "Billing",
+    href: "/dashboard/billing",
+    icon: CreditCard,
   },
   {
     label: "Resources",

@@ -61,6 +61,88 @@ function formatAmount(cents: number): string {
   return `$${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
+function ChargeButton({
+  student,
+  disabled,
+}: {
+  student: Student;
+  disabled: boolean;
+}) {
+  const [charging, setCharging] = useState(false);
+  const [result, setResult] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  const handleCharge = async () => {
+    const name = `${student.firstName} ${student.lastName}`;
+    const confirmed = window.confirm(
+      `Charge ${name} $${student.rate}?`
+    );
+    if (!confirmed) return;
+
+    setCharging(true);
+    setResult(null);
+
+    try {
+      const res = await api("/api/stripe/charge", {
+        method: "POST",
+        body: JSON.stringify({
+          studentId: student.id,
+          amount: student.rate * 100, // convert to cents
+          description: `Tutoring session - ${name}`,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setResult({
+          type: "error",
+          message: data.error || "Charge failed.",
+        });
+      } else {
+        setResult({ type: "success", message: "Charged!" });
+      }
+    } catch {
+      setResult({
+        type: "error",
+        message: "An unexpected error occurred.",
+      });
+    } finally {
+      setCharging(false);
+      // Clear the result message after 3 seconds
+      setTimeout(() => setResult(null), 3000);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        size="sm"
+        variant="outline"
+        className="w-fit text-xs border-neutral-200 text-neutral-900 hover:bg-neutral-900 hover:text-white"
+        disabled={disabled || charging}
+        onClick={handleCharge}
+      >
+        <DollarSign className="h-3 w-3" />
+        {charging ? "Charging..." : "Charge"}
+      </Button>
+      {result && (
+        <span
+          className={`text-xs font-medium ${
+            result.type === "success"
+              ? "text-neutral-600"
+              : "text-red-500"
+          }`}
+        >
+          {result.message}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function AdminPaymentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -196,9 +278,8 @@ export default function AdminPaymentsPage() {
         <CardContent className="flex items-center gap-3">
           <CreditCard className="h-5 w-5 text-neutral-400 shrink-0" />
           <p className="text-sm text-neutral-600">
-            <span className="font-medium">Stripe integration coming soon.</span>{" "}
-            Charge buttons are placeholders for the upcoming payment processing
-            feature.
+            <span className="font-medium">Stripe integration active.</span>{" "}
+            Click &ldquo;Charge&rdquo; to bill a student&rsquo;s saved card for their monthly rate.
           </p>
         </CardContent>
       </Card>
@@ -271,15 +352,10 @@ export default function AdminPaymentsPage() {
                 <Badge className={statusBadgeClass(sb.latestStatus)}>
                   {statusLabel(sb.latestStatus)}
                 </Badge>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-fit text-xs border-neutral-200 text-neutral-900 hover:bg-neutral-900 hover:text-white"
+                <ChargeButton
+                  student={sb.student}
                   disabled={sb.latestStatus === "paid"}
-                >
-                  <DollarSign className="h-3 w-3" />
-                  Charge
-                </Button>
+                />
               </div>
             ))}
 
