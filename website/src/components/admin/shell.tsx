@@ -18,14 +18,14 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const navItems = [
   {
-    label: "Students",
+    label: "Weekly Schedule",
     href: "/admin",
-    icon: Users,
+    icon: Calendar,
   },
   {
-    label: "Weekly Schedule",
-    href: "/admin/schedule",
-    icon: Calendar,
+    label: "Students",
+    href: "/admin/students",
+    icon: Users,
   },
   {
     label: "Payments",
@@ -55,7 +55,7 @@ function NavLink({
       className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
         active
           ? "bg-mathitude-purple text-white"
-          : "text-gray-700 hover:bg-purple-50 hover:text-mathitude-purple"
+          : "text-neutral-700 hover:bg-purple-50 hover:text-mathitude-purple"
       }`}
     >
       <item.icon className="h-4 w-4 shrink-0" />
@@ -75,14 +75,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const sidebar = (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-gray-100">
+      <div className="px-4 py-5 border-b border-neutral-100">
         <Link href="/" className="flex items-center gap-2">
           <span
             className="text-xl font-bold tracking-tight"
             style={{ fontFamily: "var(--font-original-surfer)" }}
           >
             <span className="text-mathitude-teal">Math</span>
-            <span className="text-mathitude-navy">itude</span>
+            <span className="text-neutral-900">itude</span>
           </span>
         </Link>
         <div className="mt-1 flex items-center gap-1.5">
@@ -108,14 +108,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="border-t border-gray-100 px-4 py-4">
+      <div className="border-t border-neutral-100 px-4 py-4">
         <div className="flex items-center gap-3">
           <UserButton />
           <div className="text-sm">
-            <p className="font-medium text-gray-900">Admin Account</p>
+            <p className="font-medium text-neutral-900">Admin Account</p>
             <Link
               href="/"
-              className="text-xs text-gray-500 hover:text-mathitude-purple"
+              className="text-xs text-neutral-500 hover:text-mathitude-purple"
             >
               Back to site
             </Link>
@@ -126,16 +126,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-neutral-50">
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-gray-200 lg:bg-white">
+      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-neutral-200 lg:bg-white">
         {sidebar}
       </aside>
 
       {/* Mobile sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetTrigger>
-          <span className="lg:hidden fixed top-3 left-3 z-50 inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 hover:bg-gray-100 transition-colors">
+          <span className="lg:hidden fixed top-3 left-3 z-50 inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 hover:bg-neutral-100 transition-colors">
             <Menu className="h-5 w-5" />
           </span>
         </SheetTrigger>

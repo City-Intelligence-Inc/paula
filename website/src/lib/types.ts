@@ -21,9 +21,10 @@ export interface Session {
   date: string; // YYYY-MM-DD for GSI
   time: string; // HH:MM for GSI
   duration: number; // minutes
-  type: "individual" | "group";
+  type: "individual" | "group" | "note";
   status: "scheduled" | "completed" | "cancelled";
   notes?: string;
+  content?: string; // for session notes
   students?: string[]; // for group sessions, list of student IDs
 }
 

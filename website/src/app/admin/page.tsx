@@ -1,23 +1,132 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Plus, Phone, Mail } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Clock, User, Users } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import type { Student } from "@/lib/types";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
-export default function AdminStudentsPage() {
-  const [students, setStudents] = useState<Student[]>([]);
+interface ScheduleSession {
+  studentId: string;
+  dateTime: string;
+  date: string;
+  time: string;
+  duration: number;
+  type: "individual" | "group";
+  status: "scheduled" | "completed" | "cancelled";
+  notes?: string;
+  students?: string[];
+}
+
+const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+function getDayOfWeek(dateStr: string): string {
+  const date = new Date(dateStr + "T00:00:00");
+  const dayIndex = date.getDay();
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  return dayNames[dayIndex];
+}
+
+function formatTime(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${m.toString().padStart(2, "0")} ${ampm}`;
+}
+
+function computeEndTime(time: string, duration: number): string {
+  const [h, m] = time.split(":").map(Number);
+  const totalMinutes = h * 60 + m + duration;
+  const endH = Math.floor(totalMinutes / 60) % 24;
+  const endM = totalMinutes % 60;
+  const ampm = endH >= 12 ? "PM" : "AM";
+  const hour = endH % 12 || 12;
+  return `${hour}:${endM.toString().padStart(2, "0")} ${ampm}`;
+}
+
+function SessionCard({ session }: { session: ScheduleSession }) {
+  const isGroup = session.type === "group";
+  const startFormatted = formatTime(session.time);
+  const endFormatted = computeEndTime(session.time, session.duration);
+
+  return (
+    <Card
+      className={`py-0 overflow-hidden border-l-4 border border-neutral-200 rounded-lg ${
+        isGroup
+          ? "border-l-mathitude-purple"
+          : "border-l-mathitude-teal"
+      }`}
+    >
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              {isGroup ? (
+                <Users className="h-4 w-4 text-mathitude-purple shrink-0" />
+              ) : (
+                <User className="h-4 w-4 text-mathitude-teal shrink-0" />
+              )}
+              <h4 className="font-semibold text-neutral-900 text-sm truncate">
+                {isGroup ? `Group Session` : `Student: ${session.studentId}`}
+              </h4>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+              <Clock className="h-3 w-3" />
+              {startFormatted} - {endFormatted}
+            </div>
+          </div>
+          <Badge
+            className={
+              isGroup
+                ? "bg-mathitude-purple/10 text-mathitude-purple border-mathitude-purple/20"
+                : "bg-mathitude-teal/10 text-mathitude-teal border-mathitude-teal/20"
+            }
+          >
+            {isGroup ? "Group" : "1-on-1"}
+          </Badge>
+        </div>
+
+        {isGroup && session.students && session.students.length > 0 && (
+          <div className="mt-2 pt-2 border-t border-neutral-100">
+            <p className="text-xs text-neutral-400 mb-1">Students:</p>
+            <div className="flex flex-wrap gap-1">
+              {session.students.map((name) => (
+                <span
+                  key={name}
+                  className="text-xs bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full"
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p className="text-xs text-neutral-400 mt-2">{session.duration} min &middot; {session.status}</p>
+      </div>
+    </Card>
+  );
+}
+
+export default function AdminSchedulePage() {
+  const [sessions, setSessions] = useState<ScheduleSession[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetch("/api/students")
+    fetch("/api/sessions")
       .then((res) => res.json())
       .then((json) => {
-        setStudents(json.students || []);
+        // Filter out notes — only show real sessions
+        const allSessions = json.sessions || [];
+        const realSessions = allSessions.filter(
+          (s: Record<string, unknown>) => s.type !== "note"
+        ) as ScheduleSession[];
+        setSessions(realSessions);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -27,130 +136,103 @@ export default function AdminStudentsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-mathitude-navy">Students</h1>
-          <p className="text-sm text-gray-500 mt-1">Loading students...</p>
+          <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">
+            Weekly Schedule
+          </h1>
+          <p className="text-sm text-neutral-500 mt-1">Loading schedule...</p>
         </div>
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-mathitude-teal border-t-transparent" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-mathitude-purple border-t-transparent" />
         </div>
       </div>
     );
   }
 
-  const filtered = students.filter(
-    (s) =>
-      `${s.firstName} ${s.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
-      s.parentName.toLowerCase().includes(search.toLowerCase()) ||
-      s.grade.toLowerCase().includes(search.toLowerCase())
-  );
+  // Group sessions by day of week from the date field
+  const schedule: Record<string, ScheduleSession[]> = {};
+  for (const day of days) {
+    schedule[day] = [];
+  }
+  for (const session of sessions) {
+    const day = getDayOfWeek(session.date);
+    if (schedule[day]) {
+      schedule[day].push(session);
+    }
+  }
+  // Sort each day's sessions by time
+  for (const day of days) {
+    schedule[day].sort((a, b) => a.time.localeCompare(b.time));
+  }
 
-  const activeCount = students.filter((s) => s.status === "active").length;
-  const waitlistCount = students.filter((s) => s.status === "waitlist").length;
+  const totalSessions = sessions.length;
+  const individualCount = sessions.filter((s) => s.type === "individual").length;
+  const groupCount = sessions.filter((s) => s.type === "group").length;
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-mathitude-navy">Students</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {activeCount} active &middot; {waitlistCount} on waitlist
-          </p>
+      <div>
+        <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">
+          Weekly Schedule
+        </h1>
+        <p className="text-sm text-neutral-500 mt-1">
+          {totalSessions} sessions &middot; {individualCount} individual &middot;{" "}
+          {groupCount} group
+        </p>
+      </div>
+
+      {sessions.length === 0 && (
+        <div className="text-center py-12 text-neutral-500">
+          <p className="text-sm">No sessions scheduled yet.</p>
         </div>
-        <Button className="bg-mathitude-teal hover:bg-mathitude-teal/90 text-white">
-          <Plus className="h-4 w-4" />
-          Add Student
-        </Button>
-      </div>
+      )}
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search students, parents, or grades..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-mathitude-teal focus:outline-none focus:ring-2 focus:ring-mathitude-teal/20"
-        />
-      </div>
-
-      {/* Student cards */}
-      <div className="space-y-3">
-        {students.length === 0 && !search && (
-          <div className="text-center py-12 text-gray-500">
-            <p className="text-sm">No students yet. Add your first student to get started.</p>
-          </div>
-        )}
-
-        {filtered.map((student) => (
-          <Card key={student.id} className="py-0 overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4">
-              {/* Name & Grade */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-mathitude-navy truncate">
-                    {student.firstName} {student.lastName}
-                  </h3>
-                  <Badge
-                    className={
-                      student.status === "active"
-                        ? "bg-mathitude-teal/10 text-mathitude-teal border-mathitude-teal/20"
-                        : "bg-mathitude-purple/10 text-mathitude-purple border-mathitude-purple/20"
-                    }
-                  >
-                    {student.status === "active" ? "Active" : student.status === "waitlist" ? "Waitlist" : "Inactive"}
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  Grade {student.grade}
-                </p>
-              </div>
-
-              {/* Session type */}
-              <div className="sm:text-center sm:min-w-[120px]">
-                <p className="text-xs text-gray-400 uppercase tracking-wider">
-                  Session Type
-                </p>
-                <p className="text-sm font-medium text-mathitude-navy">
-                  {student.sessionType === "individual" ? "Individual" : "Group"}
-                </p>
-              </div>
-
-              <Separator
-                orientation="vertical"
-                className="hidden sm:block h-10"
-              />
-
-              {/* Parent contact */}
-              <div className="sm:min-w-[200px]">
-                <p className="text-xs text-gray-400 uppercase tracking-wider">
-                  Parent Contact
-                </p>
-                <p className="text-sm font-medium text-mathitude-navy">
-                  {student.parentName}
-                </p>
-                <div className="flex items-center gap-3 mt-0.5">
-                  <span className="flex items-center gap-1 text-xs text-gray-500">
-                    <Phone className="h-3 w-3" />
-                    {student.parentPhone}
-                  </span>
-                  <span className="flex items-center gap-1 text-xs text-gray-500">
-                    <Mail className="h-3 w-3" />
-                    {student.parentEmail}
-                  </span>
-                </div>
-              </div>
+      {sessions.length > 0 && (
+        <>
+          {/* Legend */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-sm bg-mathitude-teal" />
+              <span className="text-xs text-neutral-600">Individual</span>
             </div>
-          </Card>
-        ))}
-
-        {filtered.length === 0 && students.length > 0 && (
-          <div className="text-center py-12 text-gray-500">
-            <p className="text-sm">No students found matching your search.</p>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-sm bg-mathitude-purple" />
+              <span className="text-xs text-neutral-600">Group</span>
+            </div>
           </div>
-        )}
-      </div>
+
+          {/* Schedule tabs */}
+          <Tabs defaultValue="Monday">
+            <TabsList className="w-full justify-start overflow-x-auto">
+              {days.map((day) => (
+                <TabsTrigger key={day} value={day} className="text-xs sm:text-sm">
+                  <span className="hidden sm:inline">{day}</span>
+                  <span className="sm:hidden">{day.slice(0, 3)}</span>
+                  <span className="ml-1 text-xs text-neutral-400">
+                    ({schedule[day].length})
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {days.map((day) => (
+              <TabsContent key={day} value={day} className="mt-4">
+                {schedule[day].length > 0 ? (
+                  <div className="space-y-3">
+                    {schedule[day].map((session, idx) => (
+                      <SessionCard key={`${session.studentId}-${session.dateTime}-${idx}`} session={session} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-neutral-500">
+                    <p className="text-sm">No sessions scheduled for {day}.</p>
+                  </div>
+                )}
+              </TabsContent>
+            ))}
+          </Tabs>
+        </>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 
 export async function POST(req: Request) {
   const { userId } = await auth();
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
   // TODO: Verify the requesting user is staff/admin
 
-  const paymentIntent = await stripe.paymentIntents.create({
+  const paymentIntent = await getStripe().paymentIntents.create({
     amount, // in cents
     currency: "usd",
     payment_method: paymentMethodId,
