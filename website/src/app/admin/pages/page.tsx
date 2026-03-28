@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+  const fetchApi = useApi();
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { useApi } from "@/hooks/use-api";
 import { FileText, ChevronRight } from "lucide-react";
 
 interface ContentBlock {
@@ -30,7 +31,7 @@ export default function AdminPagesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api("/api/content-admin")
+    fetchApi("/api/content-admin")
       .then((res) => res.json())
       .then((json) => {
         setPages(json.pages || {});

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+  const fetchApi = useApi();
 import { SaveCardForm } from "@/components/stripe/save-card-form";
-import { api } from "@/lib/api";
+import { useApi } from "@/hooks/use-api";
 import type { Payment } from "@/lib/types";
 
 function formatDate(isoString: string): string {
@@ -55,7 +56,7 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api("/api/payments")
+    fetchApi("/api/payments")
       .then((res) => res.json())
       .then((data) => {
         setPayments(data.payments || []);

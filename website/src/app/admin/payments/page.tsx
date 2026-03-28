@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+  const fetchApi = useApi();
+import { useApi } from "@/hooks/use-api";
 import {
   DollarSign,
   CreditCard,
@@ -85,7 +86,7 @@ function ChargeButton({
     setResult(null);
 
     try {
-      const res = await api("/api/stripe/charge", {
+      const res = await fetchApi("/api/stripe/charge", {
         method: "POST",
         body: JSON.stringify({
           studentId: student.id,
@@ -151,8 +152,8 @@ export default function AdminPaymentsPage() {
 
   useEffect(() => {
     Promise.all([
-      api("/api/students").then((res) => res.json()),
-      api("/api/payments").then((res) => res.json()),
+      fetchApi("/api/students").then((res) => res.json()),
+      fetchApi("/api/payments").then((res) => res.json()),
     ])
       .then(([studentsJson, paymentsJson]) => {
         setStudents(studentsJson.students || []);

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+  const fetchApi = useApi();
 import { useParams, useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { useApi } from "@/hooks/use-api";
 import Link from "next/link";
 import { ArrowLeft, Plus, Trash2, Check } from "lucide-react";
 
@@ -59,7 +60,7 @@ function BlockEditor({
     if (!isDirty) return;
     setSaving(true);
     try {
-      const res = await api(`/api/content/${pageId}/${block.blockId}`, {
+      const res = await fetchApi(`/api/content/${pageId}/${block.blockId}`, {
         method: "PUT",
         body: JSON.stringify({ content: value, type: block.type }),
       });
@@ -79,7 +80,7 @@ function BlockEditor({
   async function handleDelete() {
     if (!confirm(`Delete block "${block.blockId}"?`)) return;
     try {
-      const res = await api(`/api/content/${pageId}/${block.blockId}`, {
+      const res = await fetchApi(`/api/content/${pageId}/${block.blockId}`, {
         method: "DELETE",
       });
       if (res.ok) {
@@ -182,7 +183,7 @@ export default function AdminPageEditorPage() {
   function fetchBlocks() {
     setLoading(true);
     // Fetch all blocks for this page from the admin endpoint
-    api("/api/content-admin")
+    fetchApi("/api/content-admin")
       .then((res) => res.json())
       .then((json) => {
         const pageBlocks = (json.pages || {})[pageId] || [];
@@ -204,7 +205,7 @@ export default function AdminPageEditorPage() {
     if (!newBlockId.trim()) return;
     setAddingBlock(true);
     try {
-      const res = await api(`/api/content/${pageId}/${newBlockId.trim()}`, {
+      const res = await fetchApi(`/api/content/${pageId}/${newBlockId.trim()}`, {
         method: "PUT",
         body: JSON.stringify({
           content: newBlockContent,

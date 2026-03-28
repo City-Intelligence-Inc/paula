@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+  const fetchApi = useApi();
+import { useApi } from "@/hooks/use-api";
 import { Trash2, Send, Users } from "lucide-react";
 import { AdminShell } from "@/components/admin/shell";
 
@@ -22,7 +23,7 @@ export default function AdminNewsletterPage() {
 
   function fetchSubscribers() {
     setLoading(true);
-    api("/api/newsletter/subscribers")
+    fetchApi("/api/newsletter/subscribers")
       .then((res) => res.json())
       .then((json) => {
         setSubscribers(json.subscribers || []);
@@ -40,7 +41,7 @@ export default function AdminNewsletterPage() {
     if (!confirm(`Remove ${email} from the mailing list?`)) return;
 
     try {
-      await api(`/api/newsletter/subscribers/${encodeURIComponent(email)}`, {
+      await fetchApi(`/api/newsletter/subscribers/${encodeURIComponent(email)}`, {
         method: "DELETE",
       });
       fetchSubscribers();

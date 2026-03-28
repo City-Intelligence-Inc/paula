@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { api } from "@/lib/api";
+import { useApi } from "@/hooks/use-api";
 import {
   Elements,
   CardElement,
@@ -17,6 +17,7 @@ const stripePromise = isConfigured ? loadStripe(publishableKey) : null;
 function CardForm() {
   const stripe = useStripe();
   const elements = useElements();
+  const fetchApi = useApi();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -29,7 +30,7 @@ function CardForm() {
     setMessage(null);
 
     try {
-      const res = await api("/api/stripe/create-setup-intent", {
+      const res = await fetchApi("/api/stripe/create-setup-intent", {
         method: "POST",
       });
       const { clientSecret, error } = await res.json();

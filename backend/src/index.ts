@@ -24,6 +24,7 @@ app.use(
   cors({
     origin: process.env.CORS_ORIGIN || "https://website-sage-three-98.vercel.app",
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 

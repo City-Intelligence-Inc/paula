@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+  const fetchApi = useApi();
+import { useApi } from "@/hooks/use-api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Clock, Megaphone, Newspaper } from "lucide-react";
@@ -18,7 +19,7 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api("/api/events")
+    fetchApi("/api/events")
       .then((res) => res.json())
       .then((json) => {
         setEvents(json.events || []);

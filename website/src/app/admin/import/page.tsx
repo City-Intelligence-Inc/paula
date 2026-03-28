@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { api } from "@/lib/api";
+  const fetchApi = useApi();
+import { useApi } from "@/hooks/use-api";
 import {
   Upload,
   FileSpreadsheet,
@@ -195,7 +196,7 @@ export default function AdminImportPage() {
       const name = `${student.firstName || ""} ${student.lastName || ""}`.trim();
 
       try {
-        const res = await api("/api/students", {
+        const res = await fetchApi("/api/students", {
           method: "POST",
           body: JSON.stringify(student),
         });
