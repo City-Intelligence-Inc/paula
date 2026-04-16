@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-  const fetchApi = useApi();
 import { useApi } from "@/hooks/use-api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,7 +14,11 @@ import {
   Puzzle,
   Link2,
 } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/page-header";
 import type { Resource } from "@/lib/types";
+
+const RESOURCES_TITLE = "Resources";
+const RESOURCES_DESC = "Paula's published books, videos, downloadable puzzles, and curated math engagement tools.";
 
 const tabConfig = [
   {
@@ -47,6 +50,7 @@ const tabConfig = [
 export default function ResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchApi = useApi();
 
   useEffect(() => {
     fetchApi("/api/resources")
@@ -61,15 +65,7 @@ export default function ResourcesPage() {
   if (loading) {
     return (
       <div>
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
-            Resources
-          </h1>
-          <p className="mt-2 text-neutral-600">
-            Paula&apos;s published books, videos, downloadable puzzles, and
-            curated math engagement tools.
-          </p>
-        </div>
+        <PageHeader title={RESOURCES_TITLE} description={RESOURCES_DESC} />
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-900 border-t-transparent" />
         </div>
@@ -77,7 +73,6 @@ export default function ResourcesPage() {
     );
   }
 
-  // Group resources by category
   const resourcesByCategory: Record<string, Resource[]> = {};
   for (const r of resources) {
     if (!resourcesByCategory[r.category]) {
@@ -88,15 +83,7 @@ export default function ResourcesPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-neutral-900 tracking-tight">
-          Resources
-        </h1>
-        <p className="mt-2 text-neutral-600">
-          Paula&apos;s published books, videos, downloadable puzzles, and
-          curated math engagement tools.
-        </p>
-      </div>
+      <PageHeader title={RESOURCES_TITLE} description={RESOURCES_DESC} />
 
       <Tabs defaultValue="books" className="w-full">
         <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-neutral-100/80 p-1 rounded-lg">

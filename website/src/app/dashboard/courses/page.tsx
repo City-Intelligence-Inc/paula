@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, FileText, Video } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 interface CourseMaterial {
   title: string;
@@ -155,14 +156,10 @@ const typeIcon = {
 export default function CoursesPage() {
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
-          Course Materials
-        </h1>
-        <p className="mt-2 text-neutral-600">
-          Browse enrichment materials organized by grade level.
-        </p>
-      </div>
+      <PageHeader
+        title="Course Materials"
+        description="Browse enrichment materials organized by grade level."
+      />
 
       <Tabs defaultValue="elementary" className="w-full">
         <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-neutral-100/80 p-1 rounded-lg">

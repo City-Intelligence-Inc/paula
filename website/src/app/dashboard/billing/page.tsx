@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { SaveCardForm } from "@/components/stripe/save-card-form";
 import { useApi } from "@/hooks/use-api";
+import { PageHeader } from "@/components/dashboard/page-header";
 import type { Payment } from "@/lib/types";
 
 function formatDate(isoString: string): string {
@@ -72,15 +73,10 @@ export default function BillingPage() {
 
   return (
     <div className="space-y-10">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
-          Billing &amp; Payments
-        </h1>
-        <p className="mt-3 text-neutral-500 max-w-lg">
-          Manage your payment method and view your payment history.
-        </p>
-      </div>
+      <PageHeader
+        title="Billing & Payments"
+        description="Manage your payment method and view your payment history."
+      />
 
       {/* Save Card */}
       <div className="max-w-md">

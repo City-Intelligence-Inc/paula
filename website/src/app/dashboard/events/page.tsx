@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-  const fetchApi = useApi();
 import { useApi } from "@/hooks/use-api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Clock, Megaphone, Newspaper } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/page-header";
 import type { MathitudeEvent } from "@/lib/types";
+
+const EVENTS_TITLE = "Events & News";
+const EVENTS_DESC = "Upcoming math festivals, workshops, and Mathitude announcements.";
 
 const typeStyles = {
   festival: { badge: "bg-neutral-900/5 text-neutral-900 border-neutral-200", label: "Festival" },
@@ -17,6 +20,7 @@ const typeStyles = {
 export default function EventsPage() {
   const [events, setEvents] = useState<MathitudeEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchApi = useApi();
 
   useEffect(() => {
     fetchApi("/api/events")
@@ -31,14 +35,7 @@ export default function EventsPage() {
   if (loading) {
     return (
       <div>
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
-            Events & News
-          </h1>
-          <p className="mt-2 text-neutral-600">
-            Upcoming math festivals, workshops, and Mathitude announcements.
-          </p>
-        </div>
+        <PageHeader title={EVENTS_TITLE} description={EVENTS_DESC} />
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-900 border-t-transparent" />
         </div>
@@ -51,14 +48,7 @@ export default function EventsPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-neutral-900 tracking-tight">
-          Events & News
-        </h1>
-        <p className="mt-2 text-neutral-600">
-          Upcoming math festivals, workshops, and Mathitude announcements.
-        </p>
-      </div>
+      <PageHeader title={EVENTS_TITLE} description={EVENTS_DESC} />
 
       {events.length === 0 && (
         <div className="text-center py-16">

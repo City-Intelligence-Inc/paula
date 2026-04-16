@@ -1,60 +1,31 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Clock, Video, MapPin } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 export default function SchedulePage() {
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
-          Schedule a Meeting
-        </h1>
-        <p className="mt-2 text-neutral-600">
-          Book an introductory meet-and-greet session with Paula to discuss your
-          student&apos;s needs and goals.
-        </p>
-      </div>
+      <PageHeader
+        title="Schedule a Meeting"
+        description="Book an introductory meet-and-greet session with Paula to discuss your student's needs and goals."
+      />
 
-      {/* Info cards */}
-      <div className="grid sm:grid-cols-3 gap-4 mb-8">
-        <Card className="border border-neutral-200 rounded-lg bg-white">
-          <CardContent className="pt-5 pb-5 px-5 flex items-start gap-3">
-            <Clock className="w-5 h-5 text-neutral-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-sm text-neutral-900">
-                30-Minute Session
-              </p>
-              <p className="text-xs text-neutral-500 mt-0.5">
-                Free introductory consultation
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border border-neutral-200 rounded-lg bg-white">
-          <CardContent className="pt-5 pb-5 px-5 flex items-start gap-3">
-            <Video className="w-5 h-5 text-neutral-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-sm text-neutral-900">
-                Virtual or In-Person
-              </p>
-              <p className="text-xs text-neutral-500 mt-0.5">
-                Zoom or Bay Area location
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border border-neutral-200 rounded-lg bg-white">
-          <CardContent className="pt-5 pb-5 px-5 flex items-start gap-3">
-            <Calendar className="w-5 h-5 text-neutral-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-sm text-neutral-900">
-                Flexible Scheduling
-              </p>
-              <p className="text-xs text-neutral-500 mt-0.5">
-                Mon-Sat availability
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Quick facts — inline, no card grid */}
+      <div className="mb-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-neutral-500">
+        <span className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-neutral-400" />
+          30-min free intro
+        </span>
+        <span className="hidden sm:inline text-neutral-300">·</span>
+        <span className="flex items-center gap-2">
+          <Video className="w-4 h-4 text-neutral-400" />
+          Virtual or in-person (Bay Area)
+        </span>
+        <span className="hidden sm:inline text-neutral-300">·</span>
+        <span className="flex items-center gap-2">
+          <MapPin className="w-4 h-4 text-neutral-400" />
+          Mon–Sat availability
+        </span>
       </div>
 
       {/* Calendly Embed */}
