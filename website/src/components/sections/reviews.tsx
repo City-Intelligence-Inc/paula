@@ -39,7 +39,7 @@ export function Reviews() {
   return (
     <section className="bg-white animate-fade-in-up">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-        <h2 className="text-3xl sm:text-4xl font-serif italic font-medium text-neutral-900 text-center tracking-tight">
+        <h2 className="text-3xl sm:text-4xl font-semibold text-neutral-900 text-center tracking-tight">
           What Parents Are Saying
         </h2>
         <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">

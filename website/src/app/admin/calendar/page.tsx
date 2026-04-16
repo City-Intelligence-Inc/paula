@@ -296,7 +296,7 @@ export default function AdminCalendarPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">
+          <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">
             Academic Calendar 2026-2027
           </h1>
           <p className="text-sm text-neutral-500 mt-1 max-w-xl">
@@ -414,7 +414,7 @@ export default function AdminCalendarPage() {
 
       {/* Mathitude Recommended Calendar */}
       <div>
-        <h2 className="text-xl font-serif italic font-medium text-neutral-900 tracking-tight mb-1">
+        <h2 className="text-xl font-semibold text-neutral-900 tracking-tight mb-1">
           Recommended Mathitude Calendar
         </h2>
         <p className="text-sm text-neutral-500 mb-4">
@@ -433,7 +433,7 @@ export default function AdminCalendarPage() {
               className="border border-neutral-200 rounded-lg p-0"
             >
               <div className="p-5">
-                <h3 className="font-serif italic font-medium text-neutral-900 tracking-tight text-lg">
+                <h3 className="font-semibold text-neutral-900 tracking-tight text-lg">
                   {quarter.label}
                 </h3>
                 <div className="mt-3 space-y-2">
@@ -466,7 +466,7 @@ export default function AdminCalendarPage() {
 
       {/* Contract Billing Periods */}
       <div>
-        <h2 className="text-xl font-serif italic font-medium text-neutral-900 tracking-tight mb-1">
+        <h2 className="text-xl font-semibold text-neutral-900 tracking-tight mb-1">
           Contract Billing Periods
         </h2>
         <p className="text-sm text-neutral-500 mb-4">

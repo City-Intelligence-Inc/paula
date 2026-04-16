@@ -63,7 +63,7 @@ export default function AdminNewsletterPage() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-serif italic text-neutral-900">
+          <h1 className="text-3xl font-semibold text-neutral-900">
             Newsletter
           </h1>
           <p className="mt-1 text-sm text-neutral-500">
@@ -84,7 +84,7 @@ export default function AdminNewsletterPage() {
 
         {/* Compose */}
         <div className="bg-white border border-neutral-200 rounded-lg p-6">
-          <h2 className="text-lg font-serif italic text-neutral-900 mb-4">
+          <h2 className="text-lg font-semibold text-neutral-900 mb-4">
             Compose
           </h2>
           <div className="space-y-4">
@@ -134,7 +134,7 @@ export default function AdminNewsletterPage() {
         {/* Subscriber list */}
         <div className="bg-white border border-neutral-200 rounded-lg">
           <div className="px-6 py-4 border-b border-neutral-200">
-            <h2 className="text-lg font-serif italic text-neutral-900">
+            <h2 className="text-lg font-semibold text-neutral-900">
               Subscribers
             </h2>
           </div>

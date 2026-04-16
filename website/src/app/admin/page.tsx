@@ -135,7 +135,7 @@ export default function AdminSchedulePage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">
+          <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">
             Weekly Schedule
           </h1>
           <p className="text-sm text-neutral-500 mt-1">Loading schedule...</p>
@@ -194,7 +194,7 @@ export default function AdminSchedulePage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">
+        <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">
           Weekly Schedule
         </h1>
         <p className="text-sm text-neutral-500 mt-1">

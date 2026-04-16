@@ -14,11 +14,11 @@ export function AboutPaula() {
 
           {/* Bio */}
           <div className="lg:col-span-3 space-y-6">
-            <h2 className="text-3xl sm:text-4xl font-serif italic font-medium text-neutral-900 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight">
               Meet Paula Hamilton!
             </h2>
 
-            <p className="text-xl font-serif italic text-neutral-900 leading-relaxed">
+            <p className="text-xl font-semibold text-neutral-900 leading-relaxed">
               Paula&apos;s vision of lifetime math engagement for all is at the
               heart of everything we do.
             </p>

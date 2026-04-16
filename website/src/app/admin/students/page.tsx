@@ -101,7 +101,7 @@ export default function AdminStudentsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">
+          <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">
             Students
           </h1>
           <p className="text-sm text-neutral-500 mt-1">Loading students...</p>
@@ -128,7 +128,7 @@ export default function AdminStudentsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">
+          <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">
             Students
           </h1>
           <p className="text-sm text-neutral-500 mt-1">
@@ -147,7 +147,7 @@ export default function AdminStudentsPage() {
       {/* Add Student Form */}
       {showForm && (
         <Card className="border border-neutral-200 rounded-lg p-6">
-          <h2 className="text-lg font-serif italic font-medium text-neutral-900 tracking-tight mb-4">
+          <h2 className="text-lg font-semibold text-neutral-900 tracking-tight mb-4">
             New Student
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">

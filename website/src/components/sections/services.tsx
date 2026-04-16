@@ -32,7 +32,7 @@ export function Services() {
   return (
     <section className="bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-        <h2 className="text-3xl sm:text-4xl font-serif italic font-medium text-neutral-900 text-center tracking-tight">
+        <h2 className="text-3xl sm:text-4xl font-semibold text-neutral-900 text-center tracking-tight">
           We offer:
         </h2>
         <p className="mt-3 text-neutral-500 text-center max-w-lg mx-auto">

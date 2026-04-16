@@ -211,7 +211,7 @@ export default function PascalsTrianglePage() {
         {/* Header */}
         <section className="animate-fade-in-up">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8 md:pt-32 md:pb-12">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif italic font-medium text-neutral-900 tracking-tight text-center">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl text-neutral-900 tracking-tight text-center" style={{ fontFamily: "var(--font-original-surfer)" }}>
               Pascal&apos;s Triangle Explorer
             </h1>
             <p className="mt-6 text-lg md:text-xl text-neutral-500 leading-relaxed text-center max-w-2xl mx-auto">
@@ -311,7 +311,7 @@ export default function PascalsTrianglePage() {
         <section className="bg-neutral-950">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
             <div className="text-center">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif italic text-white leading-snug tracking-tight">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white leading-snug tracking-tight">
                 The Sierpinski Pattern
               </h2>
               <p className="mt-6 text-white/60 max-w-xl mx-auto leading-relaxed">

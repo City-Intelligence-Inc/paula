@@ -64,7 +64,7 @@ export default function AdminPagesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">
+        <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">
           Page Editor
         </h1>
         <p className="text-sm text-neutral-500 mt-1">

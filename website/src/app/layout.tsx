@@ -1,20 +1,7 @@
 import type { Metadata } from "next";
-import { Poppins, Newsreader, Original_Surfer } from "next/font/google";
+import { Original_Surfer } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
-
-const poppins = Poppins({
-  variable: "--font-poppins",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-});
-
-const newsreader = Newsreader({
-  variable: "--font-newsreader",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-});
 
 const originalSurfer = Original_Surfer({
   variable: "--font-original-surfer",
@@ -37,7 +24,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html
         lang="en"
-        className={`${poppins.variable} ${newsreader.variable} ${originalSurfer.variable}`}
+        className={originalSurfer.variable}
       >
         <body className="min-h-screen flex flex-col font-sans antialiased">
           {children}

@@ -167,7 +167,7 @@ export default function AdminPaymentsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">Payments</h1>
+          <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">Payments</h1>
           <p className="text-sm text-neutral-500 mt-1">Loading payment data...</p>
         </div>
         <div className="flex items-center justify-center py-20">
@@ -231,7 +231,7 @@ export default function AdminPaymentsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">Payments</h1>
+        <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">Payments</h1>
         <p className="text-sm text-neutral-500 mt-1">
           Manage billing and track payment status
         </p>

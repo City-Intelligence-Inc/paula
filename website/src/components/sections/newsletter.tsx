@@ -35,7 +35,7 @@ export function Newsletter() {
     <section className="bg-neutral-50 py-20 px-6">
       <div className="max-w-2xl mx-auto text-center">
         <h2
-          className="text-3xl sm:text-4xl font-serif italic text-neutral-900 mb-3"
+          className="text-3xl sm:text-4xl font-semibold text-neutral-900 mb-3"
         >
           Stay in the loop
         </h2>

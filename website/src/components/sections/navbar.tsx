@@ -12,10 +12,9 @@ import {
 import { Button } from "@/components/ui/button";
 
 const navLinks = [
-  { label: "Math Engagement", href: "/math-engagement" },
-  { label: "Pascal's Triangle", href: "/pascals-triangle" },
+  { label: "Tutoring & Groups", href: "/tutoring" },
+  { label: "Free Resources", href: "/free-resources" },
   { label: "Events & News", href: "/events" },
-  { label: "Contact Us", href: "/contact" },
   { label: "Shop Books", href: "/shop" },
 ];
 

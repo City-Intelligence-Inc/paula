@@ -242,7 +242,7 @@ export default function AdminImportPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">
+          <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">
             Import Students
           </h1>
           <p className="text-sm text-neutral-500 mt-1">
@@ -328,7 +328,7 @@ export default function AdminImportPage() {
 
           {/* Column mapping */}
           <div>
-            <h2 className="text-lg font-serif italic font-medium text-neutral-900 tracking-tight mb-3">
+            <h2 className="text-lg font-semibold text-neutral-900 tracking-tight mb-3">
               Column Mapping
             </h2>
             <p className="text-sm text-neutral-500 mb-4">
@@ -360,7 +360,7 @@ export default function AdminImportPage() {
 
           {/* Preview table */}
           <div>
-            <h2 className="text-lg font-serif italic font-medium text-neutral-900 tracking-tight mb-3">
+            <h2 className="text-lg font-semibold text-neutral-900 tracking-tight mb-3">
               Preview
             </h2>
             <div className="overflow-x-auto">
@@ -457,7 +457,7 @@ export default function AdminImportPage() {
         <div className="space-y-4">
           {/* Summary */}
           <Card className="border border-neutral-200 rounded-lg p-6">
-            <h2 className="text-lg font-serif italic font-medium text-neutral-900 tracking-tight mb-4">
+            <h2 className="text-lg font-semibold text-neutral-900 tracking-tight mb-4">
               Import Complete
             </h2>
             <div className="flex items-center gap-6">

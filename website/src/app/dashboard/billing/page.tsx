@@ -74,7 +74,7 @@ export default function BillingPage() {
     <div className="space-y-10">
       {/* Header */}
       <div>
-        <h1 className="text-3xl sm:text-4xl font-serif italic font-medium text-neutral-900 tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight">
           Billing &amp; Payments
         </h1>
         <p className="mt-3 text-neutral-500 max-w-lg">

@@ -6,18 +6,13 @@ export function Hero() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 lg:py-40">
         <div className="text-center max-w-4xl mx-auto">
           <h1
-            className="text-5xl md:text-7xl lg:text-8xl font-serif italic text-neutral-900 leading-[1.05] tracking-tight"
-            style={{ letterSpacing: "-0.03em", textWrap: "balance" }}
+            className="text-5xl md:text-7xl lg:text-8xl text-neutral-900 leading-[1.05] tracking-tight"
+            style={{ fontFamily: "var(--font-original-surfer)", letterSpacing: "-0.03em", textWrap: "balance" }}
           >
             At{" "}
-            <span
-              className="not-italic"
-              style={{ fontFamily: "var(--font-original-surfer)" }}
-            >
-              <span className="text-mathitude-purple">Math</span>
-              <span className="text-neutral-900">itude</span>
-            </span>
-            , it&apos;s all about{" "}
+            <span className="text-mathitude-purple">Math</span>
+            <span className="text-neutral-900">itude</span>
+            {", "}it&apos;s all about{" "}
             <span className="text-mathitude-purple">the attitude.</span>
           </h1>
 

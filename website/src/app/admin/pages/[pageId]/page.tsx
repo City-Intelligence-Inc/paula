@@ -127,7 +127,7 @@ function BlockEditor({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onBlur={handleSave}
-          className="w-full text-lg font-serif italic text-neutral-900 border border-dashed border-neutral-200 focus:border-solid focus:border-neutral-400 rounded-md p-3 outline-none transition-colors bg-transparent"
+          className="w-full text-lg font-semibold text-neutral-900 border border-dashed border-neutral-200 focus:border-solid focus:border-neutral-400 rounded-md p-3 outline-none transition-colors bg-transparent"
           placeholder="Heading text..."
         />
       ) : (
@@ -250,7 +250,7 @@ export default function AdminPageEditorPage() {
           <span>/</span>
           <span className="text-neutral-700">{pageLabel}</span>
         </div>
-        <h1 className="text-2xl font-serif italic font-medium text-neutral-900 tracking-tight">
+        <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">
           {pageLabel}
         </h1>
         <p className="text-sm text-neutral-500 mt-1">
