@@ -25,4 +25,5 @@ export const Tables = {
   resources: `${prefix}-resources`,
   subscribers: `${prefix}-subscribers`,
   content: `${prefix}-content`,
+  bookings: `${prefix}-bookings`,
 } as const;

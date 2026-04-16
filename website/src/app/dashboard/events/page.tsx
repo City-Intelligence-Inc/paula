@@ -20,17 +20,32 @@ const typeStyles = {
 export default function EventsPage() {
   const [events, setEvents] = useState<MathitudeEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const fetchApi = useApi();
 
   useEffect(() => {
+    console.log("[events] NEXT_PUBLIC_API_URL =", process.env.NEXT_PUBLIC_API_URL || "(empty)");
     fetchApi("/api/events")
-      .then((res) => res.json())
-      .then((json) => {
-        setEvents(json.events || []);
-        setLoading(false);
+      .then(async (res) => {
+        console.log("[events] status:", res.status, "url:", res.url);
+        const ct = res.headers.get("content-type");
+        if (!res.ok || !ct?.includes("application/json")) {
+          const body = await res.text();
+          console.error("[events] bad response:", body.slice(0, 300));
+          throw new Error(`API ${res.status} — ${ct?.includes("html") ? "got HTML (check NEXT_PUBLIC_API_URL)" : res.statusText}`);
+        }
+        return res.json();
       })
-      .catch(() => setLoading(false));
-  }, []);
+      .then((json) => {
+        console.log("[events] got", json.events?.length ?? 0, "events");
+        setEvents(json.events || []);
+      })
+      .catch((err) => {
+        console.error("[events] failed:", err);
+        setError(err.message || "Failed to load events");
+      })
+      .finally(() => setLoading(false));
+  }, [fetchApi]);
 
   if (loading) {
     return (
@@ -50,7 +65,15 @@ export default function EventsPage() {
     <div>
       <PageHeader title={EVENTS_TITLE} description={EVENTS_DESC} />
 
-      {events.length === 0 && (
+      {error && (
+        <div className="rounded-lg border border-red-100 bg-red-50 p-4 mb-6">
+          <p className="text-sm font-medium text-red-700">Couldn&apos;t load events</p>
+          <p className="text-xs text-red-600 mt-1">{error}</p>
+          <p className="text-xs text-neutral-500 mt-2">Check browser console for details.</p>
+        </div>
+      )}
+
+      {!error && events.length === 0 && (
         <div className="text-center py-16">
           <Newspaper className="w-10 h-10 text-neutral-300 mx-auto mb-3" />
           <p className="text-neutral-900 font-medium">No upcoming events yet</p>

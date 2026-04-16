@@ -54,17 +54,43 @@ function statusClass(status: string): string {
 export default function BillingPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const fetchApi = useApi();
 
   useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    console.log("[billing] NEXT_PUBLIC_API_URL =", apiUrl || "(empty — same origin)");
+    console.log("[billing] fetching /api/payments");
+
     fetchApi("/api/payments")
-      .then((res) => res.json())
+      .then(async (res) => {
+        console.log("[billing] response status:", res.status, res.statusText);
+        console.log("[billing] response url:", res.url);
+        const contentType = res.headers.get("content-type");
+        console.log("[billing] content-type:", contentType);
+
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("[billing] non-OK response body:", text.slice(0, 500));
+          throw new Error(`API ${res.status} ${res.statusText}`);
+        }
+        if (!contentType?.includes("application/json")) {
+          const text = await res.text();
+          console.error("[billing] non-JSON response body:", text.slice(0, 500));
+          throw new Error("API returned non-JSON (likely a 404 HTML page — check NEXT_PUBLIC_API_URL)");
+        }
+        return res.json();
+      })
       .then((data) => {
+        console.log("[billing] payments received:", data.payments?.length ?? 0);
         setPayments(data.payments || []);
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.error("[billing] failed:", err);
+        setError(err.message || "Failed to load payments");
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }, [fetchApi]);
 
   const sorted = [...payments].sort(
     (a, b) =>
@@ -119,7 +145,15 @@ export default function BillingPage() {
               </div>
             )}
 
-            {!loading && sorted.length === 0 && (
+            {!loading && error && (
+              <div className="px-4 py-6 bg-red-50 border-b border-red-100">
+                <p className="text-sm font-medium text-red-700">Couldn&apos;t load payment history</p>
+                <p className="text-xs text-red-600 mt-1">{error}</p>
+                <p className="text-xs text-neutral-500 mt-2">Check the browser console for details.</p>
+              </div>
+            )}
+
+            {!loading && !error && sorted.length === 0 && (
               <div className="text-center py-12 text-neutral-500">
                 <p className="text-sm">No payments yet.</p>
               </div>

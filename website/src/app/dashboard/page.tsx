@@ -49,15 +49,11 @@ export default function DashboardPage() {
   return (
     <div className="page-enter">
       <div className="mb-10">
-        <div className="flex items-center gap-2 mb-1">
-          <Sparkles className="w-5 h-5 text-mathitude-purple" />
-          <span className="text-sm font-medium text-mathitude-purple">Welcome to your portal</span>
-        </div>
         <h1 className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
-          Hi {firstName}, ready to do some math?
+          Welcome back, {firstName}.
         </h1>
         <p className="mt-3 text-neutral-500 max-w-xl">
-          This is your Mathitude home base. Here&apos;s how to get started:
+          Your Mathitude home base. Here&apos;s how to get started:
         </p>
       </div>
 

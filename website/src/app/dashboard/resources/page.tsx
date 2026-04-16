@@ -50,17 +50,32 @@ const tabConfig = [
 export default function ResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const fetchApi = useApi();
 
   useEffect(() => {
+    console.log("[resources] NEXT_PUBLIC_API_URL =", process.env.NEXT_PUBLIC_API_URL || "(empty)");
     fetchApi("/api/resources")
-      .then((res) => res.json())
-      .then((json) => {
-        setResources(json.resources || []);
-        setLoading(false);
+      .then(async (res) => {
+        console.log("[resources] status:", res.status, "url:", res.url);
+        const ct = res.headers.get("content-type");
+        if (!res.ok || !ct?.includes("application/json")) {
+          const body = await res.text();
+          console.error("[resources] bad response:", body.slice(0, 300));
+          throw new Error(`API ${res.status} — ${ct?.includes("html") ? "got HTML (check NEXT_PUBLIC_API_URL)" : res.statusText}`);
+        }
+        return res.json();
       })
-      .catch(() => setLoading(false));
-  }, []);
+      .then((json) => {
+        console.log("[resources] got", json.resources?.length ?? 0, "resources");
+        setResources(json.resources || []);
+      })
+      .catch((err) => {
+        console.error("[resources] failed:", err);
+        setError(err.message || "Failed to load resources");
+      })
+      .finally(() => setLoading(false));
+  }, [fetchApi]);
 
   if (loading) {
     return (
@@ -84,6 +99,14 @@ export default function ResourcesPage() {
   return (
     <div>
       <PageHeader title={RESOURCES_TITLE} description={RESOURCES_DESC} />
+
+      {error && (
+        <div className="rounded-lg border border-red-100 bg-red-50 p-4 mb-6">
+          <p className="text-sm font-medium text-red-700">Couldn&apos;t load resources</p>
+          <p className="text-xs text-red-600 mt-1">{error}</p>
+          <p className="text-xs text-neutral-500 mt-2">Check browser console for details.</p>
+        </div>
+      )}
 
       <Tabs defaultValue="books" className="w-full">
         <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-neutral-100/80 p-1 rounded-lg">
