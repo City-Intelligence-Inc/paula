@@ -145,9 +145,15 @@ export default function SignInPage() {
         </Link>
 
         <div className="w-full max-w-[400px]">
-          <div className="mb-6 text-center">
-            <p className="text-xs font-medium tracking-widest text-neutral-400 uppercase">
-              Sign in with Stardrop
+          <div className="mb-8 text-center">
+            <h1
+              className="text-3xl text-neutral-900"
+              style={{ fontFamily: "var(--font-original-surfer)" }}
+            >
+              Welcome back
+            </h1>
+            <p className="mt-2 text-sm text-neutral-500">
+              Sign in to your Mathitude account
             </p>
           </div>
 
@@ -168,8 +174,9 @@ export default function SignInPage() {
               elements: {
                 rootBox: "w-full",
                 card: "shadow-none border border-neutral-200 rounded-xl p-8 w-full",
-                headerTitle: "text-lg font-semibold text-neutral-900",
-                headerSubtitle: "text-sm text-neutral-500",
+                header: "hidden",
+                headerTitle: "hidden",
+                headerSubtitle: "hidden",
                 socialButtonsBlockButton:
                   "border border-neutral-200 hover:bg-neutral-50 text-neutral-700 font-medium rounded-lg",
                 formButtonPrimary:

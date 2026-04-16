@@ -1,27 +1,22 @@
+import Image from "next/image";
+
 export function AboutPaula() {
   return (
     <section className="bg-white">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
         <div className="grid lg:grid-cols-[1fr_2fr] gap-12 lg:gap-20 items-start">
 
-          {/* Left — photo slot + credentials */}
+          {/* Left — photo + credentials */}
           <div className="space-y-6">
-            {/*
-              TODO: Replace this placeholder with Paula's headshot.
-              Recommended: 600×700px, format WebP, place in /public/paula-hamilton.webp
-              Then swap the div below with:
-              <Image src="/paula-hamilton.webp" alt="Paula Hamilton" width={300} height={350} className="rounded-xl w-full object-cover" />
-            */}
-            <div className="w-full aspect-[3/4] max-w-xs bg-gradient-to-br from-[#7030A0]/10 to-[#7030A0]/5 rounded-xl flex items-end p-6">
-              <div>
-                <p
-                  className="text-2xl text-[#7030A0]"
-                  style={{ fontFamily: "var(--font-original-surfer)" }}
-                >
-                  Paula Hamilton
-                </p>
-                <p className="text-sm text-neutral-500 mt-1">Founder, Mathitude</p>
-              </div>
+            <div className="w-full aspect-[3/4] max-w-xs rounded-xl overflow-hidden bg-neutral-100">
+              <Image
+                src="/paula.avif"
+                alt="Paula Hamilton, founder of Mathitude"
+                width={400}
+                height={533}
+                className="w-full h-full object-cover"
+                priority
+              />
             </div>
 
             <div className="space-y-2 text-sm text-neutral-500">

@@ -1,55 +1,104 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Hero() {
   return (
-    <section className="bg-white animate-fade-in-up">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 lg:py-40">
-        <div className="text-center max-w-4xl mx-auto">
-          <h1
-            className="text-5xl md:text-7xl lg:text-8xl text-neutral-900 leading-[1.05] tracking-tight"
-            style={{ fontFamily: "var(--font-original-surfer)", letterSpacing: "-0.03em", textWrap: "balance" }}
-          >
-            At{" "}
-            <span className="text-mathitude-purple">Math</span>
-            <span className="text-neutral-900">itude</span>
-            {", "}it&apos;s all about{" "}
-            <span className="text-mathitude-purple">the attitude.</span>
-          </h1>
+    <section className="bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-20 pb-16 md:pb-24">
+        <div className="grid lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-16 items-center">
 
-          <p className="mt-8 text-lg md:text-xl text-neutral-500 max-w-2xl mx-auto leading-relaxed">
-            K-12 math enrichment, tutoring, and engagement books that foster
-            big mathematical thinking through fun, collaborative learning.
-          </p>
+          {/* Left — copy */}
+          <div className="text-center lg:text-left">
+            <h1
+              className="text-5xl md:text-6xl lg:text-7xl text-neutral-900 leading-[1.05]"
+              style={{ fontFamily: "var(--font-original-surfer)", letterSpacing: "-0.02em", textWrap: "balance" }}
+            >
+              At{" "}
+              <span className="text-mathitude-purple">Mathitude</span>
+              {", "}it&apos;s all about{" "}
+              <span className="text-mathitude-purple">the attitude.</span>
+            </h1>
 
-          <div className="mt-6 flex items-center justify-center gap-6 text-sm text-neutral-400">
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
-              Pre-K to College
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
-              Menlo Park &amp; Virtual
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
-              Since 2013
-            </span>
+            <p className="mt-6 text-lg md:text-xl text-neutral-500 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+              K-12 math enrichment, tutoring, and engagement books that foster
+              big mathematical thinking through fun, collaborative learning.
+            </p>
+
+            <div className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-2 text-sm text-neutral-400">
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
+                Pre-K to College
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
+                Menlo Park &amp; Virtual
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
+                Since 2013
+              </span>
+            </div>
+
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+              <Link
+                href="/tutoring"
+                className="inline-flex items-center justify-center bg-neutral-900 text-white hover:bg-neutral-800 rounded-md px-8 py-3.5 text-sm font-medium transition-colors min-w-[180px] min-h-[48px]"
+              >
+                Start Tutoring
+              </Link>
+              <Link
+                href="/shop"
+                className="inline-flex items-center justify-center border border-neutral-200 text-neutral-700 hover:border-neutral-300 hover:text-neutral-900 rounded-md px-8 py-3.5 text-sm font-medium transition-colors min-w-[180px] min-h-[48px]"
+              >
+                Browse Books
+              </Link>
+            </div>
           </div>
 
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/shop"
-              className="inline-flex items-center justify-center bg-neutral-900 text-white hover:bg-neutral-800 rounded-md px-8 py-3.5 text-sm font-medium transition-colors min-w-[180px]"
-            >
-              Browse Books
-            </Link>
-            <Link
-              href="/tutoring"
-              className="inline-flex items-center justify-center border border-neutral-200 text-neutral-600 hover:border-neutral-300 hover:text-neutral-900 rounded-md px-8 py-3.5 text-sm font-medium transition-colors min-w-[180px]"
-            >
-              Explore Tutoring
-            </Link>
+          {/* Right — photo collage */}
+          <div className="relative">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100 mt-8">
+                <Image
+                  src="/photos/bucky_yuma1.jpg"
+                  alt="Student building a colorful geometric structure"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 50vw, 25vw"
+                  priority
+                />
+              </div>
+              <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100">
+                <Image
+                  src="/photos/bucky_emma2.jpg"
+                  alt="Student exploring math with construction toys"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 50vw, 25vw"
+                  priority
+                />
+              </div>
+              <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100 -mt-8">
+                <Image
+                  src="/photos/bucky_paxton2.jpg"
+                  alt="Student creating geometric shapes"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 50vw, 25vw"
+                />
+              </div>
+              <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100">
+                <Image
+                  src="/photos/bucky_theo1.jpg"
+                  alt="Student engaged in hands-on math learning"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 50vw, 25vw"
+                />
+              </div>
+            </div>
           </div>
+
         </div>
       </div>
     </section>

@@ -220,8 +220,11 @@ body {
   }
 }
 
-/* Suppress Clerk dev mode badge — only applies when using test keys, gone in production */
+/* Suppress every Clerk dev-mode visual element */
 .cl-internal-dt53uo,
-.cl-internal-1jp5gc9 {
+.cl-internal-1jp5gc9,
+.cl-internal-1k7jtru,
+.cl-internal-1i34tw6,
+.cl-footer {
   display: none !important;
 }
