@@ -2,31 +2,101 @@
 
 import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
 
-const features = [
-  "Schedule sessions with Paula directly",
-  "Access course materials & enrichment worksheets",
-  "Track your student's progress over time",
-  "Manage billing in one place",
+const messages = [
+  { from: "parent", text: "Hi Paula! We'd love to get our daughter started with tutoring 🙏" },
+  { from: "paula", text: "Hi Sarah! I'd love to help. What grade is she in?" },
+  { from: "parent", text: "She's in 5th grade — really struggling with fractions lately" },
+  { from: "paula", text: "Fractions are tricky but totally conquerable! Let's set up a free intro session so I can get a sense of where she is 🧮" },
+  { from: "parent", text: "That would be amazing, thank you so much!" },
+  { from: "paula", text: "Of course! I'll send over some times — looking forward to meeting her 🌟" },
 ];
+
+function PhoneMockup() {
+  return (
+    <div className="relative mx-auto w-[260px]">
+      {/* Phone shell */}
+      <div className="relative bg-[#1c1c1e] rounded-[44px] p-3 shadow-2xl ring-1 ring-white/10">
+        {/* Screen */}
+        <div className="bg-white rounded-[36px] overflow-hidden" style={{ height: "520px" }}>
+          {/* Dynamic island */}
+          <div className="flex justify-center pt-3 pb-1">
+            <div className="w-24 h-6 bg-[#1c1c1e] rounded-full" />
+          </div>
+
+          {/* iMessage header */}
+          <div className="border-b border-neutral-100 px-4 py-2 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7030A0] to-[#9b59b6] flex items-center justify-center text-white text-xs font-semibold">
+              P
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-neutral-900 truncate">Paula Hamilton</p>
+              <p className="text-[10px] text-green-500 font-medium">Mathitude</p>
+            </div>
+            <div className="flex gap-3">
+              <svg className="w-4 h-4 text-[#007AFF]" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+              </svg>
+              <svg className="w-4 h-4 text-[#007AFF]" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+              </svg>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div className="px-3 py-3 space-y-2 overflow-hidden" style={{ maxHeight: "400px" }}>
+            <p className="text-[9px] text-neutral-400 text-center font-medium mb-3">Today 9:14 AM</p>
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${msg.from === "parent" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[78%] px-3 py-1.5 rounded-2xl text-[11px] leading-[1.4] ${
+                    msg.from === "parent"
+                      ? "bg-[#007AFF] text-white rounded-br-md"
+                      : "bg-[#e9e9eb] text-[#1c1c1e] rounded-bl-md"
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Input bar */}
+          <div className="absolute bottom-4 left-3 right-3">
+            <div className="bg-[#f2f2f7] rounded-full px-4 py-2 flex items-center gap-2">
+              <span className="text-[11px] text-neutral-400 flex-1">iMessage</span>
+              <div className="w-5 h-5 rounded-full bg-[#007AFF] flex items-center justify-center">
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Reflection */}
+      <div className="absolute -bottom-6 left-6 right-6 h-12 bg-gradient-to-b from-white/20 to-transparent blur-xl rounded-full" />
+    </div>
+  );
+}
 
 export default function SignInPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-[52%] bg-[#7030A0] flex-col justify-between p-14 xl:p-20 relative overflow-hidden">
-        {/* Background texture */}
-        <div className="absolute inset-0 opacity-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)",
-              backgroundSize: "60px 60px",
-            }}
-          />
-        </div>
+        {/* Subtle gradient overlay */}
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            background:
+              "radial-gradient(ellipse at 70% 30%, #9b59b6 0%, transparent 60%), radial-gradient(ellipse at 20% 80%, #4a1070 0%, transparent 50%)",
+          }}
+        />
 
         {/* Logo */}
         <Link href="/" className="relative z-10">
@@ -38,27 +108,22 @@ export default function SignInPage() {
           </span>
         </Link>
 
-        {/* Center copy */}
-        <div className="relative z-10 space-y-8 max-w-md">
-          <h1
-            className="text-4xl xl:text-5xl text-white leading-tight"
-            style={{ fontFamily: "var(--font-original-surfer)" }}
-          >
-            Lifetime math engagement for all.
-          </h1>
-          <p className="text-white/70 text-lg leading-relaxed">
-            Your student&apos;s home base for math enrichment with Paula Hamilton
-            — tutoring, materials, and more.
-          </p>
+        {/* Center — headline + phone */}
+        <div className="relative z-10 flex flex-col items-start gap-10">
+          <div className="space-y-4 max-w-xs">
+            <h1
+              className="text-3xl xl:text-4xl text-white leading-snug"
+              style={{ fontFamily: "var(--font-original-surfer)" }}
+            >
+              Personalized math coaching, start to finish.
+            </h1>
+            <p className="text-white/60 text-sm leading-relaxed">
+              Schedule sessions, track progress, and stay in sync with
+              Paula — all in one place.
+            </p>
+          </div>
 
-          <ul className="space-y-3">
-            {features.map((f) => (
-              <li key={f} className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-white/80 shrink-0 mt-0.5" />
-                <span className="text-white/80 text-sm leading-snug">{f}</span>
-              </li>
-            ))}
-          </ul>
+          <PhoneMockup />
         </div>
 
         {/* Footer */}
@@ -80,7 +145,6 @@ export default function SignInPage() {
         </Link>
 
         <div className="w-full max-w-[400px]">
-          {/* Stardrop header */}
           <div className="mb-6 text-center">
             <p className="text-xs font-medium tracking-widest text-neutral-400 uppercase">
               Sign in with Stardrop
@@ -125,7 +189,10 @@ export default function SignInPage() {
 
           <p className="mt-6 text-center text-xs text-neutral-400">
             Don&apos;t have an account?{" "}
-            <Link href="/sign-up" className="text-[#7030A0] font-medium hover:underline">
+            <Link
+              href="/sign-up"
+              className="text-[#7030A0] font-medium hover:underline"
+            >
               Sign up
             </Link>
           </p>
