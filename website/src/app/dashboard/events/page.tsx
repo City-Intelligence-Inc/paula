@@ -32,7 +32,7 @@ export default function EventsPage() {
     return (
       <div>
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-neutral-900 tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
             Events & News
           </h1>
           <p className="mt-2 text-neutral-600">

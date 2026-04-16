@@ -58,12 +58,12 @@ export function Newsletter() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 border border-neutral-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300"
+              className="flex-1 min-h-[44px] border border-neutral-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300"
             />
             <button
               type="submit"
               disabled={status === "loading"}
-              className="bg-neutral-900 text-white hover:bg-neutral-800 rounded-md px-6 py-2 text-sm font-medium transition-colors disabled:opacity-50"
+              className="min-h-[44px] bg-neutral-900 text-white hover:bg-neutral-800 rounded-md px-6 py-2 text-sm font-medium transition-colors disabled:opacity-50"
             >
               {status === "loading" ? "Subscribing..." : "Subscribe"}
             </button>

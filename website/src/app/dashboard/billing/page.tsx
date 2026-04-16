@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-  const fetchApi = useApi();
 import { SaveCardForm } from "@/components/stripe/save-card-form";
 import { useApi } from "@/hooks/use-api";
 import type { Payment } from "@/lib/types";
@@ -54,6 +53,7 @@ function statusClass(status: string): string {
 export default function BillingPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchApi = useApi();
 
   useEffect(() => {
     fetchApi("/api/payments")
@@ -74,7 +74,7 @@ export default function BillingPage() {
     <div className="space-y-10">
       {/* Header */}
       <div>
-        <h1 className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-semibold text-neutral-900 tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
           Billing &amp; Payments
         </h1>
         <p className="mt-3 text-neutral-500 max-w-lg">
@@ -99,10 +99,6 @@ export default function BillingPage() {
           </div>
         </div>
         <SaveCardForm />
-        <p className="mt-4 text-sm text-neutral-500 leading-relaxed">
-          Your card is stored securely by Stripe. Mathitude staff will manually
-          charge your card for tutoring sessions.
-        </p>
       </div>
 
       {/* Payment History */}

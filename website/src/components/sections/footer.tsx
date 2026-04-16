@@ -68,7 +68,7 @@ export function Footer() {
             Tel:{" "}
             <a
               href="tel:5102052633"
-              className="py-1 hover:text-white/70 transition-colors"
+              className="inline-block min-h-[44px] py-3 px-2 hover:text-white/70 transition-colors"
             >
               510.205.2633
             </a>
@@ -77,7 +77,7 @@ export function Footer() {
             Email:{" "}
             <a
               href="mailto:info@mathitude.com"
-              className="py-1 hover:text-white/70 transition-colors"
+              className="inline-block min-h-[44px] py-3 px-2 hover:text-white/70 transition-colors"
             >
               info@mathitude.com
             </a>
