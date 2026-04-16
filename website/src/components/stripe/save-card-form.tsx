@@ -72,7 +72,7 @@ function CardForm() {
               base: {
                 fontSize: "16px",
                 color: "#1e293b",
-                fontFamily: "var(--font-poppins), sans-serif",
+                fontFamily: "'Avenir Next', 'Avenir', system-ui, sans-serif",
                 "::placeholder": { color: "#94a3b8" },
               },
               invalid: { color: "#ef4444" },
