@@ -1,66 +1,53 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Star } from "lucide-react";
-
 const reviews = [
   {
     name: "Sarah M.",
     role: "Parent of 3rd Grader",
-    text: "Paula transformed my daughter's relationship with math. She went from tears during homework to actually asking for extra problems!",
-    rating: 5,
+    text: "Paula transformed my daughter's relationship with math. She went from tears during homework to actually asking for extra problems.",
   },
   {
     name: "David L.",
     role: "Parent of 7th Grader",
-    text: "The group tutoring sessions are incredible. My son loves the collaborative approach and his confidence has skyrocketed.",
-    rating: 5,
+    text: "The group sessions are incredible. My son loves the collaborative approach and his confidence has skyrocketed.",
   },
   {
     name: "Jennifer K.",
     role: "Parent of Twins, K & 2nd Grade",
     text: "Mathitude's workbooks are a staple in our house. The puzzles make math feel like a game, not a chore.",
-    rating: 5,
   },
 ];
 
-function Stars({ count }: { count: number }) {
-  return (
-    <div className="flex gap-0.5">
-      {Array.from({ length: count }).map((_, i) => (
-        <Star
-          key={i}
-          className="w-4 h-4 fill-neutral-900 text-neutral-900"
-        />
-      ))}
-    </div>
-  );
-}
-
 export function Reviews() {
+  const [featured, ...rest] = reviews;
   return (
-    <section className="bg-white animate-fade-in-up">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-        <h2 className="text-3xl sm:text-4xl font-semibold text-neutral-900 text-center tracking-tight">
+    <section className="bg-neutral-50">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+        <p className="text-xs font-medium tracking-widest text-neutral-400 uppercase text-center mb-12">
           What Parents Are Saying
-        </h2>
-        <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {reviews.map((review) => (
-            <Card
-              key={review.name}
-              className="border border-neutral-200 rounded-lg shadow-none"
-            >
-              <CardContent className="pt-6 pb-6 px-6">
-                <Stars count={review.rating} />
-                <p className="mt-4 text-neutral-600 leading-relaxed italic">
-                  &ldquo;{review.text}&rdquo;
-                </p>
-                <div className="mt-4 pt-4 border-t border-neutral-200">
-                  <p className="font-medium text-neutral-900 text-sm">
-                    {review.name}
-                  </p>
-                  <p className="text-xs text-neutral-400">{review.role}</p>
-                </div>
-              </CardContent>
-            </Card>
+        </p>
+
+        {/* Featured quote */}
+        <blockquote className="text-center mb-16">
+          <p className="text-2xl sm:text-3xl font-light text-neutral-900 leading-relaxed max-w-2xl mx-auto">
+            &ldquo;{featured.text}&rdquo;
+          </p>
+          <footer className="mt-6">
+            <p className="text-sm font-semibold text-neutral-900">{featured.name}</p>
+            <p className="text-xs text-neutral-400 mt-0.5">{featured.role}</p>
+          </footer>
+        </blockquote>
+
+        {/* Supporting quotes */}
+        <div className="grid sm:grid-cols-2 gap-10 border-t border-neutral-200 pt-12">
+          {rest.map((review) => (
+            <blockquote key={review.name}>
+              <p className="text-neutral-600 leading-relaxed">
+                &ldquo;{review.text}&rdquo;
+              </p>
+              <footer className="mt-4">
+                <p className="text-sm font-semibold text-neutral-900">{review.name}</p>
+                <p className="text-xs text-neutral-400 mt-0.5">{review.role}</p>
+              </footer>
+            </blockquote>
           ))}
         </div>
       </div>

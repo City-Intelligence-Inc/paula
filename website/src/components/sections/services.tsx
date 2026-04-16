@@ -68,7 +68,7 @@ export function Services() {
               <div className="sm:pt-1">
                 <Link
                   href={offering.href}
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-[#7030A0] hover:text-[#5d288a] whitespace-nowrap transition-colors group/link"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-[#7030A0] hover:text-[#5d288a] whitespace-nowrap transition-colors group/link min-h-[44px] py-3"
                 >
                   {offering.cta}
                   <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />

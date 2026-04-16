@@ -212,3 +212,16 @@ body {
     transition: none !important;
   }
 }
+
+/* stagger-in: show content immediately for crawlers/screen readers that don't scroll */
+@media (prefers-reduced-motion: no-preference) {
+  .stagger-in > * {
+    animation-fill-mode: forwards;
+  }
+}
+
+/* Suppress Clerk dev mode badge — only applies when using test keys, gone in production */
+.cl-internal-dt53uo,
+.cl-internal-1jp5gc9 {
+  display: none !important;
+}
