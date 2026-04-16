@@ -130,6 +130,7 @@ export default function SignUpPage() {
           </div>
 
           <SignUp
+            forceRedirectUrl="/dashboard"
             appearance={{
               variables: {
                 colorPrimary: "#7030A0",
