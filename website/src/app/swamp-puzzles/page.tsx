@@ -24,7 +24,7 @@ const puzzles = [
     level: "Level 3",
     title: "Level 3 Puzzles",
     description:
-      "Paula's hardest set. Serious puzzle-lovers — try these first, then watch the hacks video on the original Mathitude site if you get stuck.",
+      "Paula's hardest set. Serious puzzle-lovers — try these first, then watch the hacks video below if you get stuck.",
     file: "/swamp-puzzles/level-3.pdf",
     cover: "/swamp-puzzles/cover-level-3.jpg",
   },
@@ -67,74 +67,108 @@ export default function SwampPuzzlesPage() {
             <p className="mt-6 text-lg md:text-xl text-neutral-600 leading-relaxed text-center max-w-2xl mx-auto">
               Paula&apos;s signature strategic puzzles, designed to build
               logical thinking and perseverance. A favorite at math festivals
-              and Mathitude tutoring sessions for all ages. Click a cover to
-              open the full PDF, or download for offline printing.
+              and Mathitude tutoring sessions for all ages.
             </p>
           </div>
         </section>
 
         <section className="bg-white">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 md:pb-32">
-            <div className="grid md:grid-cols-3 gap-8 md:gap-6 lg:gap-10">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 md:pb-32">
+            <div className="space-y-20 md:space-y-24">
               {puzzles.map((puzzle) => (
-                <div key={puzzle.level} className="flex flex-col">
+                <article key={puzzle.level} className="flex flex-col items-center text-center">
+                  <p className="text-xs uppercase tracking-[0.18em] text-mathitude-purple font-medium">
+                    {puzzle.level}
+                  </p>
+                  <h2
+                    className="mt-2 text-4xl md:text-5xl text-neutral-900"
+                    style={{ fontFamily: "var(--font-original-surfer)" }}
+                  >
+                    <a
+                      href={puzzle.file}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-mathitude-purple transition-colors"
+                    >
+                      {puzzle.title}
+                    </a>
+                  </h2>
+                  <p className="mt-3 text-base md:text-lg text-neutral-600 leading-relaxed max-w-xl">
+                    {puzzle.description}
+                  </p>
+
                   <a
                     href={puzzle.file}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group block relative rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200 hover-lift"
                     aria-label={`Open ${puzzle.title} PDF in a new tab`}
+                    className="group mt-8 block w-full rounded-xl overflow-hidden border border-neutral-200 bg-neutral-50 shadow-sm hover:shadow-lg transition-shadow"
                   >
                     <div className="relative aspect-[16/9]">
                       <Image
                         src={puzzle.cover}
                         alt={`${puzzle.title} cover`}
                         fill
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        sizes="(max-width: 768px) 100vw, 720px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                        priority={puzzle.level === "Level 1"}
                       />
-                    </div>
-                    <div className="absolute inset-0 flex items-end justify-start p-4 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span className="inline-flex items-center gap-1.5 text-white text-sm font-medium">
-                        Open PDF &rarr;
-                      </span>
+                      <div className="absolute inset-0 flex items-end justify-center pb-6 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="inline-flex items-center justify-center rounded-full bg-white text-mathitude-purple font-medium text-sm px-5 py-2.5 shadow-md">
+                          Open PDF &rarr;
+                        </span>
+                      </div>
                     </div>
                   </a>
 
-                  <p
-                    className="mt-5 text-xs uppercase tracking-[0.18em] text-mathitude-purple font-medium"
-                  >
-                    {puzzle.level}
-                  </p>
-                  <h2
-                    className="mt-1 text-2xl text-neutral-900"
-                    style={{ fontFamily: "var(--font-original-surfer)" }}
-                  >
-                    {puzzle.title}
-                  </h2>
-                  <p className="mt-2 text-sm text-neutral-600 leading-relaxed">
-                    {puzzle.description}
-                  </p>
-
-                  <div className="mt-5 flex flex-wrap gap-2">
+                  <div className="mt-5 flex flex-wrap justify-center gap-3">
                     <a
                       href={puzzle.file}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center rounded-md bg-mathitude-purple text-white hover:bg-[#5d288a] font-medium text-sm px-4 py-2.5 transition-colors"
+                      className="inline-flex items-center justify-center rounded-md bg-mathitude-purple text-white hover:bg-[#5d288a] font-medium text-sm px-5 py-2.5 transition-colors"
                     >
                       View PDF
                     </a>
                     <a
                       href={puzzle.file}
                       download
-                      className="inline-flex items-center justify-center rounded-md border border-neutral-200 text-neutral-700 hover:border-neutral-300 hover:text-neutral-900 font-medium text-sm px-4 py-2.5 transition-colors"
+                      className="inline-flex items-center justify-center rounded-md border border-neutral-200 text-neutral-700 hover:border-neutral-300 hover:text-neutral-900 font-medium text-sm px-5 py-2.5 transition-colors"
                     >
                       Download
                     </a>
                   </div>
-                </div>
+                </article>
               ))}
+
+              {/* Level 3 Hacks video */}
+              <article className="flex flex-col items-center text-center">
+                <p className="text-xs uppercase tracking-[0.18em] text-mathitude-purple font-medium">
+                  Bonus
+                </p>
+                <h2
+                  className="mt-2 text-4xl md:text-5xl text-neutral-900"
+                  style={{ fontFamily: "var(--font-original-surfer)" }}
+                >
+                  Level 3 Hacks Video
+                </h2>
+                <p className="mt-3 text-base md:text-lg text-neutral-600 leading-relaxed max-w-xl">
+                  Stuck on a Level 3 puzzle? Paula walks through the toughest
+                  tricks and strategies in this video.
+                </p>
+                <div className="mt-8 w-full rounded-xl overflow-hidden border border-neutral-200 shadow-sm">
+                  <div className="relative aspect-[16/9] bg-black">
+                    <iframe
+                      src="https://www.youtube-nocookie.com/embed/Vdr-YgJ-j4w"
+                      title="Level 3 Hacks Video"
+                      className="absolute inset-0 w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              </article>
             </div>
           </div>
         </section>
