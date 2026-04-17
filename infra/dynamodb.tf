@@ -191,3 +191,143 @@ resource "aws_dynamodb_table" "content" {
     Project = "mathitude"
   }
 }
+
+# ---------------------------------------------------------
+# v3.0 additions — see infra/SCHEMA.md
+# Do not `terraform apply` until Sara signs off on SCHEMA.md.
+# ---------------------------------------------------------
+
+# ---- Families table ----
+
+resource "aws_dynamodb_table" "families" {
+  name         = "${var.table_prefix}-families"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  tags = {
+    Project = "mathitude"
+  }
+}
+
+# ---- Parents table ----
+
+resource "aws_dynamodb_table" "parents" {
+  name         = "${var.table_prefix}-parents"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  attribute {
+    name = "familyId"
+    type = "S"
+  }
+
+  attribute {
+    name = "lastName"
+    type = "S"
+  }
+
+  attribute {
+    name = "email"
+    type = "S"
+  }
+
+  attribute {
+    name = "stripeCustomerId"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "by-family"
+    hash_key        = "familyId"
+    range_key       = "lastName"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "by-email"
+    hash_key        = "email"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "by-stripe-customer"
+    hash_key        = "stripeCustomerId"
+    projection_type = "ALL"
+  }
+
+  tags = {
+    Project = "mathitude"
+  }
+}
+
+# ---- Tutors table ----
+
+resource "aws_dynamodb_table" "tutors" {
+  name         = "${var.table_prefix}-tutors"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  attribute {
+    name = "clerkUserId"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "by-clerk-user"
+    hash_key        = "clerkUserId"
+    projection_type = "ALL"
+  }
+
+  tags = {
+    Project = "mathitude"
+  }
+}
+
+# ---- Users table (Clerk <-> role mapping) ----
+
+resource "aws_dynamodb_table" "users" {
+  name         = "${var.table_prefix}-users"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "clerkUserId"
+
+  attribute {
+    name = "clerkUserId"
+    type = "S"
+  }
+
+  attribute {
+    name = "role"
+    type = "S"
+  }
+
+  attribute {
+    name = "createdAt"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "by-role"
+    hash_key        = "role"
+    range_key       = "createdAt"
+    projection_type = "ALL"
+  }
+
+  tags = {
+    Project = "mathitude"
+  }
+}
