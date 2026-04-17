@@ -1,0 +1,143 @@
+import Link from "next/link";
+import { Navbar } from "@/components/sections/navbar";
+import { Footer } from "@/components/sections/footer";
+
+const puzzles = [
+  {
+    level: "Level 1",
+    title: "Level 1 Puzzles",
+    description:
+      "The gentlest entry to Paula's signature strategic puzzles — perfect for younger solvers building logical thinking and perseverance.",
+    file: "/swamp-puzzles/level-1.pdf",
+  },
+  {
+    level: "Level 2",
+    title: "Level 2 Puzzles",
+    description:
+      "A step up in challenge. Classic Swamp Puzzles that reward patient reasoning and creative problem-solving.",
+    file: "/swamp-puzzles/level-2.pdf",
+  },
+  {
+    level: "Level 3",
+    title: "Level 3 Puzzles",
+    description:
+      "Paula's hardest set. Serious puzzle-lovers — try these first, then watch the hacks video on the original Mathitude site if you get stuck.",
+    file: "/swamp-puzzles/level-3.pdf",
+  },
+];
+
+export default function SwampPuzzlesPage() {
+  return (
+    <>
+      <Navbar />
+      <main className="flex-1">
+        <section className="bg-white animate-fade-in-up">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-28">
+            <p className="text-sm uppercase tracking-[0.18em] text-neutral-400 text-center mb-6">
+              <Link
+                href="/free-resources"
+                className="hover:text-neutral-600 transition-colors"
+              >
+                Free Resources
+              </Link>{" "}
+              / Swamp Puzzles
+            </p>
+            <h1
+              className="text-4xl md:text-5xl lg:text-6xl text-neutral-900 tracking-tight text-center"
+              style={{ fontFamily: "var(--font-original-surfer)" }}
+            >
+              Swamp Puzzles
+            </h1>
+            <p className="mt-6 text-lg md:text-xl text-neutral-500 leading-relaxed text-center max-w-2xl mx-auto">
+              Paula&apos;s signature strategic puzzles, designed to build
+              logical thinking and perseverance. A favorite at math festivals
+              and Mathitude tutoring sessions for all ages. Work through each
+              level at your own pace — preview below or download the PDF.
+            </p>
+          </div>
+        </section>
+
+        <section className="bg-white">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 md:pb-32">
+            <div className="space-y-16">
+              {puzzles.map((puzzle) => (
+                <div key={puzzle.level}>
+                  <div className="mb-5 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.18em] text-mathitude-purple font-medium">
+                        {puzzle.level}
+                      </p>
+                      <h2 className="mt-1 text-2xl md:text-3xl font-semibold text-neutral-900 tracking-tight">
+                        {puzzle.title}
+                      </h2>
+                      <p className="mt-2 text-neutral-600 leading-relaxed max-w-2xl">
+                        {puzzle.description}
+                      </p>
+                    </div>
+                    <a
+                      href={puzzle.file}
+                      download
+                      className="inline-flex items-center justify-center rounded-md bg-neutral-900 text-white hover:bg-neutral-800 font-medium text-sm px-5 py-2.5 whitespace-nowrap transition-colors shrink-0"
+                    >
+                      Download PDF
+                    </a>
+                  </div>
+
+                  <div className="rounded-lg overflow-hidden border border-neutral-200 bg-neutral-50">
+                    <object
+                      data={puzzle.file}
+                      type="application/pdf"
+                      className="w-full h-[70vh] min-h-[500px]"
+                      aria-label={`${puzzle.title} PDF preview`}
+                    >
+                      <div className="p-8 text-center">
+                        <p className="text-neutral-600">
+                          Your browser can&apos;t display the PDF inline.
+                        </p>
+                        <a
+                          href={puzzle.file}
+                          className="mt-3 inline-flex text-sm font-medium text-mathitude-purple hover:underline"
+                        >
+                          Open {puzzle.title} PDF &rarr;
+                        </a>
+                      </div>
+                    </object>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-neutral-950">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+            <div className="text-center">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white leading-snug tracking-tight">
+                Want more puzzles?
+              </h2>
+              <p className="mt-4 text-white/60 max-w-xl mx-auto leading-relaxed">
+                Browse Paula&apos;s full collection of math engagement
+                workbooks, or reach out about tutoring.
+              </p>
+              <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link
+                  href="/shop"
+                  className="inline-flex items-center justify-center rounded-md bg-white text-neutral-900 hover:bg-neutral-100 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
+                >
+                  Shop Books
+                </Link>
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center justify-center rounded-md border border-white/20 text-white hover:bg-white/10 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
+                >
+                  Contact Paula
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}

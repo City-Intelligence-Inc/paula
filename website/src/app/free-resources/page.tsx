@@ -13,9 +13,9 @@ const interactives = [
   {
     title: "Swamp Puzzles",
     description:
-      "Paula's signature strategic puzzles, designed to build logical thinking and perseverance. A favorite at math festivals and Mathitude tutoring sessions for all ages.",
-    href: "/shop",
-    cta: "Get the collection",
+      "Paula's signature strategic puzzles, designed to build logical thinking and perseverance. A favorite at math festivals and Mathitude tutoring sessions for all ages. Preview and download Levels 1, 2, and 3.",
+    href: "/swamp-puzzles",
+    cta: "Open Swamp Puzzles",
   },
 ];
 

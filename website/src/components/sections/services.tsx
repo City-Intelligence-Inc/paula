@@ -7,7 +7,7 @@ const offerings = [
     title: "Private Tutoring",
     description:
       "One-on-one and small-group sessions tailored to exactly where your student is — whether they're building confidence, chasing curiosity, or preparing for a test. Paula works with learners from Pre-K through college, in-person in Menlo Park and virtually.",
-    href: "/tutoring",
+    href: "/tutoring/private",
     cta: "Learn about tutoring",
   },
   {
@@ -15,8 +15,8 @@ const offerings = [
     title: "Group Camps",
     description:
       "Gather a small group of students for a focused, fun week of mathematical exploration. Group camps run during summer and school breaks and are customized around the group's interests and grade level. A unique way to make math social.",
-    href: "/contact",
-    cta: "Book a group camp",
+    href: "/tutoring/camps",
+    cta: "Learn about group camps",
   },
   {
     number: "03",
