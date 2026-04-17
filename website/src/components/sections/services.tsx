@@ -40,10 +40,7 @@ export function Services() {
     <section className="bg-white">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
         <div className="text-center mb-16">
-          <h2
-            className="text-4xl sm:text-5xl md:text-6xl text-neutral-900 tracking-tight leading-[1.05]"
-            style={{ fontFamily: "var(--font-original-surfer)" }}
-          >
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-neutral-900 tracking-tight leading-[1.05]">
             How we can <span className="text-mathitude-purple">work together</span>
           </h2>
           <p className="mt-5 text-lg sm:text-xl text-neutral-600 max-w-xl mx-auto leading-relaxed">
@@ -69,10 +66,7 @@ export function Services() {
 
               {/* Content */}
               <div>
-                <h3
-                  className="text-2xl sm:text-3xl text-neutral-900"
-                  style={{ fontFamily: "var(--font-original-surfer)" }}
-                >
+                <h3 className="text-2xl sm:text-3xl font-semibold text-neutral-900 tracking-tight">
                   {offering.title}
                 </h3>
                 <p className="mt-3 text-neutral-600 leading-relaxed max-w-lg">

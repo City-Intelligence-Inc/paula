@@ -1,4 +1,4 @@
-import { MapPin, Clock, DollarSign } from "lucide-react";
+import { MapPin, Clock, Sparkles } from "lucide-react";
 
 const infoItems = [
   {
@@ -12,12 +12,11 @@ const infoItems = [
     lines: ["Mon–Fri: 9:00 AM – 7:00 PM", "Sat: 10:00 AM – 4:00 PM", "Sun: Closed"],
   },
   {
-    icon: DollarSign,
-    title: "Pricing",
+    icon: Sparkles,
+    title: "Get Started",
     lines: [
-      "Individual Tutoring: from $90/hr",
-      "Group Sessions: from $50/student",
-      "Contact us for custom packages",
+      "Every student is different — and we'd love to meet yours.",
+      "Reach out for a free consultation and we'll match you with the right Mathitude experience.",
     ],
   },
 ];
