@@ -3,14 +3,28 @@ import Image from "next/image";
 
 export function Hero() {
   return (
-    <section className="bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-20 pb-16 md:pb-24">
+    <section className="relative bg-white overflow-hidden">
+      {/* Peeking mascot — desktop decoration */}
+      <div
+        aria-hidden="true"
+        className="hidden lg:block absolute -top-4 right-[44%] w-32 xl:w-40 opacity-90 pointer-events-none select-none -rotate-6 z-10"
+      >
+        <Image
+          src="/brand/pascals-paxton.png"
+          alt=""
+          width={320}
+          height={420}
+          className="w-full h-auto drop-shadow-md"
+        />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-20 pb-16 md:pb-24 relative">
         <div className="grid lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-16 items-center">
 
           {/* Left — copy */}
           <div className="text-center lg:text-left">
             <h1
-              className="text-5xl md:text-6xl lg:text-7xl text-neutral-900 leading-[1.05]"
+              className="text-6xl md:text-7xl lg:text-8xl text-neutral-900 leading-[1.02]"
               style={{ fontFamily: "var(--font-original-surfer)", letterSpacing: "-0.02em", textWrap: "balance" }}
             >
               At{" "}
@@ -19,9 +33,9 @@ export function Hero() {
               <span className="text-mathitude-purple">the attitude.</span>
             </h1>
 
-            <p className="mt-6 text-lg md:text-xl text-neutral-500 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+            <p className="mt-8 text-xl md:text-2xl text-neutral-700 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
               K-12 math enrichment, tutoring, and engagement books that foster
-              big mathematical thinking through fun, collaborative learning.
+              <span className="text-mathitude-purple font-medium"> big mathematical thinking</span> through fun, collaborative learning.
             </p>
 
             <div className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-2 text-sm text-neutral-400">

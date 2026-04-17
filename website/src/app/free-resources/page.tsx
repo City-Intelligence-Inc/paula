@@ -46,12 +46,13 @@ export default function FreeResourcesPage() {
         <section className="bg-white animate-fade-in-up">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
             <h1
-              className="text-4xl md:text-5xl lg:text-6xl text-neutral-900 tracking-tight text-center"
+              className="text-5xl md:text-6xl lg:text-7xl tracking-tight text-center leading-[1.05]"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
-              Free Resources
+              <span className="text-neutral-900">Free </span>
+              <span className="text-mathitude-purple">Resources</span>
             </h1>
-            <p className="mt-6 text-lg md:text-xl text-neutral-500 leading-relaxed text-center max-w-2xl mx-auto">
+            <p className="mt-6 text-lg md:text-xl text-neutral-600 leading-relaxed text-center max-w-2xl mx-auto">
               Interactive tools, downloadable puzzles, and free PDFs from Paula
               — designed to spark curiosity and bring math to life at home and
               in the classroom.

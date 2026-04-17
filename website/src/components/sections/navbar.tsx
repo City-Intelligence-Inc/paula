@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
@@ -26,7 +27,15 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
+          <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+            <Image
+              src="/brand/logo.png"
+              alt="Mathitude"
+              width={44}
+              height={44}
+              priority
+              className="w-9 h-9 sm:w-11 sm:h-11 object-contain transition-transform duration-300 group-hover:rotate-[-8deg]"
+            />
             <span className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
               <span className="text-mathitude-purple">Math</span>
               <span className="text-neutral-900">itude</span>

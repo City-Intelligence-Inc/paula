@@ -19,10 +19,12 @@ export default function PrivateTutoringPage() {
               / Private Tutoring
             </p>
             <h1
-              className="text-4xl md:text-5xl lg:text-6xl text-neutral-900 tracking-tight text-center"
+              className="text-5xl md:text-6xl lg:text-7xl tracking-tight text-center leading-[1.05]"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
-              Private Math Tutoring in Menlo Park
+              <span className="text-neutral-900">Private Math </span>
+              <span className="text-mathitude-purple">Tutoring</span>
+              <span className="text-neutral-900"> in Menlo Park</span>
             </h1>
             <p className="mt-6 text-lg md:text-xl text-neutral-500 leading-relaxed text-center max-w-2xl mx-auto">
               Our goal is lifetime math engagement for all, and we love helping

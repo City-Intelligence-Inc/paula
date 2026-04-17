@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "@/components/sections/navbar";
 import { Footer } from "@/components/sections/footer";
@@ -31,24 +32,36 @@ export default function SwampPuzzlesPage() {
     <>
       <Navbar />
       <main className="flex-1">
-        <section className="bg-white animate-fade-in-up">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-28">
-            <p className="text-sm uppercase tracking-[0.18em] text-neutral-400 text-center mb-6">
+        <section className="relative bg-white animate-fade-in-up overflow-hidden">
+          <div
+            aria-hidden="true"
+            className="hidden md:block absolute top-16 right-6 lg:right-16 w-28 lg:w-36 rotate-6 opacity-95 pointer-events-none"
+          >
+            <Image
+              src="/brand/rubiks-boy.png"
+              alt=""
+              width={280}
+              height={320}
+              className="w-full h-auto drop-shadow-md"
+            />
+          </div>
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-28 relative">
+            <p className="text-sm uppercase tracking-[0.18em] text-mathitude-purple/70 text-center mb-6 font-medium">
               <Link
                 href="/free-resources"
-                className="hover:text-neutral-600 transition-colors"
+                className="hover:text-mathitude-purple transition-colors"
               >
                 Free Resources
               </Link>{" "}
               / Swamp Puzzles
             </p>
             <h1
-              className="text-4xl md:text-5xl lg:text-6xl text-neutral-900 tracking-tight text-center"
+              className="text-5xl md:text-6xl lg:text-7xl text-mathitude-purple tracking-tight text-center leading-[1.05]"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
               Swamp Puzzles
             </h1>
-            <p className="mt-6 text-lg md:text-xl text-neutral-500 leading-relaxed text-center max-w-2xl mx-auto">
+            <p className="mt-6 text-lg md:text-xl text-neutral-600 leading-relaxed text-center max-w-2xl mx-auto">
               Paula&apos;s signature strategic puzzles, designed to build
               logical thinking and perseverance. A favorite at math festivals
               and Mathitude tutoring sessions for all ages. Work through each

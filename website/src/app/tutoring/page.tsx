@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Navbar } from "@/components/sections/navbar";
@@ -10,6 +11,8 @@ const subpages = [
     description:
       "One-on-one and small-group math tutoring in Menlo Park and virtually — Pre-K through college. Paula brings warmth and rigor to every session, whether the goal is enrichment or academic support.",
     cta: "Learn about private tutoring",
+    mascot: "/brand/pascals-paxton.png",
+    rotate: "-rotate-3",
   },
   {
     title: "Group Camps",
@@ -17,6 +20,8 @@ const subpages = [
     description:
       "Private group camp experiences during summer and school breaks. Gather a small group of students for a focused, fun week of mathematical exploration, customized around the group's interests and grade level.",
     cta: "Learn about group camps",
+    mascot: "/brand/rubiks-boy.png",
+    rotate: "rotate-3",
   },
 ];
 
@@ -28,12 +33,13 @@ export default function TutoringHubPage() {
         <section className="bg-white animate-fade-in-up">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
             <h1
-              className="text-4xl md:text-5xl lg:text-6xl text-neutral-900 tracking-tight text-center"
+              className="text-5xl md:text-6xl lg:text-7xl tracking-tight text-center leading-[1.05]"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
-              Tutoring &amp; Groups
+              <span className="text-neutral-900">Tutoring </span>
+              <span className="text-mathitude-purple">&amp; Groups</span>
             </h1>
-            <p className="mt-6 text-lg md:text-xl text-neutral-500 leading-relaxed text-center max-w-2xl mx-auto">
+            <p className="mt-6 text-lg md:text-xl text-neutral-600 leading-relaxed text-center max-w-2xl mx-auto">
               Two ways to work with Paula — choose the path that fits your
               student best.
             </p>
@@ -44,20 +50,40 @@ export default function TutoringHubPage() {
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 md:pb-32">
             <div className="space-y-0 divide-y divide-neutral-200">
               {subpages.map((sub) => (
-                <div key={sub.href} className="py-12 first:pt-0">
-                  <h2 className="text-2xl md:text-3xl font-semibold text-neutral-900 tracking-tight">
-                    {sub.title}
-                  </h2>
-                  <p className="mt-4 text-neutral-600 leading-relaxed">
-                    {sub.description}
-                  </p>
-                  <Link
-                    href={sub.href}
-                    className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors"
+                <div
+                  key={sub.href}
+                  className="grid sm:grid-cols-[1fr_auto] gap-8 items-center py-12 first:pt-0"
+                >
+                  <div>
+                    <h2
+                      className="text-3xl md:text-4xl text-neutral-900 tracking-tight"
+                      style={{ fontFamily: "var(--font-original-surfer)" }}
+                    >
+                      {sub.title}
+                    </h2>
+                    <p className="mt-4 text-neutral-600 leading-relaxed text-base md:text-lg">
+                      {sub.description}
+                    </p>
+                    <Link
+                      href={sub.href}
+                      className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-mathitude-purple hover:text-[#5d288a] transition-colors"
+                    >
+                      {sub.cta}
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                  <div
+                    aria-hidden="true"
+                    className={`hidden sm:block justify-self-end ${sub.rotate}`}
                   >
-                    {sub.cta}
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
+                    <Image
+                      src={sub.mascot}
+                      alt=""
+                      width={320}
+                      height={420}
+                      className="w-32 md:w-40 h-auto drop-shadow-md"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
