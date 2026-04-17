@@ -13,9 +13,25 @@ const interactives = [
   {
     title: "Swamp Puzzles",
     description:
-      "Paula's signature strategic puzzles, designed to build logical thinking and perseverance. A favorite at math festivals and Mathitude tutoring sessions for all ages. Preview and download Levels 1, 2, and 3.",
+      "Swamp puzzles: beautiful but dangerous. Paula's signature strategic puzzles, designed to build logical thinking and perseverance. A favorite at math festivals and Mathitude tutoring sessions for all ages. Preview and download Levels 1, 2, and 3.",
     href: "/swamp-puzzles",
     cta: "Open Swamp Puzzles",
+  },
+  {
+    title: "Sierpinski Balloons & Balloon Tetra Hats",
+    description:
+      "Twist balloons into a Sierpinski tetrahedron, then wear your mathematical creation home. A playful hands-on activity that turns fractals into party favorites.",
+    href: "https://www.mathitude.com/balloons",
+    cta: "See balloon activities",
+    external: true,
+  },
+  {
+    title: "All Puzzles & Activities",
+    description:
+      "Browse Paula's full library of puzzles, hands-on activities, and printable challenges — organized by theme and grade level.",
+    href: "https://www.mathitude.com/puzzles-and-activities",
+    cta: "Browse the full library",
+    external: true,
   },
 ];
 
@@ -46,11 +62,10 @@ export default function FreeResourcesPage() {
         <section className="bg-white animate-fade-in-up">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
             <h1
-              className="text-5xl md:text-6xl lg:text-7xl tracking-tight text-center leading-[1.05]"
+              className="text-5xl md:text-6xl lg:text-7xl text-mathitude-purple tracking-tight text-center leading-[1.05]"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
-              <span className="text-neutral-900">Free </span>
-              <span className="text-mathitude-purple">Resources</span>
+              Free Resources
             </h1>
             <p className="mt-6 text-lg md:text-xl text-neutral-600 leading-relaxed text-center max-w-2xl mx-auto">
               Interactive tools, downloadable puzzles, and free PDFs from Paula
@@ -76,12 +91,23 @@ export default function FreeResourcesPage() {
                   <p className="mt-3 text-neutral-600 leading-relaxed">
                     {item.description}
                   </p>
-                  <Link
-                    href={item.href}
-                    className="mt-4 inline-flex text-sm font-medium text-neutral-900 hover:text-mathitude-purple transition-colors"
-                  >
-                    {item.cta} &rarr;
-                  </Link>
+                  {item.external ? (
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 inline-flex text-sm font-medium text-neutral-900 hover:text-mathitude-purple transition-colors"
+                    >
+                      {item.cta} &rarr;
+                    </a>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className="mt-4 inline-flex text-sm font-medium text-neutral-900 hover:text-mathitude-purple transition-colors"
+                    >
+                      {item.cta} &rarr;
+                    </Link>
+                  )}
                 </div>
               ))}
             </div>

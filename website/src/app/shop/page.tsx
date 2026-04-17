@@ -4,21 +4,15 @@ import { Footer } from "@/components/sections/footer";
 
 const books = [
   {
-    title: "Mathitude Engagement Workbook: Elementary Edition",
+    title: "Mathitude Engagement Workbooks: Elementary Editions",
     description:
-      "Designed for younger learners, this workbook integrates foundational math skills with fun, engaging activities. Students build number sense, explore patterns, and develop problem-solving strategies — all while having a great time. Perfect for students in grades K through 5.",
+      "Designed for younger learners, these workbooks integrate foundational math skills with fun, engaging activities. Students build number sense, explore patterns, and develop problem-solving strategies — all while having a great time. Perfect for students in grades K through 5.",
     url: "https://www.amazon.com/stores/Paula-Hamilton/author/B07SJ8TZ56",
   },
   {
-    title: "Mathitude Engagement Workbook: Middle Grade Edition",
+    title: "Mathitude Engagement Workbooks: Middle School Editions",
     description:
-      "Built for middle-grade students ready to deepen their mathematical thinking. This workbook challenges learners with multi-step problems, algebraic reasoning, and mathematical connections that go beyond the classroom. Ideal for grades 5 through 8.",
-    url: "https://www.amazon.com/stores/Paula-Hamilton/author/B07SJ8TZ56",
-  },
-  {
-    title: "Swamp Puzzles Collection",
-    description:
-      "A collection of Paula's signature swamp puzzles — creative, strategic challenges that build logical thinking and perseverance. These puzzles are favorites at math festivals and in Mathitude tutoring sessions. Great for all ages.",
+      "Built for middle-school students ready to deepen their mathematical thinking. These workbooks challenge learners with multi-step problems, algebraic reasoning, and mathematical connections that go beyond the classroom. Ideal for grades 5 through 8.",
     url: "https://www.amazon.com/stores/Paula-Hamilton/author/B07SJ8TZ56",
   },
 ];
@@ -31,7 +25,7 @@ export default function ShopPage() {
         {/* Hero */}
         <section className="bg-white animate-fade-in-up">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl text-neutral-900 tracking-tight text-center" style={{ fontFamily: "var(--font-original-surfer)" }}>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl text-mathitude-purple tracking-tight text-center" style={{ fontFamily: "var(--font-original-surfer)" }}>
               Shop Books
             </h1>
             <p className="mt-6 text-lg md:text-xl text-neutral-500 leading-relaxed text-center max-w-2xl mx-auto">
@@ -59,7 +53,7 @@ export default function ShopPage() {
                     rel="noopener noreferrer"
                     className="mt-4 inline-flex text-sm font-medium text-neutral-900 hover:text-mathitude-purple transition-colors"
                   >
-                    View on Amazon &rarr;
+                    Order on Amazon &rarr;
                   </a>
                 </div>
               ))}

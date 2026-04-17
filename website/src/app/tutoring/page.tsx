@@ -33,11 +33,10 @@ export default function TutoringHubPage() {
         <section className="bg-white animate-fade-in-up">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
             <h1
-              className="text-5xl md:text-6xl lg:text-7xl tracking-tight text-center leading-[1.05]"
+              className="text-5xl md:text-6xl lg:text-7xl text-mathitude-purple tracking-tight text-center leading-[1.05]"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
-              <span className="text-neutral-900">Tutoring </span>
-              <span className="text-mathitude-purple">&amp; Groups</span>
+              Tutoring &amp; Groups
             </h1>
             <p className="mt-6 text-lg md:text-xl text-neutral-600 leading-relaxed text-center max-w-2xl mx-auto">
               Two ways to work with Paula — choose the path that fits your

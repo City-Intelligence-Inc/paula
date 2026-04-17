@@ -19,11 +19,10 @@ export default function GroupCampsPage() {
               / Group Camps
             </p>
             <h1
-              className="text-5xl md:text-6xl lg:text-7xl tracking-tight text-center leading-[1.05]"
+              className="text-5xl md:text-6xl lg:text-7xl text-mathitude-purple tracking-tight text-center leading-[1.05]"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
-              <span className="text-neutral-900">Private Group </span>
-              <span className="text-mathitude-purple">Math Camps</span>
+              Private Group Math Camps
             </h1>
             <p className="mt-6 text-lg md:text-xl text-neutral-500 leading-relaxed text-center max-w-2xl mx-auto">
               Gather a small group of students for a focused, fun week of

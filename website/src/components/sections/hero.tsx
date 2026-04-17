@@ -4,20 +4,6 @@ import Image from "next/image";
 export function Hero() {
   return (
     <section className="relative bg-white overflow-hidden">
-      {/* Peeking mascot — desktop decoration */}
-      <div
-        aria-hidden="true"
-        className="hidden lg:block absolute -top-4 right-[44%] w-32 xl:w-40 opacity-90 pointer-events-none select-none -rotate-6 z-10"
-      >
-        <Image
-          src="/brand/pascals-paxton.png"
-          alt=""
-          width={320}
-          height={420}
-          className="w-full h-auto drop-shadow-md"
-        />
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-20 pb-16 md:pb-24 relative">
         <div className="grid lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-16 items-center">
 
@@ -72,7 +58,7 @@ export function Hero() {
           {/* Right — photo collage */}
           <div className="relative">
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100 mt-8">
+              <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100">
                 <Image
                   src="/photos/bucky_yuma1.jpg"
                   alt="Student building a colorful geometric structure"
@@ -92,7 +78,7 @@ export function Hero() {
                   priority
                 />
               </div>
-              <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100 -mt-8">
+              <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100">
                 <Image
                   src="/photos/bucky_paxton2.jpg"
                   alt="Student creating geometric shapes"
