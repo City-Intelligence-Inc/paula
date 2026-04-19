@@ -100,11 +100,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <div className="px-4 py-5 border-b border-neutral-200">
         <Link href="/" className="flex items-center gap-2">
           <span
-            className="text-xl font-bold tracking-tight"
+            className="text-xl font-bold tracking-tight text-mathitude-purple"
             style={{ fontFamily: "var(--font-original-surfer)" }}
           >
-            <span className="text-mathitude-purple">Math</span>
-            <span className="text-neutral-900">itude</span>
+            Mathitude
           </span>
         </Link>
         <div className="mt-1 flex items-center gap-1.5">

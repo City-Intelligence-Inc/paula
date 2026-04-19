@@ -40,8 +40,8 @@ export function Services() {
     <section className="bg-white">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-neutral-900 tracking-tight leading-[1.05]">
-            How we can <span className="text-mathitude-purple">work together</span>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-mathitude-purple tracking-tight leading-[1.05]">
+            How we can work together
           </h2>
           <p className="mt-5 text-lg sm:text-xl text-neutral-600 max-w-xl mx-auto leading-relaxed">
             Every student is different. Paula takes the time to understand your

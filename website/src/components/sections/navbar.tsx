@@ -36,9 +36,8 @@ export function Navbar() {
               priority
               className="w-9 h-9 sm:w-11 sm:h-11 object-contain transition-transform duration-300 group-hover:rotate-[-8deg]"
             />
-            <span className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ fontFamily: "var(--font-original-surfer)" }}>
-              <span className="text-mathitude-purple">Math</span>
-              <span className="text-neutral-900">itude</span>
+            <span className="text-2xl sm:text-3xl font-bold tracking-tight text-mathitude-purple" style={{ fontFamily: "var(--font-original-surfer)" }}>
+              Mathitude
             </span>
           </Link>
 

@@ -10,18 +10,14 @@ export function Hero() {
           {/* Left — copy */}
           <div className="text-center lg:text-left">
             <h1
-              className="text-6xl md:text-7xl lg:text-8xl text-neutral-900 leading-[1.02]"
+              className="text-6xl md:text-7xl lg:text-8xl text-mathitude-purple leading-[1.02]"
               style={{ fontFamily: "var(--font-original-surfer)", letterSpacing: "-0.02em", textWrap: "balance" }}
             >
-              At{" "}
-              <span className="text-mathitude-purple">Mathitude</span>
-              {", "}it&apos;s all about{" "}
-              <span className="text-mathitude-purple">the attitude.</span>
+              At Mathitude, it&apos;s all about the attitude.
             </h1>
 
             <p className="mt-8 text-xl md:text-2xl text-neutral-700 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
-              K-12 math enrichment, tutoring, and engagement books that foster
-              <span className="text-mathitude-purple font-medium"> big mathematical thinking</span> through fun, collaborative learning.
+              K-12 math enrichment, tutoring, and engagement books that foster big mathematical thinking through fun, collaborative learning.
             </p>
 
             <div className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-2 text-sm text-neutral-400">
