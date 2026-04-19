@@ -22,4 +22,15 @@ This project was created from a tweet idea. Your job is to turn this idea into a
 - Write clean, readable code
 
 ## Deploy workflow (non-negotiable)
-After any code edit on this repo: **commit and push to `main` without asking**. Vercel auto-deploys on push, so the user can't see changes until they're on `main`. If something blocks (pre-commit hook, failing build, merge conflict) figure it out — fix the underlying issue and retry, don't just surface the error and wait. Push is the default, not the exception.
+After any code edit on this repo: **commit + push + `npx vercel --prod --yes`, in that order, without asking.**
+
+**GitHub auto-deploy does not work on this project.** Confirmed Apr 17–18: four pushes to `main` produced zero automatic Vercel builds. The CDN kept serving a build from hours before my first commit and the user thought nothing was shipping. The fix is not "wait longer" or "re-push" — the fix is to run the CLI.
+
+The correct sequence from inside `website/`:
+```
+git commit -m "…"
+git push origin main
+npx vercel --prod --yes
+```
+
+If something blocks (pre-commit hook, failing build, merge conflict, Vercel build error) figure it out — fix the underlying issue and retry. Push + CLI-deploy is the default, not the exception. Never report a change as "shipped" until the CLI deploy has returned `● Ready` and the canonical alias serves the new commit.
