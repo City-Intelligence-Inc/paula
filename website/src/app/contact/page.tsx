@@ -34,12 +34,12 @@ export default function ContactPage() {
         <section className="bg-white animate-fade-in-up">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
             <h1 className="text-4xl md:text-5xl lg:text-6xl text-mathitude-purple tracking-tight text-center" style={{ fontFamily: "var(--font-original-surfer)" }}>
-              Get in Touch
+              Request a Consultation
             </h1>
             <p className="mt-6 text-lg md:text-xl text-neutral-500 leading-relaxed text-center max-w-2xl mx-auto">
-              We&apos;d love to hear from you. Reach out to learn about
-              tutoring, enrichment books, or how Mathitude can help your
-              student.
+              Tell us a little about your student and what you&apos;re hoping
+              for. Paula reads every note and will reach out to schedule a
+              free conversation about the right next step.
             </p>
           </div>
         </section>
@@ -166,12 +166,12 @@ export default function ContactPage() {
                       required
                       className="w-full h-11 px-4 text-sm border border-neutral-200 rounded-md bg-white text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
                     >
-                      <option value="">Select a topic</option>
-                      <option value="Tutoring Inquiry">Tutoring Inquiry</option>
-                      <option value="Enrichment Books">Enrichment Books</option>
-                      <option value="Group Camp">Group Camp</option>
-                      <option value="Event Inquiry">Event Inquiry</option>
-                      <option value="General Question">General Question</option>
+                      <option value="">What are you interested in?</option>
+                      <option value="Private Tutoring Consultation">Private Tutoring — free consultation</option>
+                      <option value="Group Camp Consultation">Group Camp — free consultation</option>
+                      <option value="Event Inquiry">Event / Festival inquiry</option>
+                      <option value="Books & Resources">Books & resources</option>
+                      <option value="General Question">Something else</option>
                     </select>
                   </div>
 
@@ -196,9 +196,9 @@ export default function ContactPage() {
 
                   <button
                     type="submit"
-                    className="inline-flex items-center justify-center rounded-md bg-neutral-900 text-white hover:bg-neutral-800 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
+                    className="inline-flex items-center justify-center rounded-md bg-mathitude-purple text-white hover:bg-[#5d288a] font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
                   >
-                    Send Message
+                    Send to Paula
                   </button>
                 </form>
               </div>

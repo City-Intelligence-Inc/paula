@@ -8,8 +8,7 @@ const offerings = [
     title: "Private Tutoring",
     description:
       "One-on-one and small-group sessions tailored to exactly where your student is — whether they're building confidence, chasing curiosity, or preparing for a test. Paula works with learners from Pre-K through college, in-person in Menlo Park and virtually.",
-    href: "/tutoring/private",
-    cta: "Learn about tutoring",
+    learnMoreHref: "/tutoring/private",
     mascot: "/brand/pascals-paxton.png",
     rotate: "-rotate-3",
   },
@@ -18,8 +17,7 @@ const offerings = [
     title: "Group Camps",
     description:
       "Gather a small group of students for a focused, fun week of mathematical exploration. Group camps run during summer and school breaks and are customized around the group's interests and grade level. A unique way to make math social.",
-    href: "/tutoring/camps",
-    cta: "Learn about group camps",
+    learnMoreHref: "/tutoring/camps",
     mascot: "/brand/rubiks-boy.png",
     rotate: "rotate-2",
   },
@@ -28,8 +26,7 @@ const offerings = [
     title: "Events & Festivals",
     description:
       "Paula and the Mathitude team bring hands-on math activities to schools, festivals, and community events throughout the Bay Area — including the Julia Robinson Mathematics Festival. Interested in having Mathitude at your event?",
-    href: "/events",
-    cta: "See upcoming events",
+    learnMoreHref: "/events",
     mascot: "/brand/space-chips-claren.png",
     rotate: "-rotate-6",
   },
@@ -72,13 +69,21 @@ export function Services() {
                 <p className="mt-3 text-neutral-600 leading-relaxed max-w-lg">
                   {offering.description}
                 </p>
-                <Link
-                  href={offering.href}
-                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-mathitude-purple hover:text-[#5d288a] whitespace-nowrap transition-colors group/link min-h-[44px]"
-                >
-                  {offering.cta}
-                  <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
-                </Link>
+                <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2">
+                  <Link
+                    href="/contact"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-mathitude-purple hover:text-[#5d288a] whitespace-nowrap transition-colors group/link min-h-[44px]"
+                  >
+                    Request a consultation
+                    <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
+                  </Link>
+                  <Link
+                    href={offering.learnMoreHref}
+                    className="inline-flex items-center text-sm text-neutral-500 hover:text-neutral-900 transition-colors min-h-[44px]"
+                  >
+                    Learn more
+                  </Link>
+                </div>
               </div>
 
               {/* Mascot */}
