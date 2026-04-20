@@ -1,53 +1,74 @@
 const reviews = [
   {
     name: "Sarah M.",
-    role: "Parent of 3rd Grader",
+    role: "Parent of 3rd grader",
     text: "Paula transformed my daughter's relationship with math. She went from tears during homework to actually asking for extra problems.",
   },
   {
     name: "David L.",
-    role: "Parent of 7th Grader",
+    role: "Parent of 7th grader",
     text: "The group sessions are incredible. My son loves the collaborative approach and his confidence has skyrocketed.",
   },
   {
     name: "Jennifer K.",
-    role: "Parent of Twins, K & 2nd Grade",
+    role: "Parent of twins, K & 2nd grade",
     text: "Mathitude's workbooks are a staple in our house. The puzzles make math feel like a game, not a chore.",
   },
 ];
 
 export function Reviews() {
   const [featured, ...rest] = reviews;
+
   return (
     <section className="bg-neutral-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-        <p className="text-xs font-medium tracking-widest text-neutral-400 uppercase text-center mb-12">
-          What Parents Are Saying
-        </p>
-
-        {/* Featured quote */}
-        <blockquote className="text-center mb-16">
-          <p className="text-2xl sm:text-3xl font-light text-neutral-900 leading-relaxed max-w-2xl mx-auto">
-            &ldquo;{featured.text}&rdquo;
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
+        <div className="max-w-3xl mb-16 sm:mb-20">
+          <p className="text-xs font-medium tracking-[0.22em] text-mathitude-purple uppercase mb-5">
+            In their words
           </p>
-          <footer className="mt-6">
-            <p className="text-sm font-semibold text-neutral-900">{featured.name}</p>
-            <p className="text-xs text-neutral-400 mt-0.5">{featured.role}</p>
-          </footer>
-        </blockquote>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-mathitude-purple tracking-tight leading-[1.05]">
+            The proof is in the students.
+          </h2>
+        </div>
 
-        {/* Supporting quotes */}
-        <div className="grid sm:grid-cols-2 gap-10 border-t border-neutral-200 pt-12">
+        <figure className="relative max-w-4xl">
+          <span
+            aria-hidden="true"
+            className="absolute -top-6 -left-2 sm:-left-8 text-[140px] sm:text-[200px] leading-none text-mathitude-purple/15 select-none pointer-events-none"
+            style={{ fontFamily: "var(--font-original-surfer)" }}
+          >
+            &ldquo;
+          </span>
+          <blockquote className="relative">
+            <p className="text-2xl sm:text-3xl md:text-4xl text-neutral-900 leading-[1.25] font-light tracking-tight">
+              {featured.text}
+            </p>
+            <figcaption className="mt-8 flex items-center gap-3 text-sm">
+              <span className="font-semibold text-neutral-900">
+                {featured.name}
+              </span>
+              <span aria-hidden="true" className="h-px w-6 bg-neutral-300" />
+              <span className="text-neutral-500">{featured.role}</span>
+            </figcaption>
+          </blockquote>
+        </figure>
+
+        <div className="mt-20 grid sm:grid-cols-2 gap-10 sm:gap-14 border-t border-neutral-200 pt-14">
           {rest.map((review) => (
-            <blockquote key={review.name}>
-              <p className="text-neutral-600 leading-relaxed">
-                &ldquo;{review.text}&rdquo;
-              </p>
-              <footer className="mt-4">
-                <p className="text-sm font-semibold text-neutral-900">{review.name}</p>
-                <p className="text-xs text-neutral-400 mt-0.5">{review.role}</p>
-              </footer>
-            </blockquote>
+            <figure key={review.name}>
+              <blockquote>
+                <p className="text-lg text-neutral-700 leading-relaxed">
+                  &ldquo;{review.text}&rdquo;
+                </p>
+              </blockquote>
+              <figcaption className="mt-5 flex items-center gap-3 text-sm">
+                <span className="font-semibold text-neutral-900">
+                  {review.name}
+                </span>
+                <span aria-hidden="true" className="h-px w-6 bg-neutral-300" />
+                <span className="text-neutral-500">{review.role}</span>
+              </figcaption>
+            </figure>
           ))}
         </div>
       </div>
