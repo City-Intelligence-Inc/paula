@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Separator } from "@/components/ui/separator";
 
 function FacebookIcon({ className }: { className?: string }) {
   return (
@@ -31,48 +30,97 @@ const socialLinks = [
   { icon: XIcon, href: "https://x.com/mathitude", label: "X" },
 ];
 
+const columns = [
+  {
+    title: "Learn with Paula",
+    links: [
+      { label: "Private Tutoring", href: "/tutoring/private" },
+      { label: "Group Camps", href: "/tutoring/camps" },
+      { label: "Events & News", href: "/events" },
+    ],
+  },
+  {
+    title: "Explore",
+    links: [
+      { label: "Free Resources", href: "/free-resources" },
+      { label: "Swamp Puzzles", href: "/swamp-puzzles" },
+      { label: "Pascal's Triangle", href: "/pascals-triangle" },
+      { label: "Shop Books", href: "/shop" },
+    ],
+  },
+  {
+    title: "Contact",
+    links: [
+      { label: "Request a consultation", href: "/contact" },
+      { label: "info@mathitude.com", href: "mailto:info@mathitude.com" },
+      { label: "510.205.2633", href: "tel:5102052633" },
+    ],
+  },
+];
+
 export function Footer() {
   return (
     <footer className="bg-neutral-950 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Social links */}
-        <div className="flex justify-center gap-5">
-          {socialLinks.map((social) => (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,2fr)]">
+          <div>
             <Link
-              key={social.label}
-              href={social.href}
-              aria-label={social.label}
-              className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/"
+              className="inline-flex items-center gap-3 group"
             >
-              <social.icon className="w-5 h-5" />
+              <span
+                className="text-3xl font-bold tracking-tight text-white"
+                style={{ fontFamily: "var(--font-original-surfer)" }}
+              >
+                Mathitude
+              </span>
             </Link>
-          ))}
+            <p className="mt-5 text-white/60 leading-relaxed max-w-sm">
+              K-12 math enrichment and tutoring from Paula Hamilton. In Menlo
+              Park and anywhere a student wants to learn.
+            </p>
+            <div className="mt-8 flex gap-3">
+              {socialLinks.map((social) => (
+                <Link
+                  key={social.label}
+                  href={social.href}
+                  aria-label={social.label}
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <social.icon className="w-4 h-4" />
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
+            {columns.map((col) => (
+              <div key={col.title}>
+                <p className="text-xs font-semibold tracking-[0.18em] text-white/40 uppercase mb-4">
+                  {col.title}
+                </p>
+                <ul className="space-y-3">
+                  {col.links.map((link) => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="text-sm text-white/80 hover:text-white transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <Separator className="my-8 bg-white/10" />
-
-        <div className="text-center space-y-2 text-sm text-white/50">
-          <p>&copy; Copyright {new Date().getFullYear()} by Mathitude LLC</p>
-          <p>
-            Tel:{" "}
-            <a
-              href="tel:5102052633"
-              className="inline-block min-h-[44px] py-3 px-2 hover:text-white/70 transition-colors"
-            >
-              510.205.2633
-            </a>
-          </p>
-          <p>
-            Email:{" "}
-            <a
-              href="mailto:info@mathitude.com"
-              className="inline-block min-h-[44px] py-3 px-2 hover:text-white/70 transition-colors"
-            >
-              info@mathitude.com
-            </a>
-          </p>
+        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/40">
+          <p>&copy; {new Date().getFullYear()} Mathitude LLC. All rights reserved.</p>
+          <p>Made with care in Menlo Park, California.</p>
         </div>
       </div>
     </footer>
