@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "@/components/sections/navbar";
 import { Footer } from "@/components/sections/footer";
+import { FlipQuestion } from "@/components/balloons/flip-question";
+import { ImageCarousel } from "@/components/balloons/image-carousel";
 
 export const metadata = {
   title: "Tetra Balloon Hats & Sierpinski Triangle Structures — Mathitude",
@@ -143,18 +145,68 @@ export default function BalloonsPage() {
               </div>
             </div>
 
-            <div className="mt-10 space-y-4 text-base md:text-lg text-black leading-relaxed">
-              <p className="font-semibold text-black">
-                Another way to explore: pick any two levels above and compare
-                them.
+            <div className="mt-12">
+              <p className="text-base md:text-lg text-black leading-relaxed font-semibold">
+                Here&apos;s another way to explore Sierpinski triangles.
               </p>
-              <p>
-                How many white triangles does each level have? How many more
-                triangles does the bigger level have than the smaller one?
-                What&apos;s the relationship between the two numbers? Is there
-                a pattern to how many white triangles are in each level? Do
-                you see similarities between the two shapes?
-              </p>
+
+              <div className="mt-6 grid grid-cols-2 gap-4 md:gap-6">
+                <div className="relative aspect-[4/3] bg-white rounded-lg overflow-hidden border border-neutral-200">
+                  <Image
+                    src="/balloons/sierpinski-compare-1.png"
+                    alt="Sierpinski triangle — one level"
+                    fill
+                    sizes="(max-width: 768px) 50vw, 360px"
+                    className="object-contain p-4"
+                  />
+                </div>
+                <div className="relative aspect-[4/3] bg-white rounded-lg overflow-hidden border border-neutral-200">
+                  <Image
+                    src="/balloons/sierpinski-compare-2.png"
+                    alt="Sierpinski triangle — next level"
+                    fill
+                    sizes="(max-width: 768px) 50vw, 360px"
+                    className="object-contain p-4"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-8">
+                <FlipQuestion
+                  label="Compare the two"
+                  question={
+                    <>
+                      How many white triangles does each level have? How many
+                      more triangles does the bigger level have than the smaller
+                      one? What&apos;s the relationship between the two numbers?
+                      Is there a pattern to how many white triangles are in each
+                      level? Do you see similarities between the two shapes?
+                    </>
+                  }
+                  answer={
+                    <div className="space-y-3">
+                      <p>
+                        Each level adds a new layer of smaller white triangles.
+                        The count of white triangles{" "}
+                        <span className="font-semibold">triples and adds 1</span>{" "}
+                        each time you go up a level.
+                      </p>
+                      <ul className="list-disc pl-5 space-y-1 text-sm md:text-base">
+                        <li>Level 1: 1 white triangle</li>
+                        <li>Level 2: 4 white triangles (1 + 3)</li>
+                        <li>Level 3: 13 white triangles (4 + 9)</li>
+                        <li>Level 4: 40 white triangles (13 + 27)</li>
+                      </ul>
+                      <p>
+                        The two shapes look the same because each bigger level
+                        contains three smaller copies of the level below it.
+                        That&apos;s called <span className="font-semibold">self&#8209;similarity</span>{" "}
+                        &mdash; the key idea behind a fractal.
+                      </p>
+                    </div>
+                  }
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -204,13 +256,22 @@ export default function BalloonsPage() {
             <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight text-center">
               Check out our Level Four Sierpinski Balloon Tetrahedron!
             </h2>
-            <div className="mt-10 relative aspect-[4/3] w-full rounded-xl overflow-hidden shadow-lg">
-              <Image
-                src="/balloons/balloon-tetrahedron.jpg"
-                alt="Mathitude's Level 4 Sierpinski balloon tetrahedron — kids inside a giant blue, green, and white balloon fractal structure"
-                fill
-                sizes="(max-width: 1024px) 100vw, 900px"
-                className="object-cover"
+            <div className="mt-10">
+              <ImageCarousel
+                slides={[
+                  {
+                    src: "/balloons/balloon-tetrahedron.jpg",
+                    alt: "Kids sitting inside a giant Level 4 Sierpinski balloon tetrahedron — white, green, and blue balloons",
+                  },
+                  {
+                    src: "/balloons/carousel-2.jpg",
+                    alt: "Multiple Sierpinski balloon tetrahedra glowing in a yard at dusk alongside lit-up cone trees",
+                  },
+                  {
+                    src: "/balloons/carousel-1.png",
+                    alt: "Children peeking out from inside the Level 4 Sierpinski balloon structure",
+                  },
+                ]}
               />
             </div>
           </div>
