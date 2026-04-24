@@ -108,11 +108,11 @@
 }
 
 /* Mathitude typography kit (Apr 2026) — hardcoded per styling rules.
-   Titles: Original Surfer in #7030A0 (purple).
-   Headings: Avenir regular in #000.
-   Body: Avenir light in #000. */
+   Titles: Original Surfer in #7030A0 (purple) — applied per-element via util.
+   Headings: Avenir regular, color defaults to body black unless util overrides.
+   Body: Avenir light in #000.
+   Do NOT set color on h1..h6 here — it defeats Tailwind text-[#7030A0] utils. */
 h1, h2, h3, h4, h5, h6 {
-  color: #000000;
   font-weight: 400;
   letter-spacing: -0.02em;
 }
