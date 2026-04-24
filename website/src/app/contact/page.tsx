@@ -33,10 +33,10 @@ export default function ContactPage() {
         {/* Hero */}
         <section className="bg-white animate-fade-in-up">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl text-mathitude-purple tracking-tight text-center" style={{ fontFamily: "var(--font-original-surfer)" }}>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl text-[#7030A0] tracking-tight text-center" style={{ fontFamily: "var(--font-original-surfer)" }}>
               Request a Consultation
             </h1>
-            <p className="mt-6 text-lg md:text-xl text-neutral-500 leading-relaxed text-center max-w-2xl mx-auto">
+            <p className="mt-6 text-lg md:text-xl text-black leading-relaxed text-center max-w-2xl mx-auto">
               Tell us a little about your student and what you&apos;re hoping
               for. Paula reads every note and will reach out to schedule a
               free conversation about the right next step.
@@ -55,10 +55,10 @@ export default function ContactPage() {
                     <Phone className="w-5 h-5 text-neutral-400" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-neutral-900">Phone</h3>
+                    <h3 className="font-medium text-black">Phone</h3>
                     <a
                       href="tel:5102052633"
-                      className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors"
+                      className="text-sm text-neutral-500 hover:text-black transition-colors"
                     >
                       510.205.2633
                     </a>
@@ -70,10 +70,10 @@ export default function ContactPage() {
                     <Mail className="w-5 h-5 text-neutral-400" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-neutral-900">Email</h3>
+                    <h3 className="font-medium text-black">Email</h3>
                     <a
                       href="mailto:info@mathitude.com"
-                      className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors"
+                      className="text-sm text-neutral-500 hover:text-black transition-colors"
                     >
                       info@mathitude.com
                     </a>
@@ -85,7 +85,7 @@ export default function ContactPage() {
                     <MapPin className="w-5 h-5 text-neutral-400" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-neutral-900">Location</h3>
+                    <h3 className="font-medium text-black">Location</h3>
                     <p className="text-sm text-neutral-500">Menlo Park, CA</p>
                     <p className="text-xs text-neutral-400 mt-0.5">
                       Professional building, one block from Trader Joe&apos;s
@@ -98,7 +98,7 @@ export default function ContactPage() {
                     <Clock className="w-5 h-5 text-neutral-400" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-neutral-900">Hours</h3>
+                    <h3 className="font-medium text-black">Hours</h3>
                     <p className="text-sm text-neutral-500">
                       Mon&ndash;Fri: 9:00 AM &ndash; 7:00 PM
                     </p>
@@ -127,7 +127,7 @@ export default function ContactPage() {
                       value={form.name}
                       onChange={handleChange}
                       required
-                      className="w-full h-11 px-4 text-sm border border-neutral-200 rounded-md bg-white text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
+                      className="w-full h-11 px-4 text-sm border border-neutral-200 rounded-md bg-white text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
                       placeholder="Your name"
                     />
                   </div>
@@ -146,7 +146,7 @@ export default function ContactPage() {
                       value={form.email}
                       onChange={handleChange}
                       required
-                      className="w-full h-11 px-4 text-sm border border-neutral-200 rounded-md bg-white text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
+                      className="w-full h-11 px-4 text-sm border border-neutral-200 rounded-md bg-white text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
                       placeholder="you@example.com"
                     />
                   </div>
@@ -164,7 +164,7 @@ export default function ContactPage() {
                       value={form.subject}
                       onChange={handleChange}
                       required
-                      className="w-full h-11 px-4 text-sm border border-neutral-200 rounded-md bg-white text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
+                      className="w-full h-11 px-4 text-sm border border-neutral-200 rounded-md bg-white text-black focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
                     >
                       <option value="">What are you interested in?</option>
                       <option value="Private Tutoring Consultation">Private Tutoring — free consultation</option>
@@ -189,14 +189,14 @@ export default function ContactPage() {
                       onChange={handleChange}
                       required
                       rows={5}
-                      className="w-full px-4 py-3 text-sm border border-neutral-200 rounded-md bg-white text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors resize-none"
+                      className="w-full px-4 py-3 text-sm border border-neutral-200 rounded-md bg-white text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors resize-none"
                       placeholder="Tell us about your student and how we can help..."
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="inline-flex items-center justify-center rounded-md bg-mathitude-purple text-white hover:bg-[#5d288a] font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
+                    className="inline-flex items-center justify-center rounded-md bg-[#7030A0] text-white hover:bg-[#5d288a] font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
                   >
                     Send to Paula
                   </button>

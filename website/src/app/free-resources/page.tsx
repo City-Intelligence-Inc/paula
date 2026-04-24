@@ -21,17 +21,15 @@ const interactives = [
     title: "Sierpinski Balloons & Balloon Tetra Hats",
     description:
       "Twist balloons into a Sierpinski tetrahedron, then wear your mathematical creation home. A playful hands-on activity that turns fractals into party favorites.",
-    href: "https://www.mathitude.com/balloons",
+    href: "/balloons",
     cta: "See balloon activities",
-    external: true,
   },
   {
     title: "All Puzzles & Activities",
     description:
       "Browse Paula's full library of puzzles, hands-on activities, and printable challenges — organized by theme and grade level.",
-    href: "https://www.mathitude.com/puzzles-and-activities",
+    href: "/puzzles-and-activities",
     cta: "Browse the full library",
-    external: true,
   },
 ];
 
@@ -62,12 +60,12 @@ export default function FreeResourcesPage() {
         <section className="bg-white animate-fade-in-up">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
             <h1
-              className="text-5xl md:text-6xl lg:text-7xl text-mathitude-purple tracking-tight text-center leading-[1.05]"
+              className="text-5xl md:text-6xl lg:text-7xl text-[#7030A0] tracking-tight text-center leading-[1.05]"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
               Free Resources
             </h1>
-            <p className="mt-6 text-lg md:text-xl text-neutral-600 leading-relaxed text-center max-w-2xl mx-auto">
+            <p className="mt-6 text-lg md:text-xl text-black leading-relaxed text-center max-w-2xl mx-auto">
               Interactive tools, downloadable puzzles, and free PDFs from Paula
               — designed to spark curiosity and bring math to life at home and
               in the classroom.
@@ -78,36 +76,25 @@ export default function FreeResourcesPage() {
         {/* Interactives */}
         <section className="bg-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 md:pb-28">
-            <h2 className="text-2xl md:text-3xl font-semibold text-neutral-900 tracking-tight">
+            <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
               Interactive Tools
             </h2>
 
             <div className="mt-8 space-y-0 divide-y divide-neutral-200">
               {interactives.map((item) => (
                 <div key={item.title} className="py-10 first:pt-0">
-                  <h3 className="text-xl font-semibold text-neutral-900">
+                  <h3 className="text-xl font-semibold text-black">
                     {item.title}
                   </h3>
-                  <p className="mt-3 text-neutral-600 leading-relaxed">
+                  <p className="mt-3 text-black leading-relaxed">
                     {item.description}
                   </p>
-                  {item.external ? (
-                    <a
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-4 inline-flex text-sm font-medium text-neutral-900 hover:text-mathitude-purple transition-colors"
-                    >
-                      {item.cta} &rarr;
-                    </a>
-                  ) : (
-                    <Link
-                      href={item.href}
-                      className="mt-4 inline-flex text-sm font-medium text-neutral-900 hover:text-mathitude-purple transition-colors"
-                    >
-                      {item.cta} &rarr;
-                    </Link>
-                  )}
+                  <Link
+                    href={item.href}
+                    className="mt-4 inline-flex text-sm font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors"
+                  >
+                    {item.cta} &rarr;
+                  </Link>
                 </div>
               ))}
             </div>
@@ -117,10 +104,10 @@ export default function FreeResourcesPage() {
         {/* Free PDFs */}
         <section className="bg-neutral-50">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-            <h2 className="text-2xl md:text-3xl font-semibold text-neutral-900 tracking-tight">
+            <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
               Free Downloads
             </h2>
-            <p className="mt-3 text-neutral-500 leading-relaxed">
+            <p className="mt-3 text-black leading-relaxed">
               Free printable PDFs for students and families. No sign-up
               required.
             </p>
@@ -128,13 +115,13 @@ export default function FreeResourcesPage() {
             <div className="mt-8 space-y-0 divide-y divide-neutral-200">
               {freePdfs.map((pdf) => (
                 <div key={pdf.title} className="py-8 first:pt-0">
-                  <h3 className="text-lg font-semibold text-neutral-900">
+                  <h3 className="text-lg font-semibold text-black">
                     {pdf.title}
                   </h3>
-                  <p className="mt-2 text-neutral-600 leading-relaxed">
+                  <p className="mt-2 text-black leading-relaxed">
                     {pdf.description}
                   </p>
-                  <p className="mt-3 text-xs text-neutral-400">
+                  <p className="mt-3 text-xs text-[#8b8589]">
                     Download coming soon.
                   </p>
                 </div>
@@ -150,7 +137,7 @@ export default function FreeResourcesPage() {
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white leading-snug tracking-tight">
                 Want more resources?
               </h2>
-              <p className="mt-4 text-white/60 max-w-xl mx-auto leading-relaxed">
+              <p className="mt-4 text-white/70 max-w-xl mx-auto leading-relaxed">
                 Browse Paula&apos;s full collection of math engagement
                 workbooks, or reach out to learn about tutoring.
               </p>

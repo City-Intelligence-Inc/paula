@@ -23,10 +23,10 @@ export function Reviews() {
     <section className="bg-neutral-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
         <div className="max-w-3xl mb-16 sm:mb-20">
-          <p className="text-xs font-medium tracking-[0.22em] text-mathitude-purple uppercase mb-5">
+          <p className="text-xs font-medium tracking-[0.22em] text-[#7030A0] uppercase mb-5">
             In their words
           </p>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-mathitude-purple tracking-tight leading-[1.05]">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-black tracking-tight leading-[1.05]">
             The proof is in the students.
           </h2>
         </div>
@@ -34,21 +34,21 @@ export function Reviews() {
         <figure className="relative max-w-4xl">
           <span
             aria-hidden="true"
-            className="absolute -top-6 -left-2 sm:-left-8 text-[140px] sm:text-[200px] leading-none text-mathitude-purple/15 select-none pointer-events-none"
+            className="absolute -top-6 -left-2 sm:-left-8 text-[140px] sm:text-[200px] leading-none text-[#7030A0]/15 select-none pointer-events-none"
             style={{ fontFamily: "var(--font-original-surfer)" }}
           >
             &ldquo;
           </span>
           <blockquote className="relative">
-            <p className="text-2xl sm:text-3xl md:text-4xl text-neutral-900 leading-[1.25] font-light tracking-tight">
+            <p className="text-2xl sm:text-3xl md:text-4xl text-black leading-[1.25] font-light tracking-tight">
               {featured.text}
             </p>
             <figcaption className="mt-8 flex items-center gap-3 text-sm">
-              <span className="font-semibold text-neutral-900">
+              <span className="font-semibold text-black">
                 {featured.name}
               </span>
-              <span aria-hidden="true" className="h-px w-6 bg-neutral-300" />
-              <span className="text-neutral-500">{featured.role}</span>
+              <span aria-hidden="true" className="h-px w-6 bg-[#8b8589]/40" />
+              <span className="text-[#8b8589]">{featured.role}</span>
             </figcaption>
           </blockquote>
         </figure>
@@ -57,16 +57,16 @@ export function Reviews() {
           {rest.map((review) => (
             <figure key={review.name}>
               <blockquote>
-                <p className="text-lg text-neutral-700 leading-relaxed">
+                <p className="text-lg text-black leading-relaxed">
                   &ldquo;{review.text}&rdquo;
                 </p>
               </blockquote>
               <figcaption className="mt-5 flex items-center gap-3 text-sm">
-                <span className="font-semibold text-neutral-900">
+                <span className="font-semibold text-black">
                   {review.name}
                 </span>
-                <span aria-hidden="true" className="h-px w-6 bg-neutral-300" />
-                <span className="text-neutral-500">{review.role}</span>
+                <span aria-hidden="true" className="h-px w-6 bg-[#8b8589]/40" />
+                <span className="text-[#8b8589]">{review.role}</span>
               </figcaption>
             </figure>
           ))}

@@ -33,15 +33,24 @@ export default function TutoringHubPage() {
         <section className="bg-white animate-fade-in-up">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
             <h1
-              className="text-5xl md:text-6xl lg:text-7xl text-mathitude-purple tracking-tight text-center leading-[1.05]"
+              className="text-5xl md:text-6xl lg:text-7xl text-[#7030A0] tracking-tight text-center leading-[1.05]"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
               Tutoring &amp; Groups
             </h1>
-            <p className="mt-6 text-lg md:text-xl text-neutral-600 leading-relaxed text-center max-w-2xl mx-auto">
+            <p className="mt-6 text-lg md:text-xl text-black leading-relaxed text-center max-w-2xl mx-auto">
               Two ways to work with Paula — choose the path that fits your
               student best.
             </p>
+            <div className="mt-8 flex justify-center">
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center rounded-full bg-[#7030A0] text-white hover:bg-[#5d288a] font-medium text-base px-8 py-3.5 transition-colors shadow-sm hover:shadow-md"
+              >
+                Request a consultation
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -54,22 +63,28 @@ export default function TutoringHubPage() {
                   className="grid sm:grid-cols-[1fr_auto] gap-8 items-center py-12 first:pt-0"
                 >
                   <div>
-                    <h2
-                      className="text-3xl md:text-4xl text-neutral-900 tracking-tight"
-                      style={{ fontFamily: "var(--font-original-surfer)" }}
-                    >
+                    <h2 className="text-3xl md:text-4xl font-semibold text-black tracking-tight">
                       {sub.title}
                     </h2>
-                    <p className="mt-4 text-neutral-600 leading-relaxed text-base md:text-lg">
+                    <p className="mt-4 text-black leading-relaxed text-base md:text-lg">
                       {sub.description}
                     </p>
-                    <Link
-                      href={sub.href}
-                      className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-mathitude-purple hover:text-[#5d288a] transition-colors"
-                    >
-                      {sub.cta}
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2">
+                      <Link
+                        href={sub.href}
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-black hover:text-[#7030A0] transition-colors"
+                      >
+                        {sub.cta}
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                      <Link
+                        href="/contact"
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors"
+                      >
+                        Request a consultation
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
                   </div>
                   <div
                     aria-hidden="true"

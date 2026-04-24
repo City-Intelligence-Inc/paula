@@ -10,27 +10,27 @@ export function Hero() {
           {/* Left — copy */}
           <div className="text-center lg:text-left">
             <h1
-              className="text-6xl md:text-7xl lg:text-8xl text-mathitude-purple leading-[1.02]"
+              className="text-6xl md:text-7xl lg:text-8xl text-[#7030A0] leading-[1.02]"
               style={{ fontFamily: "var(--font-original-surfer)", letterSpacing: "-0.02em", textWrap: "balance" }}
             >
               At Mathitude, it&apos;s all about the attitude.
             </h1>
 
-            <p className="mt-8 text-xl md:text-2xl text-neutral-700 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
+            <p className="mt-8 text-xl md:text-2xl text-black max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
               K-12 math enrichment, tutoring, and engagement books that foster big mathematical thinking through fun, collaborative learning.
             </p>
 
-            <div className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-2 text-sm text-neutral-400">
+            <div className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-2 text-sm text-[#8b8589]">
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#8b8589]/50" />
                 Pre-K to College
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#8b8589]/50" />
                 Menlo Park &amp; Virtual
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-neutral-300" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#8b8589]/50" />
                 Since 2013
               </span>
             </div>

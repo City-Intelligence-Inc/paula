@@ -10,7 +10,7 @@ export default function EventsPage() {
         {/* Hero */}
         <section className="bg-white animate-fade-in-up">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl text-mathitude-purple tracking-tight text-center" style={{ fontFamily: "var(--font-original-surfer)" }}>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl text-[#7030A0] tracking-tight text-center" style={{ fontFamily: "var(--font-original-surfer)" }}>
               Events &amp; News
             </h1>
             <p className="mt-6 text-lg md:text-xl text-neutral-500 leading-relaxed text-center max-w-2xl mx-auto">
@@ -23,19 +23,19 @@ export default function EventsPage() {
         {/* Upcoming events */}
         <section className="bg-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 md:pb-28">
-            <h2 className="text-2xl md:text-3xl font-semibold text-neutral-900 tracking-tight">
+            <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
               Upcoming Events
             </h2>
 
             <div className="mt-8 space-y-0 divide-y divide-neutral-200">
               <div className="py-8 first:pt-0">
-                <p className="text-sm font-medium text-mathitude-purple">
+                <p className="text-sm font-medium text-[#7030A0]">
                   May 2026
                 </p>
-                <h3 className="mt-1 text-lg font-medium text-neutral-900">
+                <h3 className="mt-1 text-lg font-medium text-black">
                   Bay Area Math Festival
                 </h3>
-                <p className="mt-2 text-neutral-600 leading-relaxed">
+                <p className="mt-2 text-black leading-relaxed">
                   Join Paula and the Mathitude team at the Bay Area Math
                   Festival for a day of hands-on mathematical exploration.
                   Expect swamp puzzles, Pascal&apos;s Triangle activities, and
@@ -44,13 +44,13 @@ export default function EventsPage() {
               </div>
 
               <div className="py-8">
-                <p className="text-sm font-medium text-mathitude-purple">
+                <p className="text-sm font-medium text-[#7030A0]">
                   May 2026
                 </p>
-                <h3 className="mt-1 text-lg font-medium text-neutral-900">
+                <h3 className="mt-1 text-lg font-medium text-black">
                   Nueva School STEM Fair
                 </h3>
-                <p className="mt-2 text-neutral-600 leading-relaxed">
+                <p className="mt-2 text-black leading-relaxed">
                   Mathitude will be presenting at the Nueva School STEM Fair,
                   showcasing engaging math activities and enrichment resources
                   for elementary and middle-grade students.
@@ -63,10 +63,10 @@ export default function EventsPage() {
         {/* JRMF */}
         <section className="bg-neutral-50">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-            <h2 className="text-2xl md:text-3xl font-semibold text-neutral-900 tracking-tight">
+            <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
               Julia Robinson Mathematics Festival
             </h2>
-            <p className="mt-4 text-neutral-600 leading-relaxed">
+            <p className="mt-4 text-black leading-relaxed">
               Paula is an active participant and contributor to the Julia
               Robinson Mathematics Festival (JRMF), a national program that
               inspires students to explore the richness and beauty of
@@ -75,7 +75,7 @@ export default function EventsPage() {
               mathematicians for hands-on activities that spark curiosity and
               build a lifelong love of math.
             </p>
-            <p className="mt-3 text-neutral-600 leading-relaxed">
+            <p className="mt-3 text-black leading-relaxed">
               Mathitude&apos;s swamp puzzles and engagement activities are
               regular favorites at JRMF events throughout the Bay Area.
             </p>
@@ -83,7 +83,7 @@ export default function EventsPage() {
               href="https://www.jrmf.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 inline-flex text-sm font-medium text-neutral-900 hover:text-mathitude-purple transition-colors"
+              className="mt-4 inline-flex text-sm font-medium text-black hover:text-[#7030A0] transition-colors"
             >
               Learn more about JRMF &rarr;
             </a>
@@ -94,7 +94,7 @@ export default function EventsPage() {
         <section className="bg-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
             <div className="text-center">
-              <h2 className="text-2xl md:text-3xl font-semibold text-neutral-900 tracking-tight">
+              <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
                 Stay Updated
               </h2>
               <p className="mt-4 text-neutral-500 leading-relaxed max-w-xl mx-auto">
@@ -106,7 +106,7 @@ export default function EventsPage() {
                 <input
                   type="email"
                   placeholder="your@email.com"
-                  className="w-full sm:flex-1 h-11 px-4 text-sm border border-neutral-200 rounded-md bg-white text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
+                  className="w-full sm:flex-1 h-11 px-4 text-sm border border-neutral-200 rounded-md bg-white text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300 transition-colors"
                   disabled
                 />
                 <button
@@ -137,7 +137,7 @@ export default function EventsPage() {
               <div className="mt-10">
                 <Link
                   href="/contact"
-                  className="inline-flex items-center justify-center rounded-md bg-white text-neutral-900 hover:bg-neutral-100 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
+                  className="inline-flex items-center justify-center rounded-md bg-white text-black hover:bg-neutral-100 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
                 >
                   Get in Touch
                 </Link>

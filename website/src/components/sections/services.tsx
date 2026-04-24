@@ -30,13 +30,13 @@ export function Services() {
     <section className="bg-white">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
         <div className="mb-20 max-w-3xl">
-          <p className="text-xs font-medium tracking-[0.22em] text-mathitude-purple uppercase mb-5">
+          <p className="text-xs font-medium tracking-[0.22em] text-[#7030A0] uppercase mb-5">
             How we work
           </p>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-mathitude-purple tracking-tight leading-[1.05]">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-black tracking-tight leading-[1.05]">
             Three ways to bring Mathitude to your student.
           </h2>
-          <p className="mt-6 text-lg sm:text-xl text-neutral-600 leading-relaxed">
+          <p className="mt-6 text-lg sm:text-xl text-black leading-relaxed">
             Every student is different. Paula takes the time to understand your
             child&apos;s needs, then crafts an approach that meets them exactly
             where they are.
@@ -50,16 +50,16 @@ export function Services() {
               className="grid sm:grid-cols-[96px_1fr_auto] gap-x-8 gap-y-4 py-10 sm:py-14 first:pt-0 last:pb-0 items-baseline"
             >
               <span
-                className="text-5xl sm:text-6xl text-mathitude-purple/30 leading-none select-none font-semibold tabular-nums"
+                className="text-5xl sm:text-6xl text-[#7030A0]/30 leading-none select-none font-semibold tabular-nums"
               >
                 {offering.number}
               </span>
 
               <div className="max-w-2xl">
-                <h3 className="text-2xl sm:text-3xl font-semibold text-neutral-900 tracking-tight">
+                <h3 className="text-2xl sm:text-3xl font-semibold text-black tracking-tight">
                   {offering.title}
                 </h3>
-                <p className="mt-4 text-base sm:text-lg text-neutral-600 leading-relaxed">
+                <p className="mt-4 text-base sm:text-lg text-black leading-relaxed">
                   {offering.description}
                 </p>
               </div>
@@ -67,14 +67,14 @@ export function Services() {
               <div className="sm:self-center flex flex-col items-start gap-2 sm:items-end">
                 <Link
                   href="/contact"
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-mathitude-purple hover:text-[#5d288a] whitespace-nowrap transition-colors group/link min-h-[44px]"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-[#7030A0] hover:text-[#5d288a] whitespace-nowrap transition-colors group/link min-h-[44px]"
                 >
                   Request a consultation
                   <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
                 </Link>
                 <Link
                   href={offering.learnMoreHref}
-                  className="inline-flex items-center text-sm text-neutral-500 hover:text-neutral-900 transition-colors min-h-[44px]"
+                  className="inline-flex items-center text-sm text-[#8b8589] hover:text-black transition-colors min-h-[44px]"
                 >
                   Learn more
                 </Link>
@@ -85,16 +85,16 @@ export function Services() {
 
         <div className="mt-20 flex flex-col sm:flex-row items-center gap-6 border-t border-neutral-200 pt-12">
           <div className="flex-1 text-center sm:text-left">
-            <p className="text-lg sm:text-xl text-neutral-800 leading-relaxed">
+            <p className="text-lg sm:text-xl text-black leading-relaxed">
               Not sure which fits? Paula will help you figure it out.
             </p>
-            <p className="mt-1 text-sm text-neutral-500">
+            <p className="mt-1 text-sm text-[#8b8589]">
               No commitment. Just a conversation about your student&apos;s goals.
             </p>
           </div>
           <Link
             href="/contact"
-            className="inline-flex items-center justify-center rounded-full bg-mathitude-purple text-white hover:bg-[#5d288a] font-medium text-base px-9 py-4 transition-colors shadow-sm hover:shadow-md whitespace-nowrap"
+            className="inline-flex items-center justify-center rounded-full bg-[#7030A0] text-white hover:bg-[#5d288a] font-medium text-base px-9 py-4 transition-colors shadow-sm hover:shadow-md whitespace-nowrap"
           >
             Request a Free Consultation
           </Link>

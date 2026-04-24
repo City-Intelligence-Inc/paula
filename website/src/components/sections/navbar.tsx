@@ -36,7 +36,7 @@ export function Navbar() {
               priority
               className="w-9 h-9 sm:w-11 sm:h-11 object-contain transition-transform duration-300 group-hover:rotate-[-8deg]"
             />
-            <span className="text-2xl sm:text-3xl font-bold tracking-tight text-mathitude-purple" style={{ fontFamily: "var(--font-original-surfer)" }}>
+            <span className="text-2xl sm:text-3xl font-bold tracking-tight text-[#7030A0]" style={{ fontFamily: "var(--font-original-surfer)" }}>
               Mathitude
             </span>
           </Link>
@@ -47,7 +47,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="inline-flex items-center min-h-[44px] px-3 py-2.5 text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:underline underline-offset-4 decoration-neutral-300 transition-colors rounded-md"
+                className="inline-flex items-center min-h-[44px] px-3 py-2.5 text-sm font-medium text-black hover:text-[#7030A0] hover:underline underline-offset-4 decoration-[#7030A0]/30 transition-colors rounded-md"
               >
                 {link.label}
               </Link>
@@ -77,7 +77,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="block px-3 py-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 rounded-md"
+                className="block px-3 py-2 text-sm font-medium text-black hover:text-[#7030A0] rounded-md"
                 onClick={() => setMobileOpen(false)}
               >
                 {link.label}

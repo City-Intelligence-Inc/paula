@@ -10,7 +10,7 @@ export default function MathEngagementPage() {
         {/* Hero */}
         <section className="bg-white animate-fade-in-up">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl text-mathitude-purple tracking-tight text-center" style={{ fontFamily: "var(--font-original-surfer)" }}>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl text-[#7030A0] tracking-tight text-center" style={{ fontFamily: "var(--font-original-surfer)" }}>
               Math Engagement
             </h1>
             <p className="mt-6 text-lg md:text-xl text-neutral-500 leading-relaxed text-center max-w-2xl mx-auto">
@@ -28,10 +28,10 @@ export default function MathEngagementPage() {
             <div className="space-y-0 divide-y divide-neutral-200">
               {/* Enrichment Books */}
               <div className="py-12 first:pt-0">
-                <h2 className="text-2xl md:text-3xl font-semibold text-neutral-900 tracking-tight">
+                <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
                   Enrichment Books
                 </h2>
-                <p className="mt-4 text-neutral-600 leading-relaxed">
+                <p className="mt-4 text-black leading-relaxed">
                   Paula&apos;s signature math engagement workbooks are designed
                   to integrate skills in a way that combines deep math mastery
                   with fun, exciting presentation. Rather than drilling students
@@ -39,14 +39,14 @@ export default function MathEngagementPage() {
                   together concepts so learners build genuine mathematical
                   understanding while enjoying every page.
                 </p>
-                <p className="mt-3 text-neutral-600 leading-relaxed">
+                <p className="mt-3 text-black leading-relaxed">
                   Available for elementary and middle-grade students, these
                   workbooks are a cornerstone of the Mathitude philosophy —
                   that math should be both rigorous and joyful.
                 </p>
                 <Link
                   href="/shop"
-                  className="mt-4 inline-flex text-sm font-medium text-neutral-900 hover:text-mathitude-purple transition-colors"
+                  className="mt-4 inline-flex text-sm font-medium text-black hover:text-[#7030A0] transition-colors"
                 >
                   Browse books &rarr;
                 </Link>
@@ -54,16 +54,16 @@ export default function MathEngagementPage() {
 
               {/* Individual & Small Group Tutoring */}
               <div className="py-12">
-                <h2 className="text-2xl md:text-3xl font-semibold text-neutral-900 tracking-tight">
+                <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
                   Individual &amp; Small Group Tutoring
                 </h2>
-                <p className="mt-4 text-neutral-600 leading-relaxed">
+                <p className="mt-4 text-black leading-relaxed">
                   Paula offers private math coaching for students of all ages,
                   from pre-K through college. Sessions are available in-person
                   at our Menlo Park location and virtually, either one-on-one
                   or in small groups.
                 </p>
-                <p className="mt-3 text-neutral-600 leading-relaxed">
+                <p className="mt-3 text-black leading-relaxed">
                   About 60% of Mathitude&apos;s tutoring work is enrichment —
                   helping students explore their curiosity and develop their
                   superpowers as mathematicians. The remaining 40% is academic
@@ -72,7 +72,7 @@ export default function MathEngagementPage() {
                 </p>
                 <Link
                   href="/tutoring"
-                  className="mt-4 inline-flex text-sm font-medium text-neutral-900 hover:text-mathitude-purple transition-colors"
+                  className="mt-4 inline-flex text-sm font-medium text-black hover:text-[#7030A0] transition-colors"
                 >
                   Learn about tutoring &rarr;
                 </Link>
@@ -80,10 +80,10 @@ export default function MathEngagementPage() {
 
               {/* Puzzles & Activities */}
               <div className="py-12 last:pb-0">
-                <h2 className="text-2xl md:text-3xl font-semibold text-neutral-900 tracking-tight">
+                <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
                   Puzzles &amp; Activities
                 </h2>
-                <p className="mt-4 text-neutral-600 leading-relaxed">
+                <p className="mt-4 text-black leading-relaxed">
                   Mathitude&apos;s collection of downloadable puzzles and
                   activities brings math to life beyond the classroom. From
                   swamp puzzles that challenge strategic thinking to
@@ -91,7 +91,7 @@ export default function MathEngagementPage() {
                   patterns, each activity is crafted to spark curiosity and
                   build problem-solving skills.
                 </p>
-                <p className="mt-3 text-neutral-600 leading-relaxed">
+                <p className="mt-3 text-black leading-relaxed">
                   Paula also shares strategy videos and mathematical
                   explorations that parents and students can enjoy together,
                   reinforcing the collaborative spirit at the heart of
@@ -116,7 +116,7 @@ export default function MathEngagementPage() {
               <div className="mt-10">
                 <Link
                   href="/contact"
-                  className="inline-flex items-center justify-center rounded-md bg-white text-neutral-900 hover:bg-neutral-100 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
+                  className="inline-flex items-center justify-center rounded-md bg-white text-black hover:bg-neutral-100 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
                 >
                   Request a Consultation
                 </Link>

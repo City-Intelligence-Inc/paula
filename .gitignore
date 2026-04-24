@@ -1,4 +1,5 @@
 .gstack/
 .DS_Store
 .claude/
-books/
+/books/
+!website/public/books/
