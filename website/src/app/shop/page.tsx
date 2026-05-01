@@ -72,7 +72,7 @@ export default function ShopPage() {
               Shop Books
             </h1>
             <p className="mt-6 text-lg md:text-xl text-black leading-relaxed text-center max-w-2xl mx-auto">
-              Paula&apos;s signature math engagement workbooks — deep math
+              Mathitude&apos;s signature math engagement workbooks — deep math
               mastery paired with fun, exciting presentation. Available on
               Amazon.
             </p>
@@ -133,7 +133,7 @@ export default function ShopPage() {
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
             <div className="text-center">
               <p className="text-black leading-relaxed">
-                All books are available on Amazon. Visit Paula&apos;s author
+                All books are available on Amazon. Visit Mathitude&apos;s author
                 page to see the full collection.
               </p>
               <a
@@ -156,7 +156,7 @@ export default function ShopPage() {
                 Want personalized guidance?
               </h2>
               <p className="mt-4 text-white/70 max-w-xl mx-auto leading-relaxed">
-                Paula can recommend the right workbook for your student and
+                Mathitude can recommend the right workbook for your student and
                 pair it with tutoring for maximum impact.
               </p>
               <div className="mt-10">

@@ -52,7 +52,7 @@ const gradeLevels: {
       {
         title: "Mathitude Engagement Workbook: Elementary Edition",
         type: "workbook",
-        description: "Paula's signature workbook integrating deep math mastery with engaging puzzles and activities.",
+        description: "Mathitude's signature workbook integrating deep math mastery with engaging puzzles and activities.",
         tags: ["Addition", "Subtraction", "Multiplication", "Problem Solving"],
       },
       {
@@ -139,7 +139,7 @@ const gradeLevels: {
       {
         title: "Statistics & Probability",
         type: "workbook",
-        description: "Applied statistics workbook drawing on Paula's economics research background.",
+        description: "Applied statistics workbook drawing on Mathitude's economics research background.",
         tags: ["Statistics", "Probability", "Economics"],
       },
     ],

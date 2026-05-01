@@ -18,7 +18,7 @@ const nunitoSans = Nunito_Sans({
 export const metadata: Metadata = {
   title: "Mathitude — It's All About the Attitude",
   description:
-    "K-12 math enrichment, tutoring, and engagement books by Paula Hamilton. Lifetime math engagement for all.",
+    "K-12 math enrichment, tutoring, and engagement books by Mathitude. Lifetime math engagement for all.",
 };
 
 export default function RootLayout({

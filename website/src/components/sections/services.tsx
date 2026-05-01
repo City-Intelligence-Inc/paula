@@ -6,7 +6,7 @@ const offerings = [
     number: "01",
     title: "Private Tutoring",
     description:
-      "One-on-one and small-group sessions tailored to exactly where your student is, whether they're building confidence, chasing curiosity, or preparing for a test. Paula works with learners from Pre-K through college, in person in Menlo Park and virtually.",
+      "One-on-one and small-group sessions tailored to exactly where your student is, whether they're building confidence, chasing curiosity, or preparing for a test. Mathitude works with learners from Pre-K through college, in person in Menlo Park and virtually.",
     learnMoreHref: "/tutoring/private",
   },
   {
@@ -20,7 +20,7 @@ const offerings = [
     number: "03",
     title: "Events & Festivals",
     description:
-      "Paula and the Mathitude team bring hands-on math activities to schools, festivals, and community events throughout the Bay Area, including the Julia Robinson Mathematics Festival.",
+      "The Mathitude team brings hands-on math activities to schools, festivals, and community events throughout the Bay Area, including the Julia Robinson Mathematics Festival.",
     learnMoreHref: "/events",
   },
 ];
@@ -37,9 +37,9 @@ export function Services() {
             Three ways to bring Mathitude to your student.
           </h2>
           <p className="mt-6 text-lg sm:text-xl text-black leading-relaxed">
-            Every student is different. Paula takes the time to understand your
-            child&apos;s needs, then crafts an approach that meets them exactly
-            where they are.
+            Every student is different. Mathitude takes the time to understand
+            your child&apos;s needs, then crafts an approach that meets them
+            exactly where they are.
           </p>
         </div>
 
@@ -86,7 +86,7 @@ export function Services() {
         <div className="mt-20 flex flex-col sm:flex-row items-center gap-6 border-t border-neutral-200 pt-12">
           <div className="flex-1 text-center sm:text-left">
             <p className="text-lg sm:text-xl text-black leading-relaxed">
-              Not sure which fits? Paula will help you figure it out.
+              Not sure which fits? Mathitude will help you figure it out.
             </p>
             <p className="mt-1 text-sm text-[#8b8589]">
               No commitment. Just a conversation about your student&apos;s goals.

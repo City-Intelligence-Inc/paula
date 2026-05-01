@@ -32,7 +32,7 @@ export default function MathEngagementPage() {
                   Enrichment Books
                 </h2>
                 <p className="mt-4 text-black leading-relaxed">
-                  Paula&apos;s signature math engagement workbooks are designed
+                  Mathitude&apos;s signature math engagement workbooks are designed
                   to integrate skills in a way that combines deep math mastery
                   with fun, exciting presentation. Rather than drilling students
                   on isolated skills or calculations, each workbook weaves
@@ -58,7 +58,7 @@ export default function MathEngagementPage() {
                   Individual &amp; Small Group Tutoring
                 </h2>
                 <p className="mt-4 text-black leading-relaxed">
-                  Paula offers private math coaching for students of all ages,
+                  Mathitude offers private math coaching for students of all ages,
                   from pre-K through college. Sessions are available in-person
                   at our Menlo Park location and virtually, either one-on-one
                   or in small groups.
@@ -92,7 +92,7 @@ export default function MathEngagementPage() {
                   build problem-solving skills.
                 </p>
                 <p className="mt-3 text-black leading-relaxed">
-                  Paula also shares strategy videos and mathematical
+                  Mathitude also shares strategy videos and mathematical
                   explorations that parents and students can enjoy together,
                   reinforcing the collaborative spirit at the heart of
                   Mathitude&apos;s approach.

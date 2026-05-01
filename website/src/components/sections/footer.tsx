@@ -32,10 +32,11 @@ const socialLinks = [
 
 const columns = [
   {
-    title: "Learn with Paula",
+    title: "Math engagement",
     links: [
-      { label: "Private Tutoring", href: "/tutoring/private" },
-      { label: "Group Camps", href: "/tutoring/camps" },
+      { label: "Private tutoring", href: "/tutoring/private" },
+      { label: "Small group engagement", href: "/tutoring/camps" },
+      { label: "All offerings", href: "/tutoring" },
       { label: "Events & News", href: "/events" },
     ],
   },
@@ -76,8 +77,8 @@ export function Footer() {
               </span>
             </Link>
             <p className="mt-5 text-white/60 leading-relaxed max-w-sm">
-              K-12 math enrichment and tutoring from Paula Hamilton. In Menlo
-              Park and anywhere a student wants to learn.
+              K-12 math enrichment and tutoring from Mathitude. In Menlo Park
+              and anywhere a student wants to learn.
             </p>
             <div className="mt-8 flex gap-3">
               {socialLinks.map((social) => (

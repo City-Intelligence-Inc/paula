@@ -8,7 +8,7 @@ const puzzles = [
     level: "Level 1",
     title: "Level 1 Puzzles",
     description:
-      "The gentlest entry to Paula's signature strategic puzzles — perfect for younger solvers building logical thinking and perseverance.",
+      "The gentlest entry to Mathitude's signature strategic puzzles — perfect for younger solvers building logical thinking and perseverance.",
     file: "/swamp-puzzles/level-1.pdf",
     cover: "/swamp-puzzles/cover-level-1.jpg",
   },
@@ -24,7 +24,7 @@ const puzzles = [
     level: "Level 3",
     title: "Level 3 Puzzles",
     description:
-      "Paula's hardest set. Serious puzzle-lovers — try these first, then watch the hacks video below if you get stuck.",
+      "Mathitude's hardest set. Serious puzzle-lovers — try these first, then watch the hacks video below if you get stuck.",
     file: "/swamp-puzzles/level-3.pdf",
     cover: "/swamp-puzzles/cover-level-3.jpg",
   },
@@ -65,7 +65,7 @@ export default function SwampPuzzlesPage() {
               Swamp Puzzles
             </h1>
             <p className="mt-6 text-lg md:text-xl text-black leading-relaxed text-center max-w-2xl mx-auto">
-              Swamp puzzles: beautiful but dangerous. Paula&apos;s signature
+              Swamp puzzles: beautiful but dangerous. Mathitude&apos;s signature
               strategic puzzles, designed to build logical thinking and
               perseverance. A favorite at math festivals and Mathitude
               tutoring sessions for all ages.
@@ -154,7 +154,7 @@ export default function SwampPuzzlesPage() {
                   Level 3 Hacks Video
                 </h2>
                 <p className="mt-3 text-base md:text-lg text-black leading-relaxed max-w-xl">
-                  Stuck on a Level 3 puzzle? Paula walks through the toughest
+                  Stuck on a Level 3 puzzle? Mathitude walks through the toughest
                   tricks and strategies in this video.
                 </p>
                 <div className="mt-8 w-full rounded-xl overflow-hidden border border-neutral-200 shadow-sm">
@@ -184,7 +184,7 @@ export default function SwampPuzzlesPage() {
                 Want more puzzles?
               </h2>
               <p className="mt-4 text-white/60 max-w-xl mx-auto leading-relaxed">
-                Browse Paula&apos;s full collection of math engagement
+                Browse Mathitude&apos;s full collection of math engagement
                 workbooks, or reach out about tutoring.
               </p>
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -198,7 +198,7 @@ export default function SwampPuzzlesPage() {
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-md border border-white/20 text-white hover:bg-white/10 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
                 >
-                  Contact Paula
+                  Contact Mathitude
                 </Link>
               </div>
             </div>

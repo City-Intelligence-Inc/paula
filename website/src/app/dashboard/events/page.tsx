@@ -78,7 +78,7 @@ export default function EventsPage() {
           <Newspaper className="w-10 h-10 text-neutral-300 mx-auto mb-3" />
           <p className="text-neutral-900 font-medium">No upcoming events yet</p>
           <p className="text-sm text-neutral-500 mt-1 max-w-sm mx-auto">
-            When Paula announces math festivals, workshops, or other events, they&apos;ll appear here. Check back soon!
+            When Mathitude announces math festivals, workshops, or other events, they&apos;ll appear here. Check back soon!
           </p>
         </div>
       )}

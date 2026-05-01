@@ -60,7 +60,7 @@ export default function GroupCampsPage() {
                 </h2>
                 <p className="mt-2 text-black leading-relaxed">
                   Camps are private, meaning you bring the group — classmates,
-                  siblings, neighborhood friends, or homeschool co-op. Paula
+                  siblings, neighborhood friends, or homeschool co-op. Mathitude
                   works with families to keep group sizes small so every
                   student gets individual attention alongside the social
                   benefits of a cohort.
@@ -75,7 +75,7 @@ export default function GroupCampsPage() {
                   Each camp is customized around the grade level and interests
                   of the students. Whether the group wants to explore number
                   theory, geometry, logic puzzles, or a problem-solving
-                  curriculum, Paula designs the week around what will spark
+                  curriculum, Mathitude designs the week around what will spark
                   engagement.
                 </p>
               </div>
@@ -98,7 +98,7 @@ export default function GroupCampsPage() {
                 </h2>
                 <p className="mt-2 text-black leading-relaxed">
                   Reach out with your group size, grade levels, availability,
-                  and any themes or goals you have in mind. Paula will follow
+                  and any themes or goals you have in mind. Mathitude will follow
                   up to design a camp that fits your group.
                 </p>
               </div>
@@ -133,14 +133,14 @@ export default function GroupCampsPage() {
                 Ready to book a group camp?
               </h2>
               <p className="mt-4 text-white/60 max-w-xl mx-auto leading-relaxed">
-                Tell Paula about your group and the dates you have in mind.
+                Tell Mathitude about your group and the dates you have in mind.
               </p>
               <div className="mt-10">
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-md bg-white text-black hover:bg-neutral-100 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
                 >
-                  Contact Paula
+                  Contact Mathitude
                 </Link>
               </div>
             </div>

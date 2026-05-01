@@ -113,7 +113,7 @@ export default function BillingPage() {
           </div>
           <div className="flex items-start gap-3">
             <span className="shrink-0 w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-600">2</span>
-            <p className="text-sm text-neutral-600">Paula will manually charge your card after each tutoring session. You&apos;ll see a record of each charge below.</p>
+            <p className="text-sm text-neutral-600">Mathitude will manually charge your card after each tutoring session. You&apos;ll see a record of each charge below.</p>
           </div>
           <div className="flex items-start gap-3">
             <span className="shrink-0 w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-600">3</span>

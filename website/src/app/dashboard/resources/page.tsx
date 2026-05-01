@@ -18,7 +18,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import type { Resource } from "@/lib/types";
 
 const RESOURCES_TITLE = "Resources";
-const RESOURCES_DESC = "Paula's published books, videos, downloadable puzzles, and curated math engagement tools.";
+const RESOURCES_DESC = "Mathitude's published books, videos, downloadable puzzles, and curated math engagement tools.";
 
 const tabConfig = [
   {
@@ -130,7 +130,7 @@ export default function ResourcesPage() {
                 <div className="text-center py-12">
                   <FolderOpen className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
                   <p className="text-sm text-neutral-500">
-                    No {tab.label.toLowerCase()} available yet. Paula is adding new content regularly — check back soon!
+                    No {tab.label.toLowerCase()} available yet. Mathitude is adding new content regularly — check back soon!
                   </p>
                 </div>
               ) : (

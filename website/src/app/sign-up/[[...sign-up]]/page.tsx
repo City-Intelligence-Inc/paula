@@ -4,7 +4,7 @@ import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
 
 const messages = [
-  { from: "parent", text: "Hi Paula! We'd love to get our daughter started with tutoring 🙏" },
+  { from: "parent", text: "Hi Mathitude! We'd love to get our daughter started with tutoring 🙏" },
   { from: "paula", text: "Hi Sarah! I'd love to help. What grade is she in?" },
   { from: "parent", text: "She's in 5th grade — really struggling with fractions lately" },
   { from: "paula", text: "Fractions are tricky but totally conquerable! Let's set up a free intro session so I can get a sense of where she is 🧮" },
@@ -25,7 +25,7 @@ function PhoneMockup() {
               P
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-neutral-900 truncate">Paula Hamilton</p>
+              <p className="text-xs font-semibold text-neutral-900 truncate">Mathitude</p>
               <p className="text-[10px] text-green-500 font-medium">Mathitude</p>
             </div>
             <div className="flex gap-3">
@@ -96,7 +96,7 @@ export default function SignUpPage() {
               Join the Mathitude community.
             </h1>
             <p className="text-white/60 text-sm leading-relaxed">
-              Create your account to get started with Paula Hamilton&apos;s
+              Create your account to get started with Mathitude&apos;s
               K-12 math enrichment programs.
             </p>
           </div>

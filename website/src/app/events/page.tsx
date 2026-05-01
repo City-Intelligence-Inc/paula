@@ -36,7 +36,7 @@ export default function EventsPage() {
                   Bay Area Math Festival
                 </h3>
                 <p className="mt-2 text-black leading-relaxed">
-                  Join Paula and the Mathitude team at the Bay Area Math
+                  Join The Mathitude team at the Bay Area Math
                   Festival for a day of hands-on mathematical exploration.
                   Expect swamp puzzles, Pascal&apos;s Triangle activities, and
                   collaborative problem-solving for all ages.
@@ -67,7 +67,7 @@ export default function EventsPage() {
               Julia Robinson Mathematics Festival
             </h2>
             <p className="mt-4 text-black leading-relaxed">
-              Paula is an active participant and contributor to the Julia
+              Mathitude is an active participant and contributor to the Julia
               Robinson Mathematics Festival (JRMF), a national program that
               inspires students to explore the richness and beauty of
               mathematics through collaborative, non-competitive problem
@@ -99,7 +99,7 @@ export default function EventsPage() {
               </h2>
               <p className="mt-4 text-neutral-500 leading-relaxed max-w-xl mx-auto">
                 Stay updated with Mathitude news, upcoming events, and new
-                resources. Sign up for our newsletter to hear from Paula
+                resources. Sign up for our newsletter to hear from Mathitude
                 directly.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
@@ -131,7 +131,7 @@ export default function EventsPage() {
                 Want Mathitude at your event?
               </h2>
               <p className="mt-4 text-white/60 max-w-xl mx-auto leading-relaxed">
-                Paula brings engaging math activities to schools, festivals, and
+                Mathitude brings engaging math activities to schools, festivals, and
                 community events.
               </p>
               <div className="mt-10">

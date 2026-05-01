@@ -13,7 +13,7 @@ const interactives = [
   {
     title: "Swamp Puzzles",
     description:
-      "Swamp puzzles: beautiful but dangerous. Paula's signature strategic puzzles, designed to build logical thinking and perseverance. A favorite at math festivals and Mathitude tutoring sessions for all ages. Preview and download Levels 1, 2, and 3.",
+      "Swamp puzzles: beautiful but dangerous. Mathitude's signature strategic puzzles, designed to build logical thinking and perseverance. A favorite at math festivals and Mathitude tutoring sessions for all ages. Preview and download Levels 1, 2, and 3.",
     href: "/swamp-puzzles",
     cta: "Open Swamp Puzzles",
   },
@@ -27,7 +27,7 @@ const interactives = [
   {
     title: "All Puzzles & Activities",
     description:
-      "Browse Paula's full library of puzzles, hands-on activities, and printable challenges — organized by theme and grade level.",
+      "Browse Mathitude's full library of puzzles, hands-on activities, and printable challenges — organized by theme and grade level.",
     href: "/puzzles-and-activities",
     cta: "Browse the full library",
   },
@@ -66,7 +66,7 @@ export default function FreeResourcesPage() {
               Free Resources
             </h1>
             <p className="mt-6 text-lg md:text-xl text-black leading-relaxed text-center max-w-2xl mx-auto">
-              Interactive tools, downloadable puzzles, and free PDFs from Paula
+              Interactive tools, downloadable puzzles, and free PDFs from Mathitude
               — designed to spark curiosity and bring math to life at home and
               in the classroom.
             </p>
@@ -138,7 +138,7 @@ export default function FreeResourcesPage() {
                 Want more resources?
               </h2>
               <p className="mt-4 text-white/70 max-w-xl mx-auto leading-relaxed">
-                Browse Paula&apos;s full collection of math engagement
+                Browse Mathitude&apos;s full collection of math engagement
                 workbooks, or reach out to learn about tutoring.
               </p>
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -152,7 +152,7 @@ export default function FreeResourcesPage() {
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-md border border-white/20 text-white hover:bg-white/10 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
                 >
-                  Contact Paula
+                  Contact Mathitude
                 </Link>
               </div>
             </div>

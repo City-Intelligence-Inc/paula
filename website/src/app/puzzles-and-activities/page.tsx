@@ -5,7 +5,7 @@ import { Footer } from "@/components/sections/footer";
 export const metadata = {
   title: "All Puzzles & Activities — Mathitude",
   description:
-    "Paula's full library of puzzles, hands-on activities, and printable challenges — organized by theme and grade level.",
+    "Mathitude's full library of puzzles, hands-on activities, and printable challenges — organized by theme and grade level.",
 };
 
 type Activity = {
@@ -25,12 +25,12 @@ const sections: Section[] = [
   {
     heading: "Strategic & Logic Puzzles",
     subhead:
-      "Paula's signature puzzles — build logical thinking, pattern recognition, and the muscle to push through hard problems.",
+      "Mathitude's signature puzzles — build logical thinking, pattern recognition, and the muscle to push through hard problems.",
     items: [
       {
         title: "Swamp Puzzles (Levels 1–3)",
         description:
-          "Beautiful but dangerous. Three difficulty levels, plus a bonus video of Paula walking through the toughest tricks.",
+          "Beautiful but dangerous. Three difficulty levels, plus a bonus video of Mathitude walking through the toughest tricks.",
         href: "/swamp-puzzles",
         status: "Available",
       },
@@ -127,7 +127,7 @@ export default function PuzzlesAndActivitiesPage() {
               All Puzzles &amp; Activities
             </h1>
             <p className="mt-6 text-lg md:text-xl text-black leading-relaxed text-center max-w-2xl mx-auto">
-              Paula&apos;s full library of puzzles, hands-on activities, and
+              Mathitude&apos;s full library of puzzles, hands-on activities, and
               printable challenges — organized by theme and grade level.
             </p>
           </div>
@@ -194,7 +194,7 @@ export default function PuzzlesAndActivitiesPage() {
               </h2>
               <p className="mt-3 text-base md:text-lg text-black leading-relaxed">
                 Not sure where to start? Pick a grade band and work through
-                what&apos;s listed. Paula can recommend a tighter sequence on a
+                what&apos;s listed. Mathitude can recommend a tighter sequence on a
                 consultation call.
               </p>
             </div>
@@ -223,10 +223,10 @@ export default function PuzzlesAndActivitiesPage() {
                 className="text-3xl sm:text-4xl lg:text-5xl text-white leading-snug tracking-tight"
                 style={{ fontFamily: "var(--font-original-surfer)" }}
               >
-                Want Paula&apos;s take on what fits your student?
+                Want Mathitude&apos;s take on what fits your student?
               </h2>
               <p className="mt-4 text-white/70 max-w-xl mx-auto leading-relaxed">
-                A short conversation is enough. Paula will recommend the
+                A short conversation is enough. Mathitude will recommend the
                 puzzles and workbooks that match where your student actually
                 is.
               </p>

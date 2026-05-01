@@ -51,7 +51,7 @@ export default function PrivateTutoringPage() {
                   in Menlo Park (one block from Trader Joe&apos;s) and
                   virtually for families anywhere. Whether your student thrives
                   face-to-face or prefers the convenience of online learning,
-                  Paula brings the same warmth and rigor to every session.
+                  Mathitude brings the same warmth and rigor to every session.
                 </p>
               </div>
 
@@ -73,10 +73,10 @@ export default function PrivateTutoringPage() {
                   Pre-K through college
                 </h2>
                 <p className="mt-2 text-black leading-relaxed">
-                  Paula enjoys working with learners at every stage — from
+                  Mathitude enjoys working with learners at every stage — from
                   young children building number sense for the first time to
                   college students deepening their mathematical reasoning. Each
-                  student&apos;s journey is unique, and Paula meets them
+                  student&apos;s journey is unique, and Mathitude meets them
                   exactly where they are.
                 </p>
               </div>
@@ -101,7 +101,7 @@ export default function PrivateTutoringPage() {
                 <p className="mt-2 text-black leading-relaxed">
                   Due to high demand, Mathitude tutoring is currently on a
                   waitlist basis. We encourage families to reach out early to
-                  secure a spot. Paula works closely with each family and
+                  secure a spot. Mathitude works closely with each family and
                   takes great care in matching students with the right format
                   and schedule.
                 </p>

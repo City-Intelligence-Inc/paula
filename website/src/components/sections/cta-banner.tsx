@@ -14,9 +14,9 @@ export function CtaBanner() {
               Bring Mathitude home.
             </h2>
             <p className="mt-6 text-base sm:text-lg text-white/70 leading-relaxed max-w-xl">
-              Paula reads every inquiry herself. Tell her what you&apos;re
-              hoping for, and she&apos;ll reply with the right next step for
-              your student.
+              Mathitude reads every inquiry. Tell us what you&apos;re hoping
+              for, and we&apos;ll reply with the right next step for your
+              student.
             </p>
           </div>
 

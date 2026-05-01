@@ -22,7 +22,7 @@ const initialSchools: SchoolCalendar[] = [
   {
     name: "Nueva School",
     location: "Hillsborough",
-    note: "Paula presenting at STEM fair",
+    note: "Mathitude staff presenting at STEM fair",
     fallStart: "2026-08-24",
     winterBreakStart: "2026-12-18",
     winterBreakEnd: "2027-01-04",

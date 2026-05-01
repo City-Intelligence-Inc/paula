@@ -2,7 +2,7 @@ const reviews = [
   {
     name: "Sarah M.",
     role: "Parent of 3rd grader",
-    text: "Paula transformed my daughter's relationship with math. She went from tears during homework to actually asking for extra problems.",
+    text: "Mathitude transformed my daughter's relationship with math. She went from tears during homework to actually asking for extra problems.",
   },
   {
     name: "David L.",

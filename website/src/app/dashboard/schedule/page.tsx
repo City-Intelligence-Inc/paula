@@ -7,7 +7,7 @@ export default function SchedulePage() {
     <div>
       <PageHeader
         title="Schedule a Meeting"
-        description="Book an introductory meet-and-greet session with Paula to discuss your student's needs and goals."
+        description="Book an introductory meet-and-greet session with Mathitude to discuss your student's needs and goals."
       />
 
       {/* Quick facts — inline, no card grid */}
@@ -37,11 +37,11 @@ export default function SchedulePage() {
               Select a Time
             </h2>
             <p className="text-sm text-neutral-500 mt-0.5">
-              Choose a convenient time for your introductory meeting with Paula.
+              Choose a convenient time for your introductory meeting with Mathitude.
             </p>
           </div>
           {/*
-            Replace the Calendly URL below with Paula's actual Calendly link.
+            Replace the Calendly URL below with Mathitude's actual Calendly link.
             Example: https://calendly.com/paula-mathitude/meet-and-greet
           */}
           <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -52,14 +52,14 @@ export default function SchedulePage() {
               <a href="tel:5102052633" className="font-medium text-neutral-900 hover:underline underline-offset-4">510.205.2633</a>
               {" "}or email{" "}
               <a href="mailto:info@mathitude.com" className="font-medium text-neutral-900 hover:underline underline-offset-4">info@mathitude.com</a>
-              {" "}to book your free 30-minute meet-and-greet with Paula.
+              {" "}to book your free 30-minute meet-and-greet with Mathitude.
             </p>
           </div>
         </CardContent>
       </Card>
 
       <p className="mt-4 text-xs text-neutral-400 text-center">
-        This is an initial meet-and-greet, not an official class session. Paula
+        This is an initial meet-and-greet, not an official class session. Mathitude
         will discuss your student&apos;s needs and recommend the best path
         forward.
       </p>

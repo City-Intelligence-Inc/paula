@@ -1,27 +1,50 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Navbar } from "@/components/sections/navbar";
 import { Footer } from "@/components/sections/footer";
 
-const subpages = [
+const offerings = [
   {
-    title: "Private Tutoring",
+    title: "Private tutoring",
     href: "/tutoring/private",
+    offering: "private-tutoring",
     description:
-      "One-on-one and small-group math tutoring in Menlo Park and virtually — Pre-K through college. Paula brings warmth and rigor to every session, whether the goal is enrichment or academic support.",
-    cta: "Learn about private tutoring",
-    mascot: "/brand/pascals-paxton.png",
-    rotate: "-rotate-3",
+      "One-on-one math tutoring in Menlo Park and virtually — Pre-K through college. Mathitude brings warmth and rigor to every session, whether the goal is enrichment or academic support.",
   },
   {
-    title: "Group Camps",
+    title: "Small group engagement",
     href: "/tutoring/camps",
+    offering: "small-group",
     description:
-      "Private group camp experiences during summer and school breaks. Gather a small group of students for a focused, fun week of mathematical exploration, customized around the group's interests and grade level.",
-    cta: "Learn about group camps",
-    mascot: "/brand/rubiks-boy.png",
-    rotate: "rotate-3",
+      "Gather a small group — siblings, neighborhood friends, a homeschool co-op — for a focused week (or recurring sessions) of hands-on mathematical exploration tailored to the group.",
+  },
+  {
+    title: "Parent advisories",
+    href: "/contact?offering=parent-advisories",
+    offering: "parent-advisories",
+    description:
+      "Individual or group conversations for parents who want to think through their student's math journey — placement decisions, what to do about a specific struggle, or how to keep an enthusiastic learner engaged.",
+  },
+  {
+    title: "Speaking engagements",
+    href: "/contact?offering=speaking",
+    offering: "speaking",
+    description:
+      "Talks for parent groups, school communities, and conferences on math attitude, growth mindset, and what actually moves the needle for a curious learner.",
+  },
+  {
+    title: "School STEM workshops",
+    href: "/contact?offering=school-stem",
+    offering: "school-stem",
+    description:
+      "Hands-on math workshops brought directly to your school. Mathitude works with classroom teachers to design sessions that fit your students and curriculum.",
+  },
+  {
+    title: "Math festival advisories",
+    href: "/contact?offering=math-festival",
+    offering: "math-festival",
+    description:
+      "Help planning, programming, and running a math festival or community math event — drawing on years of work with the Julia Robinson Mathematics Festival and other Bay Area events.",
   },
 ];
 
@@ -36,11 +59,11 @@ export default function TutoringHubPage() {
               className="text-5xl md:text-6xl lg:text-7xl text-[#7030A0] tracking-tight text-center leading-[1.05]"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
-              Tutoring &amp; Groups
+              Math Engagement with Mathitude
             </h1>
             <p className="mt-6 text-lg md:text-xl text-black leading-relaxed text-center max-w-2xl mx-auto">
-              Two ways to work with Paula — choose the path that fits your
-              student best.
+              Six ways to work with Mathitude — choose the path that fits your
+              student, your family, or your school.
             </p>
             <div className="mt-8 flex justify-center">
               <Link
@@ -57,46 +80,34 @@ export default function TutoringHubPage() {
         <section className="bg-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 md:pb-32">
             <div className="space-y-0 divide-y divide-neutral-200">
-              {subpages.map((sub) => (
+              {offerings.map((o) => (
                 <div
-                  key={sub.href}
-                  className="grid sm:grid-cols-[1fr_auto] gap-8 items-center py-12 first:pt-0"
+                  key={o.title}
+                  className="grid sm:grid-cols-[1fr_auto] gap-6 items-start py-10 first:pt-0"
                 >
                   <div>
-                    <h2 className="text-3xl md:text-4xl font-semibold text-black tracking-tight">
-                      {sub.title}
+                    <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
+                      {o.title}
                     </h2>
-                    <p className="mt-4 text-black leading-relaxed text-base md:text-lg">
-                      {sub.description}
+                    <p className="mt-3 text-black leading-relaxed text-base">
+                      {o.description}
                     </p>
-                    <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2">
+                    <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2">
                       <Link
-                        href={sub.href}
+                        href={o.href}
                         className="inline-flex items-center gap-1.5 text-sm font-medium text-black hover:text-[#7030A0] transition-colors"
                       >
-                        {sub.cta}
+                        Learn more
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                       <Link
-                        href="/contact"
+                        href={`/contact?offering=${o.offering}`}
                         className="inline-flex items-center gap-1.5 text-sm font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors"
                       >
                         Request a consultation
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     </div>
-                  </div>
-                  <div
-                    aria-hidden="true"
-                    className={`hidden sm:block justify-self-end ${sub.rotate}`}
-                  >
-                    <Image
-                      src={sub.mascot}
-                      alt=""
-                      width={320}
-                      height={420}
-                      className="w-32 md:w-40 h-auto drop-shadow-md"
-                    />
                   </div>
                 </div>
               ))}
@@ -111,15 +122,15 @@ export default function TutoringHubPage() {
                 Not sure which fits?
               </h2>
               <p className="mt-4 text-white/60 max-w-xl mx-auto leading-relaxed">
-                Reach out and Paula will help you figure out the right path for
-                your student.
+                Reach out and Mathitude will help you figure out the right path
+                for your student, family, or school.
               </p>
               <div className="mt-10">
                 <Link
                   href="/contact"
                   className="inline-flex items-center justify-center rounded-md bg-white text-neutral-900 hover:bg-neutral-100 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
                 >
-                  Contact Paula
+                  Contact Mathitude
                 </Link>
               </div>
             </div>

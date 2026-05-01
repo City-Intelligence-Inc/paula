@@ -8,7 +8,7 @@ import { ImageCarousel } from "@/components/balloons/image-carousel";
 export const metadata = {
   title: "Tetra Balloon Hats & Sierpinski Triangle Structures — Mathitude",
   description:
-    "Learn how to make a tetra balloon hat, explore Sierpinski triangles and fractals, and meet Wacław Sierpiński — a hands-on fractal activity from Paula Hamilton.",
+    "Learn how to make a tetra balloon hat, explore Sierpinski triangles and fractals, and meet Wacław Sierpiński — a hands-on fractal activity from Mathitude.",
 };
 
 export default function BalloonsPage() {
@@ -126,23 +126,58 @@ export default function BalloonsPage() {
 
             {/* Questions */}
             <div className="mt-10 space-y-5">
-              <div className="rounded-lg border border-[#7030A0]/20 bg-[#7030A0]/5 p-5 md:p-6">
-                <p className="text-xs font-semibold tracking-[0.18em] uppercase text-[#7030A0] mb-2">
-                  Q
-                </p>
-                <p className="text-base md:text-lg text-black leading-relaxed">
-                  How many sizes of white triangle are in the Level 4 triangle?
-                </p>
-              </div>
-              <div className="rounded-lg border border-[#7030A0]/20 bg-[#7030A0]/5 p-5 md:p-6">
-                <p className="text-xs font-semibold tracking-[0.18em] uppercase text-[#7030A0] mb-2">
-                  Challenge question
-                </p>
-                <p className="text-base md:text-lg text-black leading-relaxed">
-                  Can you predict how many white triangles will be in the Level
-                  5 triangle?
-                </p>
-              </div>
+              <FlipQuestion
+                label="Q"
+                question={
+                  <>
+                    How many sizes of white triangle are in the Level 4
+                    triangle?
+                  </>
+                }
+                answer={
+                  <div className="space-y-3">
+                    <p>
+                      <span className="font-semibold">4 sizes.</span> The
+                      Level&nbsp;N triangle has N different sizes of white
+                      triangles in it. Level 4 has the original 1 large
+                      upside-down triangle from Level 1, plus 3 medium ones from
+                      Level 2, plus 9 smaller ones from Level 3, plus 27
+                      smallest ones added at Level 4 — four distinct sizes
+                      total.
+                    </p>
+                  </div>
+                }
+              />
+              <FlipQuestion
+                label="Challenge question"
+                question={
+                  <>
+                    Can you predict how many white triangles will be in the
+                    Level 5 triangle?
+                  </>
+                }
+                answer={
+                  <div className="space-y-3">
+                    <p>
+                      <span className="font-semibold">121 white triangles.</span>{" "}
+                      Each level adds 3× as many new triangles as the previous
+                      level added: 1, then 3, then 9, then 27, then 81. The
+                      total at Level&nbsp;N is{" "}
+                      <span className="font-semibold">(3<sup>N</sup>−1) ÷ 2</span>.
+                    </p>
+                    <ul className="list-disc pl-5 space-y-1 text-sm md:text-base">
+                      <li>Level 1: 1</li>
+                      <li>Level 2: 1 + 3 = 4</li>
+                      <li>Level 3: 4 + 9 = 13</li>
+                      <li>Level 4: 13 + 27 = 40</li>
+                      <li>
+                        Level 5: 40 + 81 ={" "}
+                        <span className="font-semibold">121</span>
+                      </li>
+                    </ul>
+                  </div>
+                }
+              />
             </div>
 
             <div className="mt-12">
@@ -258,6 +293,7 @@ export default function BalloonsPage() {
             </h2>
             <div className="mt-10">
               <ImageCarousel
+                intervalMs={5000}
                 slides={[
                   {
                     src: "/balloons/balloon-tetrahedron.jpg",
@@ -266,10 +302,6 @@ export default function BalloonsPage() {
                   {
                     src: "/balloons/carousel-2.jpg",
                     alt: "Multiple Sierpinski balloon tetrahedra glowing in a yard at dusk alongside lit-up cone trees",
-                  },
-                  {
-                    src: "/balloons/carousel-1.png",
-                    alt: "Children peeking out from inside the Level 4 Sierpinski balloon structure",
                   },
                 ]}
               />
@@ -285,7 +317,7 @@ export default function BalloonsPage() {
                 className="text-3xl sm:text-4xl lg:text-5xl text-white leading-snug tracking-tight"
                 style={{ fontFamily: "var(--font-original-surfer)" }}
               >
-                Want Paula to run this at your school?
+                Want Mathitude to run this at your school?
               </h2>
               <p className="mt-4 text-white/70 max-w-xl mx-auto leading-relaxed">
                 Balloon tetra workshops are part of the event programming.
