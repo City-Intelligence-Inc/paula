@@ -99,12 +99,5 @@ resource "vercel_project_environment_variable" "api_url" {
   target     = ["production", "preview", "development"]
 }
 
-# ---- Deployment ----
-
-resource "vercel_deployment" "website" {
-  project_id = vercel_project.website.id
-  production = true
-
-  # Path ref is informational; actual deploy is triggered via Vercel git
-  # integration or the Vercel CLI.  The resource tracks deployment state.
-}
+# Deployments are triggered by the Vercel CLI, not Terraform.
+# See CLAUDE.md "Deploy workflow (non-negotiable)".
