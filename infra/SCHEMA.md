@@ -1,7 +1,7 @@
 # Mathitude v3.0 — DynamoDB Schema (Proposed)
 
-**Status:** PROPOSED — awaiting Sara's anonymized export of Paula's Excel + Google Sheets before this is considered final.
-**Owner:** Ari · **Reviewer:** Nikki · **Last revision:** 2026-04-17
+**Status:** PROPOSED — partially validated against real data (Timmy session-notes sheet, 21 sessions imported to staging on 2026-04-30). Still need the Excel `NEWEST_MATH_CLIENT_INFO` file before this is final.
+**Owner:** Ari · **Reviewer:** Nikki · **Last revision:** 2026-04-30
 **Deadline:** May 1, 2026 (Phase 2 / Week 3)
 
 This document captures the target data model for the Mathitude v3.0 portal. It maps the entities in the v3.0 plan to concrete DynamoDB tables, partition/sort keys, and GSIs.
@@ -150,6 +150,34 @@ Maps Clerk principals to Mathitude roles + entity ownership.
 | Sign-in: map Clerk user to tutor record | `tutors.by-clerk-user` |
 | Sign-in: map Clerk user to role | `users` PK lookup |
 | Shared student across tutors | `students.tutorIds` set + scatter query on `sessions.by-tutor-date` |
+
+---
+
+## Reconciliation against real data — what we learned 2026-04-30
+
+The Timmy session-notes sheet (Google Sheets, 21 sessions May 30 → Dec 6) was imported into the staging tables via `backend/scripts/import-timmy.ts`. Every GSI returned the expected counts. Findings:
+
+### Confirmed
+- `Session.studentId` (PK) + `dateTime` (SK) holds up — one session per student per timestamp.
+- Joint sessions ("THOMPSON & TIMMY JOINT SESSION") work as **two rows** with the same `dateTime` and `students = [stu_timmy, stu_thompson]` on each. Both `by-tutor-date` and `by-status` GSIs report once-per-student-per-session, which matches how the billing queue should behave (each student is billed independently even when sessions are shared).
+- `tutors.by-clerk-user` GSI is the right shape for sign-in mapping (one row in, one tutor out).
+- `parents.by-family` and `students.by-family` GSIs return the household correctly.
+
+### Gaps to ask Sara about
+1. **No time-of-day in session notes.** Sheet has DATE only (M/D/YY), no start time. Hard-coded `16:00` UTC on import. Where does Paula record actual session start time — in the master `NEWEST_MATH_CLIENT_INFO` spreadsheet, or is start time even tracked? If not, the `time` field on Session can be optional and the calendar UI defaults to "afternoon".
+2. **No duration in session notes.** Hard-coded 60 min on import. Same question — where does duration live? Per-student, per-session, or implied by the session block?
+3. **No rate in session notes.** Same. Likely in the Excel master file — confirms our assumption that `Student.defaultRate` + `Session.rate` (snapshot at billing time) is the right two-tier design.
+4. **Activities are unstructured text.** Paula writes them as bulleted ALL CAPS lines like `*PRIME CLIMB`, `*SAFARI PARK, 1 - 32`, `*BA NUMBER PATHS, 6 - 8`. The import preserves them in `Session.notes` verbatim (with an `ACTIVITIES:` header). If we want a per-activity tag table later (e.g. "show me all sessions where Timmy played PRIME CLIMB") we'll need to parse these — proposing we DO NOT structure this until/unless Sara asks for activity-level reporting.
+5. **Names embedded in notes ("Sunbin", "Andrew", "Yubin", "ALL 3 KG STUDENTS").** Free text. Won't be searchable by-name unless we add an extracted-mentions field. Probably a Phase 4 concern.
+6. **Cross-references to "MATERIALS_FROM_PAULA" Drive folder.** Notes reference attachments stored in Google Drive. Schema has no `attachments[]`. Add later if needed.
+7. **"FIRST DAY" tracking for joint sessions** is a real, named concept (per 9/9/25 note: *"WHEN IT IS YOUR FIRST DAY, YOU GET TO GO FIRST… IF WE CONTINUE WITH THIS JOINT ARRANGEMENT, THIS WILL BE TRACKED METICULOUSLY."*). Proposing a `Session.firstDayStudentId` optional field on group sessions. **Confirm with Sara.**
+8. **The notes are all-caps and parent-facing** (Paula addresses "MOM" directly, asks questions, recommends purchases). The portal must render them faithfully — no auto-lowercasing, no Markdown stripping.
+
+### Date format
+Source uses `M/D/YY`. Importer normalizes to ISO `YYYY-MM-DD`. Two-digit years <50 → 20xx, ≥50 → 19xx. Documented in `import-timmy.ts:parseDate`.
+
+### Joint-session encoding rule (de-facto)
+For an N-student joint session: write N rows, all sharing `dateTime`, each with its own `studentId` as PK and `students = [studentId_1, ..., studentId_N]` enumerating the full group. Any per-student field (rate, primaryPayer override) attaches to that student's row. The tutor calendar GSI `by-tutor-date` will report N rows for one human-time-block — that's intentional.
 
 ---
 
