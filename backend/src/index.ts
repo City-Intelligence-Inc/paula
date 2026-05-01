@@ -36,10 +36,8 @@ app.use(
 // JSON body parser
 app.use(express.json());
 
-// Clerk middleware — populates req.auth on all requests
-app.use(clerkMiddleware());
-
-// Health check (no auth required)
+// Health check (no auth, no Clerk — must work even if Clerk is misconfigured
+// so App Runner's health check can't be blocked by a third-party outage)
 app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
@@ -47,6 +45,9 @@ app.get("/health", (_req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Clerk middleware — populates req.auth on /api/* requests only
+app.use("/api", clerkMiddleware());
 
 // Routes
 app.use("/api/students", studentRoutes);
