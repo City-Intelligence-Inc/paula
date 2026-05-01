@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-  const fetchApi = useApi();
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/use-api";
 import { FileText, ChevronRight } from "lucide-react";
@@ -27,6 +26,7 @@ const PAGE_LABELS: Record<string, string> = {
 
 export default function AdminPagesPage() {
   const router = useRouter();
+  const fetchApi = useApi();
   const [pages, setPages] = useState<Record<string, ContentBlock[]>>({});
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +38,7 @@ export default function AdminPagesPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [fetchApi]);
 
   function getLastUpdated(blocks: ContentBlock[]): string {
     if (blocks.length === 0) return "Never";

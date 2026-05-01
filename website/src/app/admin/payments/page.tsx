@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-  const fetchApi = useApi();
 import { useApi } from "@/hooks/use-api";
 import {
   DollarSign,
@@ -69,6 +68,7 @@ function ChargeButton({
   student: Student;
   disabled: boolean;
 }) {
+  const fetchApi = useApi();
   const [charging, setCharging] = useState(false);
   const [result, setResult] = useState<{
     type: "success" | "error";
@@ -145,6 +145,7 @@ function ChargeButton({
 }
 
 export default function AdminPaymentsPage() {
+  const fetchApi = useApi();
   const [students, setStudents] = useState<Student[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -161,7 +162,7 @@ export default function AdminPaymentsPage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [fetchApi]);
 
   if (loading) {
     return (

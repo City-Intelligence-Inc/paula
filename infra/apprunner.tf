@@ -98,7 +98,7 @@ resource "aws_apprunner_service" "backend" {
         runtime_environment_variables = {
           AWS_REGION            = var.aws_region
           DYNAMODB_TABLE_PREFIX = var.table_prefix
-          CORS_ORIGIN           = "https://website-sage-three-98.vercel.app"
+          CORS_ORIGIN           = var.cors_origin
           # TODO: Move secrets below to AWS SSM Parameter Store or Secrets
           # Manager for production. App Runner's runtime_environment_secrets
           # expects ARNs to SSM parameters or Secrets Manager secrets, not

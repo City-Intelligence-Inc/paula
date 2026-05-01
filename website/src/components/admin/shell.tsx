@@ -15,6 +15,7 @@ import {
   Settings,
   Menu,
   ShieldCheck,
+  Home,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -24,6 +25,11 @@ const navItems = [
     label: "Weekly Schedule",
     href: "/admin",
     icon: Calendar,
+  },
+  {
+    label: "Families",
+    href: "/admin/families",
+    icon: Home,
   },
   {
     label: "Students",

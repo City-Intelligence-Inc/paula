@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-  const fetchApi = useApi();
 import { useApi } from "@/hooks/use-api";
 import {
   Upload,
@@ -105,6 +104,7 @@ type ImportResult = {
 };
 
 export default function AdminImportPage() {
+  const fetchApi = useApi();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [fileName, setFileName] = useState("");

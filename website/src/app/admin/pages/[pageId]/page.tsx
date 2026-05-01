@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-  const fetchApi = useApi();
 import { useParams, useRouter } from "next/navigation";
 import { useApi } from "@/hooks/use-api";
 import Link from "next/link";
@@ -33,6 +32,7 @@ function BlockEditor({
   block: ContentBlock;
   onDelete: (blockId: string) => void;
 }) {
+  const fetchApi = useApi();
   const [value, setValue] = useState(block.content);
   const [savedValue, setSavedValue] = useState(block.content);
   const [saving, setSaving] = useState(false);
@@ -165,6 +165,7 @@ export default function AdminPageEditorPage() {
   const params = useParams();
   const router = useRouter();
   const pageId = params.pageId as string;
+  const fetchApi = useApi();
 
   const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [loading, setLoading] = useState(true);

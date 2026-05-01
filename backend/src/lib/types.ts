@@ -58,3 +58,55 @@ export interface Resource {
   href?: string;
   tags?: string[];
 }
+
+// ---------------------------------------------------------
+// v3.0 entities — see infra/SCHEMA.md
+// ---------------------------------------------------------
+
+export interface Family {
+  id: string;
+  primaryPayerId: string;
+  address?: {
+    street: string;
+    city: string;
+    state: string;
+    zip: string;
+  };
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Parent {
+  id: string;
+  familyId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  stripeCustomerId?: string;
+  clerkUserId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Tutor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  clerkUserId?: string;
+  assignedStudentIds: string[];
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type UserRole = "admin" | "tutor" | "parent";
+
+export interface User {
+  clerkUserId: string;
+  role: UserRole;
+  linkedEntityId?: string;
+  createdAt: string;
+}

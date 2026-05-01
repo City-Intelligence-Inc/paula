@@ -13,6 +13,10 @@ import seedRoutes from "./routes/seed";
 import newsletterRoutes from "./routes/newsletter";
 import contentRoutes, { contentAdminRouter } from "./routes/content";
 import bookingRoutes from "./routes/bookings";
+import familyRoutes from "./routes/families";
+import parentRoutes from "./routes/parents";
+import tutorRoutes from "./routes/tutors";
+import userRoutes from "./routes/users";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -56,6 +60,10 @@ app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/content", contentRoutes);
 app.use("/api/content-admin", contentAdminRouter);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/families", familyRoutes);
+app.use("/api/parents", parentRoutes);
+app.use("/api/tutors", tutorRoutes);
+app.use("/api/users", userRoutes);
 
 // 404 handler
 app.use((_req, res) => {

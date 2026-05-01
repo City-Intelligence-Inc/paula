@@ -64,6 +64,41 @@ output "dynamodb_resources_table_arn" {
   value       = aws_dynamodb_table.resources.arn
 }
 
+output "dynamodb_content_table_name" {
+  description = "Name of the Content DynamoDB table"
+  value       = aws_dynamodb_table.content.name
+}
+
+output "dynamodb_families_table_name" {
+  description = "Name of the Families DynamoDB table"
+  value       = aws_dynamodb_table.families.name
+}
+
+output "dynamodb_parents_table_name" {
+  description = "Name of the Parents DynamoDB table"
+  value       = aws_dynamodb_table.parents.name
+}
+
+output "dynamodb_tutors_table_name" {
+  description = "Name of the Tutors DynamoDB table"
+  value       = aws_dynamodb_table.tutors.name
+}
+
+output "dynamodb_users_table_name" {
+  description = "Name of the Users DynamoDB table"
+  value       = aws_dynamodb_table.users.name
+}
+
+output "dynamodb_subscribers_table_name" {
+  description = "Name of the Subscribers DynamoDB table"
+  value       = aws_dynamodb_table.subscribers.name
+}
+
+output "dynamodb_bookings_table_name" {
+  description = "Name of the Bookings DynamoDB table"
+  value       = aws_dynamodb_table.bookings.name
+}
+
 # ---- App Runner outputs ----
 
 output "backend_url" {

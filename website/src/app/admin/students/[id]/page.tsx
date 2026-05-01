@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-  const fetchApi = useApi();
 import { useApi } from "@/hooks/use-api";
 import { useRouter } from "next/navigation";
 import {
@@ -54,6 +53,7 @@ export default function StudentDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const fetchApi = useApi();
 
   const [student, setStudent] = useState<Student | null>(null);
   const [notes, setNotes] = useState<SessionNote[]>([]);

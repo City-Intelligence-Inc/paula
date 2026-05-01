@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-  const fetchApi = useApi();
 import Link from "next/link";
 import { useApi } from "@/hooks/use-api";
 import { Clock, User, Users } from "lucide-react";
@@ -113,6 +112,7 @@ function SessionCard({ session }: { session: ScheduleSession }) {
 }
 
 export default function AdminSchedulePage() {
+  const fetchApi = useApi();
   const [sessions, setSessions] = useState<ScheduleSession[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -129,7 +129,7 @@ export default function AdminSchedulePage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [fetchApi]);
 
   if (loading) {
     return (

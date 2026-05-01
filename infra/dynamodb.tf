@@ -24,9 +24,21 @@ resource "aws_dynamodb_table" "students" {
     type = "S"
   }
 
+  attribute {
+    name = "familyId"
+    type = "S"
+  }
+
   global_secondary_index {
     name            = "by-status"
     hash_key        = "status"
+    range_key       = "lastName"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "by-family"
+    hash_key        = "familyId"
     range_key       = "lastName"
     projection_type = "ALL"
   }
@@ -64,10 +76,34 @@ resource "aws_dynamodb_table" "sessions" {
     type = "S"
   }
 
+  attribute {
+    name = "tutorId"
+    type = "S"
+  }
+
+  attribute {
+    name = "status"
+    type = "S"
+  }
+
   global_secondary_index {
     name            = "by-date"
     hash_key        = "date"
     range_key       = "time"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "by-tutor-date"
+    hash_key        = "tutorId"
+    range_key       = "dateTime"
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "by-status"
+    hash_key        = "status"
+    range_key       = "dateTime"
     projection_type = "ALL"
   }
 
@@ -162,6 +198,57 @@ resource "aws_dynamodb_table" "resources" {
   attribute {
     name = "id"
     type = "S"
+  }
+
+  tags = {
+    Project = "mathitude"
+  }
+}
+
+# ---- Newsletter subscribers ----
+
+resource "aws_dynamodb_table" "subscribers" {
+  name         = "${var.table_prefix}-subscribers"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "email"
+
+  attribute {
+    name = "email"
+    type = "S"
+  }
+
+  tags = {
+    Project = "mathitude"
+  }
+}
+
+# ---- Bookings (consultation form submissions) ----
+
+resource "aws_dynamodb_table" "bookings" {
+  name         = "${var.table_prefix}-bookings"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  attribute {
+    name = "createdAt"
+    type = "S"
+  }
+
+  attribute {
+    name = "status"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "by-status"
+    hash_key        = "status"
+    range_key       = "createdAt"
+    projection_type = "ALL"
   }
 
   tags = {

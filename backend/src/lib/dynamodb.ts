@@ -26,4 +26,8 @@ export const Tables = {
   subscribers: `${prefix}-subscribers`,
   content: `${prefix}-content`,
   bookings: `${prefix}-bookings`,
+  families: `${prefix}-families`,
+  parents: `${prefix}-parents`,
+  tutors: `${prefix}-tutors`,
+  users: `${prefix}-users`,
 } as const;

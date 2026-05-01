@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-  const fetchApi = useApi();
 import { useApi } from "@/hooks/use-api";
 import { useRouter } from "next/navigation";
 import { Search, Plus, Phone, Mail, X } from "lucide-react";
@@ -20,6 +19,7 @@ const inputClass =
 
 export default function AdminStudentsPage() {
   const router = useRouter();
+  const fetchApi = useApi();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

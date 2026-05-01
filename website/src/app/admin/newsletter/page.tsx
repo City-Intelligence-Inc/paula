@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-  const fetchApi = useApi();
 import { useApi } from "@/hooks/use-api";
 import { Trash2, Send, Users } from "lucide-react";
 import { AdminShell } from "@/components/admin/shell";
@@ -12,6 +11,7 @@ interface Subscriber {
 }
 
 export default function AdminNewsletterPage() {
+  const fetchApi = useApi();
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);

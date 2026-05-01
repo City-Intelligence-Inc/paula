@@ -66,6 +66,12 @@ variable "table_prefix" {
   default     = "mathitude"
 }
 
+variable "cors_origin" {
+  description = "Allowed CORS origin for the App Runner backend"
+  type        = string
+  default     = "https://website-sage-three-98.vercel.app"
+}
+
 variable "aws_access_key_id" {
   description = "AWS access key ID for programmatic access"
   type        = string
