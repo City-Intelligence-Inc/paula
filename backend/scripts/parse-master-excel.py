@@ -28,7 +28,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-INPUT = Path(__file__).parent.parent / "data" / "master-sessions.tsv"
+INPUT = Path(__file__).parent.parent / "data" / "master-sessions.csv"
 OUTPUT_JSON = Path(__file__).parent.parent / "data" / "master-sessions-parsed.json"
 OUTPUT_REPORT = Path(__file__).parent.parent / "data" / "master-sessions-report.md"
 
@@ -76,7 +76,7 @@ def main():
     rows = []
     skipped_header = False
     with INPUT.open() as f:
-        reader = csv.reader(f, delimiter="\t", quotechar='"')
+        reader = csv.reader(f, delimiter=",", quotechar='"')
         for fields in reader:
             if not skipped_header:
                 if fields and "PAY_NOTE" in " ".join(fields).upper():
