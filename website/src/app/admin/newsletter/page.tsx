@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useApi } from "@/hooks/use-api";
 import { Trash2, Send, Users } from "lucide-react";
-import { AdminShell } from "@/components/admin/shell";
 
 interface Subscriber {
   email: string;
@@ -59,17 +58,16 @@ export default function AdminNewsletterPage() {
     "w-full border border-neutral-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300";
 
   return (
-    <AdminShell>
-      <div className="space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-semibold text-neutral-900">
-            Newsletter
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500">
-            Manage subscribers and send updates
-          </p>
-        </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-semibold text-neutral-900">
+          Newsletter
+        </h1>
+        <p className="mt-1 text-sm text-neutral-500">
+          Manage subscribers and send updates
+        </p>
+      </div>
 
         {/* Stats */}
         <div className="flex items-center gap-3 bg-white border border-neutral-200 rounded-lg px-5 py-4">
@@ -178,8 +176,7 @@ export default function AdminNewsletterPage() {
               ))}
             </ul>
           )}
-        </div>
       </div>
-    </AdminShell>
+    </div>
   );
 }
