@@ -31,9 +31,24 @@ export const Tables = {
 } as const;
 
 export async function requireUser() {
-  const { userId } = await auth();
-  if (!userId) {
-    return { userId: null, response: Response.json({ error: "Unauthorized" }, { status: 401 }) };
+  try {
+    const { userId } = await auth();
+    console.log("[requireUser]", {
+      userId,
+      hasAwsKey: !!process.env.AWS_ACCESS_KEY_ID,
+      hasAwsSecret: !!process.env.AWS_SECRET_ACCESS_KEY,
+      prefix: process.env.DYNAMODB_TABLE_PREFIX || "(default)",
+      region: process.env.AWS_REGION || "(default)",
+    });
+    if (!userId) {
+      return { userId: null, response: Response.json({ error: "Unauthorized" }, { status: 401 }) };
+    }
+    return { userId, response: null as Response | null };
+  } catch (err) {
+    console.error("[requireUser] auth() threw:", err);
+    return {
+      userId: null,
+      response: Response.json({ error: "Auth error", detail: String(err) }, { status: 500 }),
+    };
   }
-  return { userId, response: null as Response | null };
 }
