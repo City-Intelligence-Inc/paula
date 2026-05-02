@@ -37,16 +37,16 @@ export function Hero() {
 
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               <Link
-                href="/tutoring"
-                className="inline-flex items-center justify-center bg-neutral-900 text-white hover:bg-neutral-800 rounded-md px-8 py-3.5 text-sm font-medium transition-colors min-w-[180px] min-h-[48px]"
+                href="/contact"
+                className="inline-flex items-center justify-center bg-[#7030A0] text-white hover:bg-[#5d288a] rounded-full px-8 py-3.5 text-sm font-medium transition-colors min-w-[200px] min-h-[48px] shadow-sm hover:shadow-md"
               >
-                Start Tutoring
+                Request a consultation
               </Link>
               <Link
-                href="/shop"
-                className="inline-flex items-center justify-center border border-neutral-200 text-neutral-700 hover:border-neutral-300 hover:text-neutral-900 rounded-md px-8 py-3.5 text-sm font-medium transition-colors min-w-[180px] min-h-[48px]"
+                href="/tutoring"
+                className="inline-flex items-center justify-center text-neutral-700 hover:text-[#7030A0] rounded-md px-6 py-3.5 text-sm font-medium transition-colors min-h-[48px]"
               >
-                Browse Books
+                See all offerings &rarr;
               </Link>
             </div>
           </div>

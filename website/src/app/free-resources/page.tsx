@@ -33,24 +33,6 @@ const interactives = [
   },
 ];
 
-const freePdfs = [
-  {
-    title: "Number Sense Warm-Ups (K–2)",
-    description:
-      "A printable collection of quick daily warm-ups that build number sense and mathematical fluency for early learners.",
-  },
-  {
-    title: "Pattern Exploration Sheets (Grades 3–5)",
-    description:
-      "Worksheet activities that invite students to find, extend, and create patterns — building algebraic thinking from an early age.",
-  },
-  {
-    title: "Mathematical Mindset Reflection Cards",
-    description:
-      "Printable reflection cards for students and families to spark mathematical conversation and build a growth mindset around math.",
-  },
-];
-
 export default function FreeResourcesPage() {
   return (
     <>
@@ -66,8 +48,8 @@ export default function FreeResourcesPage() {
               Free Resources
             </h1>
             <p className="mt-6 text-lg md:text-xl text-black leading-relaxed text-center max-w-2xl mx-auto">
-              Interactive tools, downloadable puzzles, and free PDFs from Mathitude
-              — designed to spark curiosity and bring math to life at home and
+              Interactive tools and downloadable puzzles from Mathitude —
+              designed to spark curiosity and bring math to life at home and
               in the classroom.
             </p>
           </div>
@@ -95,35 +77,6 @@ export default function FreeResourcesPage() {
                   >
                     {item.cta} &rarr;
                   </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Free PDFs */}
-        <section className="bg-neutral-50">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-            <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
-              Free Downloads
-            </h2>
-            <p className="mt-3 text-black leading-relaxed">
-              Free printable PDFs for students and families. No sign-up
-              required.
-            </p>
-
-            <div className="mt-8 space-y-0 divide-y divide-neutral-200">
-              {freePdfs.map((pdf) => (
-                <div key={pdf.title} className="py-8 first:pt-0">
-                  <h3 className="text-lg font-semibold text-black">
-                    {pdf.title}
-                  </h3>
-                  <p className="mt-2 text-black leading-relaxed">
-                    {pdf.description}
-                  </p>
-                  <p className="mt-3 text-xs text-[#8b8589]">
-                    Download coming soon.
-                  </p>
                 </div>
               ))}
             </div>
