@@ -56,15 +56,23 @@ def parse_date(s: str) -> str | None:
     return f"{int(y):04d}-{int(mo):02d}-{int(d):02d}"
 
 
-def parse_students(name: str, grade: str) -> list[dict]:
-    """Joint sessions appear as 'ADELAIDE\\nHENRY' with grade '2\\nK'."""
+def parse_students(name: str, grade: str, school: str) -> list[dict]:
+    """Joint sessions appear as 'ADELAIDE\\nHENRY', '2\\nK', and sometimes
+    schools differ too (e.g. cross-family Bing/Congo)."""
     names = [n.strip() for n in name.split("\n") if n.strip()]
     grades = [g.strip() for g in grade.split("\n") if g.strip()]
-    if len(names) == len(grades):
-        return [{"name": n, "grade": g} for n, g in zip(names, grades)]
-    if len(grades) == 1 and len(names) > 1:
-        return [{"name": n, "grade": grades[0]} for n in names]
-    return [{"name": " / ".join(names), "grade": " / ".join(grades)}]
+    schools = [s.strip() for s in school.split("\n") if s.strip()]
+
+    if len(names) == 1:
+        return [{"name": names[0], "grade": grades[0] if grades else "", "school": schools[0] if schools else ""}]
+
+    # Pad grades/schools to match name count
+    if len(grades) < len(names):
+        grades = grades + [grades[0] if grades else ""] * (len(names) - len(grades))
+    if len(schools) < len(names):
+        schools = schools + [schools[0] if schools else ""] * (len(names) - len(schools))
+
+    return [{"name": names[i], "grade": grades[i], "school": schools[i]} for i in range(len(names))]
 
 
 def main():
@@ -91,20 +99,31 @@ def main():
             if not iso_date:
                 continue
 
-            students = parse_students(student, grade)
+            students = parse_students(student, grade, school)
             rate_cents = parse_rate(pay)
             cancelled = rate_cents is None
+
+            # Skip Steve's historical rows per Paula's instruction
+            if "SEE PRIV TUTORING NOTES" in work.upper():
+                continue
+
+            # Cross-family flag: distinct schools or distinct surname initials
+            schools_set = {s["school"] for s in students if s["school"]}
+            initials = {s["name"].split()[-1] if " " in s["name"] else s["name"][:1] for s in students}
+            is_cross_family = len(students) > 1 and (len(schools_set) > 1 or len(initials) > 1)
 
             for stu in students:
                 rows.append({
                     "date": iso_date,
                     "studentName": stu["name"].strip(),
                     "grade": stu["grade"].strip(),
-                    "school": school.strip(),
+                    "school": stu["school"].strip(),
                     "rateCents": rate_cents,
                     "status": "cancelled" if cancelled else "completed",
                     "isJoint": len(students) > 1,
+                    "isCrossFamily": is_cross_family,
                     "groupSize": len(students),
+                    "groupStudents": [s["name"] for s in students],
                     "workSummary": work.strip(),
                     "focusArea": focus.strip(),
                 })
