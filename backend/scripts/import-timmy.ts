@@ -118,6 +118,7 @@ async function main() {
     parentPhone: "",
     sessionType: "individual",
     rate: 0,
+    tutorIds: [PAULA_ID],
     createdAt: now,
     updatedAt: now,
   });
@@ -134,6 +135,7 @@ async function main() {
     parentPhone: "",
     sessionType: "individual",
     rate: 0,
+    tutorIds: [PAULA_ID],
     createdAt: now,
     updatedAt: now,
   });

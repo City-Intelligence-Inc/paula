@@ -145,6 +145,27 @@ router.delete("/:id", requireAdmin, async (req: Request, res: Response): Promise
   }
 });
 
+// GET /api/students/:id/sessions — full session history (newest first)
+router.get("/:id/sessions", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const result = await dynamodb.send(
+      new QueryCommand({
+        TableName: Tables.sessions,
+        KeyConditionExpression: "studentId = :sid",
+        ExpressionAttributeValues: { ":sid": id },
+        ScanIndexForward: false, // newest first by dateTime SK
+      })
+    );
+
+    res.json({ sessions: result.Items || [] });
+  } catch (error) {
+    console.error("Failed to fetch student sessions:", error);
+    res.status(500).json({ error: "Failed to fetch student sessions" });
+  }
+});
+
 // GET /api/students/:id/notes — list notes
 router.get("/:id/notes", async (req: Request, res: Response): Promise<void> => {
   try {

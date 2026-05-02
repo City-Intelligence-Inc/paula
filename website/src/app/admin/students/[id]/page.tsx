@@ -27,6 +27,20 @@ interface SessionNote {
   content: string;
 }
 
+interface RealSession {
+  studentId: string;
+  dateTime: string;
+  date: string;
+  time: string;
+  type: "individual" | "group" | "note";
+  status: string;
+  duration?: number;
+  notes?: string;
+  content?: string;
+  students?: string[];
+  tutorId?: string;
+}
+
 const gradeOptions = [
   "K", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
 ];
@@ -57,6 +71,7 @@ export default function StudentDetailPage({
 
   const [student, setStudent] = useState<Student | null>(null);
   const [notes, setNotes] = useState<SessionNote[]>([]);
+  const [sessions, setSessions] = useState<RealSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -98,6 +113,16 @@ export default function StudentDetailPage({
       .catch(() => {});
   }
 
+  function fetchSessions() {
+    fetchApi(`/api/students/${id}/sessions`)
+      .then((res) => res.json())
+      .then((json) => {
+        const all: RealSession[] = json.sessions || [];
+        setSessions(all.filter((s) => s.type !== "note"));
+      })
+      .catch(() => {});
+  }
+
   function populateEditForm(s: Student) {
     setEditFirstName(s.firstName);
     setEditLastName(s.lastName);
@@ -113,6 +138,7 @@ export default function StudentDetailPage({
   useEffect(() => {
     fetchStudent();
     fetchNotes();
+    fetchSessions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -466,13 +492,86 @@ export default function StudentDetailPage({
         </div>
       </Card>
 
-      {/* Session Notes */}
+      {/* Session History (real sessions imported from Paula's sheet) */}
+      <Card className="border border-neutral-200 rounded-lg overflow-hidden">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-neutral-400" />
+              <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">
+                Session History
+              </h2>
+            </div>
+            <span className="text-xs text-neutral-400">
+              {sessions.length} session{sessions.length === 1 ? "" : "s"}
+            </span>
+          </div>
+
+          {sessions.length === 0 ? (
+            <div className="text-center py-8 text-neutral-400">
+              <p className="text-sm">No sessions in the history yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {sessions.map((s) => {
+                const dt = new Date(s.dateTime);
+                const dateLabel = dt.toLocaleDateString("en-US", {
+                  weekday: "short",
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                });
+                const isGroup =
+                  s.type === "group" ||
+                  (Array.isArray(s.students) && s.students.length > 1);
+                return (
+                  <div
+                    key={`${s.studentId}-${s.dateTime}`}
+                    className="border-l-2 border-[#7030A0]/20 pl-4 py-1"
+                  >
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-medium text-neutral-900">
+                        {dateLabel}
+                      </p>
+                      {isGroup && (
+                        <Badge className="bg-[#7030A0]/5 text-[#7030A0] border-[#7030A0]/20">
+                          Group
+                        </Badge>
+                      )}
+                      {s.duration ? (
+                        <span className="text-xs text-neutral-400">
+                          {s.duration} min
+                        </span>
+                      ) : null}
+                    </div>
+                    {isGroup && s.students && s.students.length > 1 && (
+                      <p className="text-xs text-neutral-400 mt-0.5">
+                        With:{" "}
+                        {s.students
+                          .filter((sid) => sid !== s.studentId)
+                          .join(", ")}
+                      </p>
+                    )}
+                    {s.notes && (
+                      <pre className="mt-2 text-sm text-neutral-700 leading-relaxed whitespace-pre-wrap font-sans">
+                        {s.notes}
+                      </pre>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Free-form Session Notes (admin-authored, not from import) */}
       <Card className="border border-neutral-200 rounded-lg overflow-hidden">
         <div className="p-6">
           <div className="flex items-center gap-2 mb-4">
             <FileText className="h-5 w-5 text-neutral-400" />
             <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">
-              Session Notes
+              Quick Notes
             </h2>
           </div>
 
