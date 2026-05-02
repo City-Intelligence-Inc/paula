@@ -19,7 +19,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { SortableHeader, useSort } from "@/components/admin/sortable-th";
+import { titleCase } from "@/lib/title-case";
 import type { Student, Payment } from "@/lib/types";
+
+type BillingSortKey = "name" | "grade" | "rate" | "balance" | "status";
+type PaymentSortKey = "date" | "student" | "amount" | "status";
 
 type PaymentStatus = "paid" | "pending" | "overdue" | "failed";
 
@@ -150,6 +155,8 @@ export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const billingSort = useSort<BillingSortKey>("name");
+  const paymentSort = useSort<PaymentSortKey>("date", "desc");
 
   useEffect(() => {
     Promise.all([
@@ -198,9 +205,30 @@ export default function AdminPaymentsPage() {
     payments.filter((p) => p.paymentStatus === "overdue").map((p) => p.studentId)
   ).size;
 
-  // Get recent payments sorted by date
+  const statusOrder: Record<PaymentStatus, number> = {
+    overdue: 0,
+    failed: 1,
+    pending: 2,
+    paid: 3,
+  };
+
+  // Get recent payments sorted by current sort key
   const recentPayments = [...payments]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort(
+      paymentSort.compare<Payment>((p, k) => {
+        switch (k) {
+          case "student":
+            return studentName(p.studentId);
+          case "amount":
+            return p.amount;
+          case "status":
+            return statusOrder[p.paymentStatus as PaymentStatus] ?? 999;
+          case "date":
+          default:
+            return new Date(p.createdAt).getTime();
+        }
+      }),
+    )
     .slice(0, 20);
 
   // Build per-student billing view: aggregate latest payment status per student
@@ -222,11 +250,29 @@ export default function AdminPaymentsPage() {
       };
     });
 
-  const filteredBilling = studentBilling.filter((sb) =>
-    `${sb.student.firstName} ${sb.student.lastName}`
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
+  const filteredBilling = studentBilling
+    .filter((sb) =>
+      `${sb.student.firstName} ${sb.student.lastName}`
+        .toLowerCase()
+        .includes(search.toLowerCase()),
+    )
+    .sort(
+      billingSort.compare<(typeof studentBilling)[number]>((sb, k) => {
+        switch (k) {
+          case "grade":
+            return sb.student.grade || "";
+          case "rate":
+            return sb.student.rate || 0;
+          case "balance":
+            return sb.balance;
+          case "status":
+            return statusOrder[sb.latestStatus as PaymentStatus] ?? 999;
+          case "name":
+          default:
+            return `${sb.student.firstName} ${sb.student.lastName}`;
+        }
+      }),
+    );
 
   return (
     <div className="space-y-6">
@@ -306,13 +352,13 @@ export default function AdminPaymentsPage() {
 
         <Card className="py-0 overflow-hidden border border-neutral-200 rounded-lg">
           {/* Table header */}
-          <div className="hidden sm:grid grid-cols-[1fr_80px_100px_100px_80px_100px] gap-4 px-4 py-3 bg-neutral-50 text-xs font-medium text-neutral-500 uppercase tracking-wider border-b border-neutral-200">
-            <span>Student</span>
-            <span>Grade</span>
-            <span>Rate/mo</span>
-            <span>Balance</span>
-            <span>Status</span>
-            <span>Action</span>
+          <div className="hidden sm:grid grid-cols-[1fr_80px_100px_100px_80px_100px] gap-4 px-4 py-3 bg-neutral-50 border-b border-neutral-200">
+            <SortableHeader sortKey="name" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Student</SortableHeader>
+            <SortableHeader sortKey="grade" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Grade</SortableHeader>
+            <SortableHeader sortKey="rate" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Rate/mo</SortableHeader>
+            <SortableHeader sortKey="balance" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Balance</SortableHeader>
+            <SortableHeader sortKey="status" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Status</SortableHeader>
+            <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">Action</span>
           </div>
 
           {/* Rows */}
@@ -377,12 +423,12 @@ export default function AdminPaymentsPage() {
         </h2>
         <Card className="py-0 overflow-hidden border border-neutral-200 rounded-lg">
           {/* Table header */}
-          <div className="hidden sm:grid grid-cols-[120px_1fr_100px_80px_80px] gap-4 px-4 py-3 bg-neutral-50 text-xs font-medium text-neutral-500 uppercase tracking-wider border-b border-neutral-200">
-            <span>Date</span>
-            <span>Student</span>
-            <span>Amount</span>
-            <span>Desc</span>
-            <span>Status</span>
+          <div className="hidden sm:grid grid-cols-[120px_1fr_100px_80px_80px] gap-4 px-4 py-3 bg-neutral-50 border-b border-neutral-200">
+            <SortableHeader sortKey="date" activeKey={paymentSort.key} dir={paymentSort.dir} onClick={paymentSort.toggle}>Date</SortableHeader>
+            <SortableHeader sortKey="student" activeKey={paymentSort.key} dir={paymentSort.dir} onClick={paymentSort.toggle}>Student</SortableHeader>
+            <SortableHeader sortKey="amount" activeKey={paymentSort.key} dir={paymentSort.dir} onClick={paymentSort.toggle}>Amount</SortableHeader>
+            <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">Desc</span>
+            <SortableHeader sortKey="status" activeKey={paymentSort.key} dir={paymentSort.dir} onClick={paymentSort.toggle}>Status</SortableHeader>
           </div>
 
           <div className="divide-y divide-neutral-200">

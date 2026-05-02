@@ -4,6 +4,17 @@ import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Save } from "lucide-react";
+import { SortableTh, useSort } from "@/components/admin/sortable-th";
+
+type CalSortKey =
+  | "name"
+  | "fallStart"
+  | "winterBreakStart"
+  | "winterBreakEnd"
+  | "springBreakStart"
+  | "springBreakEnd"
+  | "lastDay"
+  | "status";
 
 interface SchoolCalendar {
   name: string;
@@ -232,6 +243,18 @@ export default function AdminCalendarPage() {
     (s) => s.status === "Researched"
   ).length;
 
+  const sort = useSort<CalSortKey>("name");
+  const sortedRows = useMemo(() => {
+    const indexed = schools.map((s, i) => [s, i] as const);
+    indexed.sort(
+      sort.compare<readonly [SchoolCalendar, number]>(([s], k) => {
+        if (k === "name") return s.name;
+        return s[k] || "";
+      }),
+    );
+    return indexed;
+  }, [schools, sort]);
+
   // Compute Mathitude calendar from majority/median dates
   const mathitudeCalendar = useMemo(() => {
     const fallStarts = schools.map((s) => s.fallStart);
@@ -326,34 +349,34 @@ export default function AdminCalendarPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-neutral-50">
-                <th className="text-left px-4 py-3 font-medium text-neutral-900 whitespace-nowrap">
-                  School
-                </th>
-                <th className="text-left px-3 py-3 font-medium text-neutral-900 whitespace-nowrap">
-                  Fall Start
-                </th>
-                <th className="text-left px-3 py-3 font-medium text-neutral-900 whitespace-nowrap">
-                  Winter Break Start
-                </th>
-                <th className="text-left px-3 py-3 font-medium text-neutral-900 whitespace-nowrap">
-                  Winter Break End
-                </th>
-                <th className="text-left px-3 py-3 font-medium text-neutral-900 whitespace-nowrap">
-                  Spring Break Start
-                </th>
-                <th className="text-left px-3 py-3 font-medium text-neutral-900 whitespace-nowrap">
-                  Spring Break End
-                </th>
-                <th className="text-left px-3 py-3 font-medium text-neutral-900 whitespace-nowrap">
-                  Last Day
-                </th>
-                <th className="text-center px-3 py-3 font-medium text-neutral-900 whitespace-nowrap">
-                  Status
-                </th>
+                {(
+                  [
+                    ["name", "School"],
+                    ["fallStart", "Fall Start"],
+                    ["winterBreakStart", "Winter Break Start"],
+                    ["winterBreakEnd", "Winter Break End"],
+                    ["springBreakStart", "Spring Break Start"],
+                    ["springBreakEnd", "Spring Break End"],
+                    ["lastDay", "Last Day"],
+                    ["status", "Status"],
+                  ] as [CalSortKey, string][]
+                ).map(([k, label]) => (
+                  <SortableTh
+                    key={k}
+                    sortKey={k}
+                    activeKey={sort.key}
+                    dir={sort.dir}
+                    onClick={sort.toggle}
+                    align={k === "status" ? "center" : "left"}
+                    className="whitespace-nowrap"
+                  >
+                    {label}
+                  </SortableTh>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-200">
-              {schools.map((school, index) => (
+              {sortedRows.map(([school, index]) => (
                 <tr key={school.name} className="hover:bg-neutral-50/50">
                   <td className="px-4 py-3">
                     <div>

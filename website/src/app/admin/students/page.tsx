@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useApi } from "@/hooks/use-api";
 import { useRouter } from "next/navigation";
 import { Search, Plus, X } from "lucide-react";
+import { SortableTh, useSort } from "@/components/admin/sortable-th";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,18 @@ function gradeLabel(g: string | undefined): string {
   return g;
 }
 
+// Numeric grade rank for sorting: Pre-K < K < 1 < 2 < ... < 12
+function gradeRank(g: string | undefined): number {
+  if (!g) return 999;
+  const u = g.toUpperCase();
+  if (u.startsWith("PK")) return -1;
+  if (u === "K" || u === "KG") return 0;
+  const n = parseInt(g, 10);
+  return isNaN(n) ? 998 : n;
+}
+
+type SortKey = "name" | "grade" | "status" | "type" | "parent";
+
 export default function AdminStudentsPage() {
   const router = useRouter();
   const fetchApi = useApi();
@@ -41,6 +54,7 @@ export default function AdminStudentsPage() {
   const [search, setSearch] = useState("");
   const [gradeFilter, setGradeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const sort = useSort<SortKey>("name");
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -115,17 +129,34 @@ export default function AdminStudentsPage() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return students
-      .filter((s) => {
-        if (statusFilter !== "all" && s.status !== statusFilter) return false;
-        if (gradeFilter !== "all" && s.grade !== gradeFilter) return false;
-        if (!q) return true;
-        const hay =
-          `${s.firstName} ${s.lastName} ${s.parentName} ${s.parentEmail} ${s.grade}`.toLowerCase();
-        return hay.includes(q);
-      })
-      .sort((a, b) => fullName(a).localeCompare(fullName(b)));
-  }, [students, search, gradeFilter, statusFilter]);
+    const list = students.filter((s) => {
+      if (statusFilter !== "all" && s.status !== statusFilter) return false;
+      if (gradeFilter !== "all" && s.grade !== gradeFilter) return false;
+      if (!q) return true;
+      const hay =
+        `${s.firstName} ${s.lastName} ${s.parentName} ${s.parentEmail} ${s.grade}`.toLowerCase();
+      return hay.includes(q);
+    });
+
+    list.sort(
+      sort.compare<Student>((s, k) => {
+        switch (k) {
+          case "grade":
+            return gradeRank(s.grade);
+          case "status":
+            return s.status || "";
+          case "type":
+            return s.sessionType || "";
+          case "parent":
+            return s.parentName || "";
+          case "name":
+          default:
+            return fullName(s);
+        }
+      }),
+    );
+    return list;
+  }, [students, search, gradeFilter, statusFilter, sort]);
 
   const activeCount = students.filter((s) => s.status === "active").length;
   const waitlistCount = students.filter((s) => s.status === "waitlist").length;
@@ -364,13 +395,27 @@ export default function AdminStudentsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-neutral-50 border-b border-neutral-200">
-                <tr className="text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  <th className="px-4 py-3">Student</th>
-                  <th className="px-4 py-3">Grade</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Type</th>
-                  <th className="px-4 py-3">Parent</th>
-                  <th className="px-4 py-3"></th>
+                <tr>
+                  {(
+                    [
+                      ["name", "Student"],
+                      ["grade", "Grade"],
+                      ["status", "Status"],
+                      ["type", "Type"],
+                      ["parent", "Parent"],
+                    ] as [SortKey, string][]
+                  ).map(([key, label]) => (
+                    <SortableTh
+                      key={key}
+                      sortKey={key}
+                      activeKey={sort.key}
+                      dir={sort.dir}
+                      onClick={sort.toggle}
+                    >
+                      {label}
+                    </SortableTh>
+                  ))}
+                  <th className="px-3 py-3"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">

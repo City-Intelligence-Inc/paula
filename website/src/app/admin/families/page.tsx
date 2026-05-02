@@ -4,9 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useApi } from "@/hooks/use-api";
 import { Card } from "@/components/ui/card";
-import { Plus, Search, Users } from "lucide-react";
+import { Plus, Search, Users, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { titleCase } from "@/lib/title-case";
+
+type FamSortKey = "name" | "students" | "primary";
+type FamSortDir = "asc" | "desc";
 
 interface FamilyParent {
   id: string;
@@ -45,6 +48,8 @@ export default function AdminFamiliesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<FamSortKey>("name");
+  const [sortDir, setSortDir] = useState<FamSortDir>("asc");
 
   useEffect(() => {
     let cancelled = false;
@@ -69,20 +74,38 @@ export default function AdminFamiliesPage() {
   }, [fetchApi]);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return families;
-    const q = search.toLowerCase();
-    return families.filter((f) => {
-      const hay = [
-        familyName(f),
-        f.primary?.email,
-        ...f.students.map((s) => `${s.firstName} ${s.lastName}`),
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-      return hay.includes(q);
+    const q = search.toLowerCase().trim();
+    const matched = q
+      ? families.filter((f) => {
+          const hay = [
+            familyName(f),
+            f.primary?.email,
+            ...f.students.map((s) => `${s.firstName} ${s.lastName}`),
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          return hay.includes(q);
+        })
+      : [...families];
+
+    matched.sort((a, b) => {
+      let r = 0;
+      switch (sortKey) {
+        case "students":
+          r = a.students.length - b.students.length;
+          break;
+        case "primary":
+          r = (a.primary?.email || "").localeCompare(b.primary?.email || "");
+          break;
+        case "name":
+        default:
+          r = familyName(a).localeCompare(familyName(b));
+      }
+      return sortDir === "asc" ? r : -r;
     });
-  }, [families, search]);
+    return matched;
+  }, [families, search, sortKey, sortDir]);
 
   const studentTotal = families.reduce((sum, f) => sum + f.students.length, 0);
 
@@ -110,15 +133,37 @@ export default function AdminFamiliesPage() {
         </Button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-        <input
-          type="text"
-          placeholder="Search by family name, parent email, or student..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-lg border border-neutral-200 bg-white py-2.5 pl-10 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300"
-        />
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+          <input
+            type="text"
+            placeholder="Search by family name, parent email, or student..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-neutral-200 bg-white py-2.5 pl-10 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300"
+          />
+        </div>
+        <div className="relative inline-flex items-center">
+          <ArrowUpDown className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as FamSortKey)}
+            className="rounded-lg border border-neutral-200 bg-white py-2.5 pl-10 pr-3 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
+          >
+            <option value="name">Sort: Name</option>
+            <option value="students"># of students</option>
+            <option value="primary">Parent email</option>
+          </select>
+        </div>
+        <button
+          type="button"
+          onClick={() => setSortDir(sortDir === "asc" ? "desc" : "asc")}
+          className="rounded-lg border border-neutral-200 bg-white py-2.5 px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+          title="Toggle sort direction"
+        >
+          {sortDir === "asc" ? "A→Z" : "Z→A"}
+        </button>
       </div>
 
       {loading && (
