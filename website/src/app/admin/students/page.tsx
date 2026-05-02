@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useApi } from "@/hooks/use-api";
 import { useRouter } from "next/navigation";
-import { Search, Plus, X } from "lucide-react";
+import { Search, Plus, X, CheckCircle2 } from "lucide-react";
 import { SortableTh, useSort } from "@/components/admin/sortable-th";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +57,8 @@ export default function AdminStudentsPage() {
   const sort = useSort<SortKey>("name");
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [pinnedId, setPinnedId] = useState<string | null>(null);
 
   // Form state
   const [firstName, setFirstName] = useState("");
@@ -116,12 +118,30 @@ export default function AdminStudentsPage() {
         }),
       });
       if (res.ok) {
+        const data = (await res.json()) as { student?: Student };
+        const newStudent = data.student;
+        const displayName = newStudent
+          ? fullName(newStudent)
+          : `${firstName} ${lastName}`;
         resetForm();
         setShowForm(false);
-        fetchStudents();
+        if (newStudent) {
+          setStudents((prev) => [newStudent, ...prev]);
+          setPinnedId(newStudent.id);
+          setTimeout(() => setPinnedId(null), 3000);
+        } else {
+          fetchStudents();
+        }
+        setSuccessMessage(`Added ${displayName}`);
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } else {
+        const text = await res.text();
+        setSuccessMessage(`Failed: ${text || res.statusText}`);
+        setTimeout(() => setSuccessMessage(null), 4000);
       }
-    } catch {
-      // silently fail
+    } catch (err) {
+      setSuccessMessage(`Error: ${String(err)}`);
+      setTimeout(() => setSuccessMessage(null), 4000);
     } finally {
       setSubmitting(false);
     }
@@ -155,8 +175,15 @@ export default function AdminStudentsPage() {
         }
       }),
     );
+    if (pinnedId) {
+      const idx = list.findIndex((s) => s.id === pinnedId);
+      if (idx > 0) {
+        const [pinned] = list.splice(idx, 1);
+        list.unshift(pinned);
+      }
+    }
     return list;
-  }, [students, search, gradeFilter, statusFilter, sort]);
+  }, [students, search, gradeFilter, statusFilter, sort, pinnedId]);
 
   const activeCount = students.filter((s) => s.status === "active").length;
   const waitlistCount = students.filter((s) => s.status === "waitlist").length;
@@ -181,6 +208,20 @@ export default function AdminStudentsPage() {
           {showForm ? "Cancel" : "Add Student"}
         </Button>
       </div>
+
+      {successMessage && (
+        <div
+          role="status"
+          className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm transition-opacity ${
+            successMessage.startsWith("Failed") || successMessage.startsWith("Error")
+              ? "border-red-200 bg-red-50 text-red-700"
+              : "border-green-200 bg-green-50 text-green-700"
+          }`}
+        >
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          {successMessage}
+        </div>
+      )}
 
       {showForm && (
         <Card className="border border-neutral-200 rounded-lg p-6">
@@ -419,11 +460,17 @@ export default function AdminStudentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
-                {filtered.map((s) => (
+                {filtered.map((s) => {
+                  const isPinned = s.id === pinnedId;
+                  return (
                   <tr
                     key={s.id}
                     onClick={() => router.push(`/admin/students/${s.id}`)}
-                    className="cursor-pointer hover:bg-neutral-50 transition-colors"
+                    className={`cursor-pointer transition-colors ${
+                      isPinned
+                        ? "bg-green-50 hover:bg-green-100 animate-pulse"
+                        : "hover:bg-neutral-50"
+                    }`}
                   >
                     <td className="px-4 py-3 font-medium text-neutral-900">
                       {fullName(s)}
@@ -460,10 +507,15 @@ export default function AdminStudentsPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right text-xs text-neutral-400">
-                      →
+                      {isPinned ? (
+                        <span className="text-green-700 font-medium">New</span>
+                      ) : (
+                        "→"
+                      )}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
