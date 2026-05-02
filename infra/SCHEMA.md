@@ -1,7 +1,7 @@
 # Mathitude v3.0 — DynamoDB Schema (Proposed)
 
-**Status:** PROPOSED — partially validated against real data (Timmy session-notes sheet, 21 sessions imported to staging on 2026-04-30). Still need the Excel `NEWEST_MATH_CLIENT_INFO` file before this is final.
-**Owner:** Ari · **Reviewer:** Nikki · **Last revision:** 2026-04-30
+**Status:** PROPOSED — validated against (a) Timmy Google-Sheet notes [21 sessions] and (b) Paula's master Excel `NEWEST_MATH_CLIENT_INFO` [~3 years, hundreds of sessions, dozens of students across 12+ schools]. Plus Paula's written "Mathitude Data Structure Notes."
+**Owner:** Ari · **Reviewer:** Nikki · **Last revision:** 2026-05-02
 **Deadline:** May 1, 2026 (Phase 2 / Week 3)
 
 This document captures the target data model for the Mathitude v3.0 portal. It maps the entities in the v3.0 plan to concrete DynamoDB tables, partition/sort keys, and GSIs.
@@ -153,7 +153,90 @@ Maps Clerk principals to Mathitude roles + entity ownership.
 
 ---
 
-## Reconciliation against real data — what we learned 2026-04-30
+## Reconciliation against real data — what we learned 2026-05-02
+
+Paula sent her "Mathitude Data Structure Notes" + the master Excel sessions tab. Major schema deltas:
+
+### Two-tier notes (NEW REQUIREMENT)
+Paula maintains TWO notes systems:
+- **Google Sheet Col B (Session Activities)** — parent/student-facing. Mirrors Excel Col H (Work Summary).
+- **Excel Col J (Focus Area)** — internal-only. Pre-session planning + post-session private observations. Never shown to families.
+
+**Schema impact:** Add `Session.privateNotes` (admin-only, never returned by parent/student-facing endpoints). Keep `Session.notes` for parent-facing. Backend must enforce role-based field projection — a parent role MUST NOT receive `privateNotes`.
+
+### Two kinds of "joint session" — distinct billing
+1. **Same-family joint** (Thompson + Timmy, both Sunbin's kids) — one charge, one family, two `students[]` on the row.
+2. **Cross-family joint** (Jeremy + Yuma, different families) — TWO families each charged HALF the session price for the SAME timeblock.
+
+**Schema impact:** The current `students: string[]` field handles same-family fine. Cross-family needs distinct billing splits. Proposing `Session.familyBillingSplits: { familyId, amountCents }[]` so the same time-block creates one Session row per family but the `students[]` enumerates the full group across families. This keeps Stripe charge attribution clean.
+
+### Per-student / per-family / per-tutor pricing
+The Excel shows clearly distinct rates for the same student under different conditions ($125, $135, $150, $160, $175, $200, $300, etc.). Paula confirms rates can vary per family AND per student AND (eventually) per tutor.
+
+**Schema impact:** `Session.rate` (snapshot, in cents) is the right field — it captures whatever was actually charged regardless of the source pricing rule. We can layer a `PricingRule` table on later if Paula wants drift-protection or auto-pricing.
+
+### Stripe products = offerings
+Paula wants flexibility to add Stripe charge products beyond tutoring: parent education, school STEM fairs, family/parental advising, speaking engagements, math festivals.
+
+**Schema impact:** Add `Session.offering` enum aligned with the 6 categories on `/tutoring`:
+`private-tutoring | small-group | parent-advisories | speaking | school-stem | math-festival | general`. Default: `private-tutoring`. Stripe webhook maps `offering → Stripe Product/Price`. Allows Sara to add new offerings without DB migration.
+
+### School field is meaningful — it's coded
+The Excel uses 2-3 letter school codes (WL=Woodland, MS=Menlo, PA=Pinewood, KH=Kehillah, SY=Synapse, PB=Phillips Brooks, MA=Menlo-Atherton, OK=Oakwood, LE=La Entrada, FL=Fletcher, CYS=Crystal, HH=Harker, AC=Alta Vista (?), SCU=Santa Clara University, NU=Nueva, GAP=Gap Year, BR=Brown, etc.).
+
+**Schema impact:** `Student.school` is already in v3.0; it should store the **school code**, not free text. We need a small `schools` lookup (probably hard-coded enum) to resolve code → display name. ~12 schools cover 95%+ of rows; long tail goes to "OTHER".
+
+### School login storage (NEW REQUIREMENT)
+Paula stores student school logins to act as the "ghost student" — see assignments, communication, etc. **This is secret-grade data**, not a plain DB column.
+
+**Schema impact:** Do NOT put logins in `Student` directly. Reference via:
+- `Student.schoolLoginsRef: string` → ARN of an AWS Secrets Manager secret keyed by `studentId`.
+- The portal calls the secrets manager only when admin (Paula) opens the credentials drawer — never bulk-loaded.
+- Encrypted at rest by Secrets Manager, audit-logged on access.
+
+### Steve as historical tutor — skip
+Steve sessions in 2023-2024 (blue-highlighted in Excel, "SEE PRIV TUTORING NOTES" in Col H). Paula explicitly says don't bother capturing him historically.
+
+**Import impact:** All historical rows get `tutorId = tut_paula`. Rows with notes containing "SEE PRIV TUTORING NOTES" get an additional `notes` flag noting "historic external tutor (Steve)" so Paula can find them later if needed.
+
+### Excel columns to use vs ignore
+Per Paula:
+- **USE:** Col B (PAY_NOTE → rate), Col D (Date), Col E (Student), Col F (Grade), Col G (School), Col H (Work Summary → privateNotes part 1), Col J (Focus Area → privateNotes part 2).
+- **IGNORE:** Col A (Check), Col C (MS — placeholder, mostly "O"), Col I (Strengths — empty), all columns past Col J.
+
+### Time + duration STILL not tracked
+Confirmed: Paula's Excel doesn't have time-of-day or duration columns either. The Wix mockups Sara built may have specified these. **For import, default `time = "16:00"` and `duration = 60`** and add a flag `timeIsDefaulted: true` so we know NOT to display these as authoritative scheduling info on the calendar.
+
+### Historical scope: 2023-present only
+Pre-2023 data is in a separate spreadsheet and Paula explicitly says don't migrate it.
+
+---
+
+## Schema additions to v3.0 from this round
+
+| Field | Where | Type | Notes |
+|---|---|---|---|
+| `Session.privateNotes` | sessions table | String | admin/tutor only; backend MUST strip from parent endpoints |
+| `Session.offering` | sessions table | String enum | `private-tutoring \| small-group \| parent-advisories \| speaking \| school-stem \| math-festival \| general` |
+| `Session.familyBillingSplits` | sessions table | List<Map> | for cross-family joint sessions; ` [{familyId, amountCents}, ...]`; null for normal sessions |
+| `Session.timeIsDefaulted` | sessions table | Boolean | true on import rows where time/duration are guesses |
+| `Student.schoolLoginsRef` | students table | String | ARN of Secrets Manager secret; portal lazily fetches when admin opens credentials drawer |
+| `Student.school` | students table | String | now treated as a coded value (`WL`, `MS`, ...), not free text |
+
+No new GSIs needed. No tables added.
+
+---
+
+## Open requests for Paula / Sara
+
+1. **Sara's Wix mockups** — Paula asks if I have access. I don't. Need Sara to share, or Paula to walk us through what they fleshed out.
+2. **"Typical day" walkthrough** — Paula offered to show how she toggles between Excel / GSheet / Calendar / Stripe. I want to take her up on this — much faster than reverse-engineering. Schedule when she's back from the Nueva workshop.
+3. **School-code dictionary** — confirm the ~12 codes and what "AC" / minor codes resolve to.
+4. **Cross-family billing math** — for Jeremy+Yuma at $337.50, who pays what fraction? Equal split? Or is one family paying more because they invited the other?
+
+---
+
+## Reconciliation against Timmy data — earlier findings (2026-04-30)
 
 The Timmy session-notes sheet (Google Sheets, 21 sessions May 30 → Dec 6) was imported into the staging tables via `backend/scripts/import-timmy.ts`. Every GSI returned the expected counts. Findings:
 
