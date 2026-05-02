@@ -4,7 +4,7 @@ import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
 
 const messages = [
-  { from: "parent", text: "Hi Mathitude! We'd love to get our daughter started with tutoring 🙏" },
+  { from: "parent", text: "Hi! We'd love to get our daughter started with tutoring 🙏" },
   { from: "paula", text: "Hi Sarah! I'd love to help. What grade is she in?" },
   { from: "parent", text: "She's in 5th grade — really struggling with fractions lately" },
   { from: "paula", text: "Fractions are tricky but totally conquerable! Let's set up a free intro session so I can get a sense of where she is 🧮" },
@@ -31,7 +31,7 @@ function PhoneMockup() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-neutral-900 truncate">Mathitude</p>
-              <p className="text-[10px] text-green-500 font-medium">Mathitude</p>
+              <p className="text-[10px] text-green-500 font-medium">Active now</p>
             </div>
             <div className="flex gap-3">
               <svg className="w-4 h-4 text-[#007AFF]" fill="currentColor" viewBox="0 0 24 24">

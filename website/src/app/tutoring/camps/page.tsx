@@ -16,13 +16,13 @@ export default function GroupCampsPage() {
               >
                 Tutoring &amp; Groups
               </Link>{" "}
-              / Group Camps
+              / Small group engagement
             </p>
             <h1
               className="text-5xl md:text-6xl lg:text-7xl text-[#7030A0] tracking-tight text-center leading-[1.05]"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
-              Private Group Math Camps
+              Small Group Engagement
             </h1>
             <p className="mt-6 text-lg md:text-xl text-black leading-relaxed text-center max-w-2xl mx-auto">
               Gather a small group of students for a focused, fun week of
@@ -130,7 +130,7 @@ export default function GroupCampsPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
             <div className="text-center">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white leading-snug tracking-tight">
-                Ready to book a group camp?
+                Ready to gather a group?
               </h2>
               <p className="mt-4 text-white/60 max-w-xl mx-auto leading-relaxed">
                 Tell Mathitude about your group and the dates you have in mind.
