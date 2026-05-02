@@ -1,24 +1,58 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useApi } from "@/hooks/use-api";
-import { client } from "@/lib/api";
 import { Card } from "@/components/ui/card";
-import { Plus, Home as HomeIcon } from "lucide-react";
+import { Plus, Search, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Family } from "@/lib/types";
+import { titleCase } from "@/lib/title-case";
+
+interface FamilyParent {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+}
+interface FamilyStudent {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  grade?: string;
+  status?: string;
+}
+interface FamilyEnriched {
+  id: string;
+  primaryPayerId?: string;
+  address?: { street?: string; city?: string; state?: string; zip?: string };
+  parents: FamilyParent[];
+  students: FamilyStudent[];
+  primary?: FamilyParent;
+}
+
+function familyName(f: FamilyEnriched): string {
+  const last = titleCase(f.primary?.lastName);
+  const first = titleCase(f.primary?.firstName);
+  if (last && last !== "(unknown)" && last !== first) return `${last} family`;
+  if (first) return `${first} family`;
+  return f.id.replace(/^fam_/, "").replace(/_/g, " ");
+}
 
 export default function AdminFamiliesPage() {
   const fetchApi = useApi();
-  const [families, setFamilies] = useState<Family[]>([]);
+  const [families, setFamilies] = useState<FamilyEnriched[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    client(fetchApi)
-      .families.list()
+    fetchApi("/api/families")
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`API ${res.status}: ${await res.text()}`);
+        return res.json();
+      })
       .then((data) => {
         if (cancelled) return;
         setFamilies(data.families || []);
@@ -34,15 +68,35 @@ export default function AdminFamiliesPage() {
     };
   }, [fetchApi]);
 
+  const filtered = useMemo(() => {
+    if (!search.trim()) return families;
+    const q = search.toLowerCase();
+    return families.filter((f) => {
+      const hay = [
+        familyName(f),
+        f.primary?.email,
+        ...f.students.map((s) => `${s.firstName} ${s.lastName}`),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [families, search]);
+
+  const studentTotal = families.reduce((sum, f) => sum + f.students.length, 0);
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">
             Families
           </h1>
           <p className="text-sm text-neutral-500 mt-1">
-            Households grouped for billing &amp; communication
+            {families.length} {families.length === 1 ? "household" : "households"}
+            {" · "}
+            {studentTotal} {studentTotal === 1 ? "student" : "students"}
           </p>
         </div>
         <Button
@@ -54,6 +108,17 @@ export default function AdminFamiliesPage() {
             Add Family
           </Link>
         </Button>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+        <input
+          type="text"
+          placeholder="Search by family name, parent email, or student..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-lg border border-neutral-200 bg-white py-2.5 pl-10 pr-4 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300"
+        />
       </div>
 
       {loading && (
@@ -68,42 +133,67 @@ export default function AdminFamiliesPage() {
         </Card>
       )}
 
-      {!loading && !error && families.length === 0 && (
+      {!loading && !error && filtered.length === 0 && (
         <div className="text-center py-12 text-neutral-500">
           <p className="text-sm">
-            No families yet. Run the import or add one manually.
+            {search
+              ? "No families match your search."
+              : "No families yet. Run the import or add one manually."}
           </p>
         </div>
       )}
 
-      <div className="space-y-3">
-        {families.map((family) => (
-          <Card
-            key={family.id}
-            className="py-0 overflow-hidden border border-neutral-200 rounded-lg"
-          >
-            <div className="flex items-center gap-4 p-4">
-              <HomeIcon className="h-5 w-5 text-neutral-400 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-neutral-900 truncate">
-                  {family.id}
-                </p>
-                <p className="text-xs text-neutral-500 truncate">
-                  {family.address
-                    ? `${family.address.city}, ${family.address.state}`
-                    : "No address on file"}
-                </p>
-              </div>
+      {!loading && !error && filtered.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {filtered.map((family) => {
+            const name = familyName(family);
+            const subtitle = family.primary?.email || family.id;
+            return (
               <Link
+                key={family.id}
                 href={`/admin/families/${family.id}`}
-                className="text-xs text-neutral-500 hover:text-neutral-900"
+                className="group block"
               >
-                View →
+                <Card className="py-0 overflow-hidden border border-neutral-200 rounded-lg transition-all group-hover:border-neutral-400 group-hover:shadow-sm h-full">
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-neutral-900 truncate">
+                          {name}
+                        </h3>
+                        <p className="text-xs text-neutral-500 truncate">
+                          {subtitle}
+                        </p>
+                      </div>
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-neutral-600 bg-neutral-100 rounded-full px-2 py-0.5 shrink-0">
+                        <Users className="h-3 w-3" />
+                        {family.students.length}
+                      </span>
+                    </div>
+
+                    {family.students.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {family.students.map((s) => {
+                          const fn = titleCase(s.firstName);
+                          const grade = s.grade ? `· G${s.grade}` : "";
+                          return (
+                            <span
+                              key={s.id}
+                              className="inline-flex items-center text-xs text-neutral-700 bg-neutral-50 border border-neutral-200 rounded-md px-2 py-0.5"
+                            >
+                              {fn} {grade}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </Card>
               </Link>
-            </div>
-          </Card>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
