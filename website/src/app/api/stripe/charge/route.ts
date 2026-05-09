@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   }
 
   const c = ddb();
-  const stripe = getStripe();
+  const stripe = await getStripe();
 
   const studentRes = await c.send(
     new GetCommand({ TableName: Tables.students, Key: { id: body.studentId } }),

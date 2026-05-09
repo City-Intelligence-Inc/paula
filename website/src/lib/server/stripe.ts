@@ -1,15 +1,34 @@
 import Stripe from "stripe";
+import { getStripeSecrets } from "@/lib/server/secrets";
 
+// getStripe() is async because the secret key is sourced from DynamoDB
+// (set by an admin via /admin/settings/stripe) with an env-var fallback.
+// Each runtime instance caches the resolved client for ~60s — see
+// secrets.ts for cache details.
 let _stripe: Stripe | null = null;
+let _stripeKey: string | null = null;
 
-export function getStripe(): Stripe {
-  if (!_stripe) {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      throw new Error("STRIPE_SECRET_KEY is not set");
-    }
-    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+export async function getStripe(): Promise<Stripe> {
+  const secrets = await getStripeSecrets();
+  if (!secrets?.secretKey) {
+    throw new Error(
+      "Stripe is not configured. An admin must add the secret key in Settings → Stripe.",
+    );
   }
+  if (_stripe && _stripeKey === secrets.secretKey) return _stripe;
+  _stripe = new Stripe(secrets.secretKey);
+  _stripeKey = secrets.secretKey;
   return _stripe;
+}
+
+export async function getWebhookSecret(): Promise<string | null> {
+  const secrets = await getStripeSecrets();
+  return secrets?.webhookSecret || null;
+}
+
+export async function isStripeConfigured(): Promise<boolean> {
+  const secrets = await getStripeSecrets();
+  return !!secrets?.secretKey;
 }
 
 // ---------------------------------------------------------
@@ -21,11 +40,6 @@ export function getStripe(): Stripe {
 // ---------------------------------------------------------
 
 export const STATEMENT_DESCRIPTOR = "MATHITUDE";
-
-export function isStripeConfigured(): boolean {
-  const key = process.env.STRIPE_SECRET_KEY;
-  return !!key && !key.includes("placeholder");
-}
 
 export function buildChargeFields({
   studentId,

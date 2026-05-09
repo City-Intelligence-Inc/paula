@@ -5,7 +5,7 @@ import {
 } from "@aws-sdk/lib-dynamodb";
 import type Stripe from "stripe";
 import { ddb, Tables } from "@/lib/server/ddb";
-import { getStripe } from "@/lib/server/stripe";
+import { getStripe, getWebhookSecret } from "@/lib/server/stripe";
 
 // POST /api/stripe/webhook
 // Stripe events: payment_intent.succeeded / .payment_failed / charge.refunded
@@ -20,7 +20,7 @@ import { getStripe } from "@/lib/server/stripe";
 // requireUser() is not called here.
 export async function POST(request: Request) {
   const sig = request.headers.get("stripe-signature");
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const secret = await getWebhookSecret();
 
   if (!sig || !secret) {
     return Response.json(
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   }
 
   const rawBody = await request.text();
-  const stripe = getStripe();
+  const stripe = await getStripe();
 
   let event: Stripe.Event;
   try {

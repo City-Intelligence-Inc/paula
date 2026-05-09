@@ -418,3 +418,35 @@ resource "aws_dynamodb_table" "users" {
     Project = "mathitude"
   }
 }
+
+# ---- Secrets table ----
+# Holds platform-wide configuration that admins manage through the portal
+# (currently only Stripe credentials). Encrypted at rest with the
+# AWS-managed KMS key. PK = id (e.g. "stripe").
+#
+# Reads are gated by lib/server/secrets.ts; the admin-only routes under
+# /api/admin/secrets/* are the only writers. Never expose this table to
+# tutor or parent roles.
+
+resource "aws_dynamodb_table" "secrets" {
+  name         = "${var.table_prefix}-secrets"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  tags = {
+    Project = "mathitude"
+  }
+}

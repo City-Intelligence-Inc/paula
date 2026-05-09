@@ -7,6 +7,7 @@ import {
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
 import { buildChargeFields, getStripe, isStripeConfigured } from "@/lib/server/stripe";
 
+
 interface QueueRow {
   studentId: string;
   dateTime: string;
@@ -35,9 +36,12 @@ export async function POST(request: Request) {
   const auth = await requireUser();
   if (auth.response) return auth.response;
 
-  if (!isStripeConfigured()) {
+  if (!(await isStripeConfigured())) {
     return Response.json(
-      { error: "Stripe is not configured. Set STRIPE_SECRET_KEY." },
+      {
+        error:
+          "Stripe is not configured. An admin must add the secret key in Settings → Stripe.",
+      },
       { status: 503 },
     );
   }
@@ -62,7 +66,7 @@ export async function POST(request: Request) {
   }
 
   const c = ddb();
-  const stripe = getStripe();
+  const stripe = await getStripe();
   const results: RowResult[] = [];
 
   for (const row of rows) {

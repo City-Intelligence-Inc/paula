@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   }
 
   const c = ddb();
-  const stripe = getStripe();
+  const stripe = await getStripe();
 
   let parent: Record<string, unknown> | null = null;
   if (body.parentId) {

@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { auth } from "@clerk/nextjs/server";
 
 let _ddb: DynamoDBDocumentClient | null = null;
@@ -28,6 +28,7 @@ export const Tables = {
   parents: `${PREFIX}-parents`,
   tutors: `${PREFIX}-tutors`,
   users: `${PREFIX}-users`,
+  secrets: `${PREFIX}-secrets`,
 } as const;
 
 export async function requireUser() {
@@ -51,4 +52,34 @@ export async function requireUser() {
       response: Response.json({ error: "Auth error", detail: String(err) }, { status: 500 }),
     };
   }
+}
+
+// Admin gate. A caller is admin if EITHER:
+//   1. Their clerkUserId is listed (comma-separated) in ADMIN_CLERK_USER_IDS, or
+//   2. mathitude-users has a row with their clerkUserId where role === "admin".
+// Returns the same shape as requireUser().
+export async function requireAdmin() {
+  const base = await requireUser();
+  if (base.response) return base;
+  const userId = base.userId!;
+
+  const allowlist = (process.env.ADMIN_CLERK_USER_IDS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (allowlist.includes(userId)) return base;
+
+  try {
+    const r = await ddb().send(
+      new GetCommand({ TableName: Tables.users, Key: { clerkUserId: userId } }),
+    );
+    if (r.Item?.role === "admin") return base;
+  } catch (err) {
+    console.warn("[requireAdmin] users lookup failed:", err);
+  }
+
+  return {
+    userId: null,
+    response: Response.json({ error: "Forbidden" }, { status: 403 }),
+  };
 }

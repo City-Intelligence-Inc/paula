@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useApi } from "@/hooks/use-api";
 import {
   Elements,
@@ -8,11 +8,43 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
+import { loadStripe, type Stripe as StripeJS } from "@stripe/stripe-js";
 
-const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-const isConfigured = publishableKey && !publishableKey.includes("placeholder");
-const stripePromise = isConfigured ? loadStripe(publishableKey) : null;
+// Resolve the publishable key at runtime so portal changes take effect
+// without a redeploy. Falls back to the build-time env var if the API
+// route hasn't been deployed yet.
+function useStripePromise() {
+  const [promise, setPromise] = useState<Promise<StripeJS | null> | null>(null);
+  const [configured, setConfigured] = useState<boolean | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/stripe/config")
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (data.publishableKey && !data.publishableKey.includes("placeholder")) {
+          setPromise(loadStripe(data.publishableKey));
+          setConfigured(true);
+        } else {
+          const fallback = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+          if (fallback && !fallback.includes("placeholder")) {
+            setPromise(loadStripe(fallback));
+            setConfigured(true);
+          } else {
+            setConfigured(false);
+          }
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setConfigured(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return { promise, configured };
+}
 
 function CardForm() {
   const stripe = useStripe();
@@ -117,6 +149,7 @@ function NotConfigured() {
 }
 
 export function SaveCardForm() {
+  const { promise, configured } = useStripePromise();
   return (
     <div className="mx-auto max-w-md">
       <div className="mb-4">
@@ -128,12 +161,16 @@ export function SaveCardForm() {
         </p>
       </div>
 
-      {isConfigured && stripePromise ? (
-        <Elements stripe={stripePromise}>
+      {configured && promise ? (
+        <Elements stripe={promise}>
           <CardForm />
         </Elements>
-      ) : (
+      ) : configured === false ? (
         <NotConfigured />
+      ) : (
+        <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-6 text-center text-sm text-neutral-500">
+          Loading…
+        </div>
       )}
     </div>
   );
