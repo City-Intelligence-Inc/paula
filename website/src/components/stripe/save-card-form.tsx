@@ -46,7 +46,7 @@ function useStripePromise() {
   return { promise, configured };
 }
 
-function CardForm() {
+function CardForm({ parentId }: { parentId?: string }) {
   const stripe = useStripe();
   const elements = useElements();
   const fetchApi = useApi();
@@ -64,6 +64,7 @@ function CardForm() {
     try {
       const res = await fetchApi("/api/stripe/create-setup-intent", {
         method: "POST",
+        body: parentId ? JSON.stringify({ parentId }) : undefined,
       });
       const { clientSecret, error } = await res.json();
 
@@ -148,22 +149,27 @@ function NotConfigured() {
   );
 }
 
-export function SaveCardForm() {
+export function SaveCardForm({
+  parentId,
+  hideHeader = false,
+}: { parentId?: string; hideHeader?: boolean } = {}) {
   const { promise, configured } = useStripePromise();
   return (
     <div className="mx-auto max-w-md">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-neutral-900">
-          Payment Method
-        </h2>
-        <p className="text-sm text-neutral-500">
-          Securely save your card for future payments.
-        </p>
-      </div>
+      {!hideHeader && (
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-neutral-900">
+            Payment Method
+          </h2>
+          <p className="text-sm text-neutral-500">
+            Securely save your card for future payments.
+          </p>
+        </div>
+      )}
 
       {configured && promise ? (
         <Elements stripe={promise}>
-          <CardForm />
+          <CardForm parentId={parentId} />
         </Elements>
       ) : configured === false ? (
         <NotConfigured />

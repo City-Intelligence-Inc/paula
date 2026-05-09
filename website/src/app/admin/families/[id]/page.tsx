@@ -6,8 +6,10 @@ import { useApi } from "@/hooks/use-api";
 import { client } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Mail, Phone, CreditCard } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Mail, Phone, CreditCard, Plus } from "lucide-react";
 import { PaymentMethodsPanel } from "@/components/stripe/payment-methods-panel";
+import { SaveCardForm } from "@/components/stripe/save-card-form";
 import type { Family, Parent, Student } from "@/lib/types";
 
 export default function FamilyDetailPage({
@@ -126,22 +128,15 @@ export default function FamilyDetailPage({
         )}
       </div>
 
-      {parents.some((p) => p.stripeCustomerId) && (
+      {parents.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold text-neutral-900 mb-3 flex items-center gap-2">
             <CreditCard className="h-4 w-4 text-mathitude-purple" />
             Payment methods
           </h2>
-          {parents
-            .filter((p) => p.stripeCustomerId)
-            .map((p) => (
-              <div key={p.id} className="space-y-2 mb-4">
-                <p className="text-xs text-neutral-500">
-                  {p.firstName} {p.lastName} · {p.email}
-                </p>
-                <PaymentMethodsPanel parentId={p.id} />
-              </div>
-            ))}
+          {parents.map((p) => (
+            <ParentPaymentBlock key={p.id} parent={p} />
+          ))}
         </div>
       )}
 
@@ -185,6 +180,46 @@ export default function FamilyDetailPage({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function ParentPaymentBlock({ parent }: { parent: Parent }) {
+  const [adding, setAdding] = useState(false);
+  return (
+    <div className="space-y-2 mb-6">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-neutral-500">
+          {parent.firstName} {parent.lastName} · {parent.email}
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setAdding((v) => !v)}
+        >
+          <Plus className="h-3 w-3" />
+          {adding ? "Cancel" : "Add card"}
+        </Button>
+      </div>
+      {adding && (
+        <Card className="border border-neutral-200 rounded-lg p-4">
+          <p className="text-xs text-neutral-500 mb-3">
+            Enter the card details on behalf of {parent.firstName}. Stripe
+            stores the card; Mathitude never sees the number.
+          </p>
+          <SaveCardForm parentId={parent.id} hideHeader />
+        </Card>
+      )}
+      {parent.stripeCustomerId ? (
+        <PaymentMethodsPanel parentId={parent.id} />
+      ) : (
+        <Card className="border border-neutral-200 rounded-lg bg-neutral-50">
+          <div className="py-4 px-4 text-sm text-neutral-500">
+            No Stripe customer yet. Click <strong>Add card</strong> to create
+            one + save the first card in a single step.
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
