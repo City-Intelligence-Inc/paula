@@ -6,7 +6,8 @@ import { useApi } from "@/hooks/use-api";
 import { client } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Mail, Phone } from "lucide-react";
+import { ArrowLeft, Mail, Phone, CreditCard } from "lucide-react";
+import { PaymentMethodsPanel } from "@/components/stripe/payment-methods-panel";
 import type { Family, Parent, Student } from "@/lib/types";
 
 export default function FamilyDetailPage({
@@ -124,6 +125,25 @@ export default function FamilyDetailPage({
           </div>
         )}
       </div>
+
+      {parents.some((p) => p.stripeCustomerId) && (
+        <div>
+          <h2 className="text-lg font-semibold text-neutral-900 mb-3 flex items-center gap-2">
+            <CreditCard className="h-4 w-4 text-mathitude-purple" />
+            Payment methods
+          </h2>
+          {parents
+            .filter((p) => p.stripeCustomerId)
+            .map((p) => (
+              <div key={p.id} className="space-y-2 mb-4">
+                <p className="text-xs text-neutral-500">
+                  {p.firstName} {p.lastName} · {p.email}
+                </p>
+                <PaymentMethodsPanel parentId={p.id} />
+              </div>
+            ))}
+        </div>
+      )}
 
       <div>
         <h2 className="text-lg font-semibold text-neutral-900 mb-3">

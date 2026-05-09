@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SaveCardForm } from "@/components/stripe/save-card-form";
+import { PaymentMethodsPanel } from "@/components/stripe/payment-methods-panel";
 import { useApi } from "@/hooks/use-api";
 import { PageHeader } from "@/components/dashboard/page-header";
 import type { Payment } from "@/lib/types";
@@ -121,6 +122,14 @@ export default function BillingPage() {
           </div>
         </div>
         <SaveCardForm />
+      </div>
+
+      {/* Saved cards */}
+      <div className="max-w-2xl">
+        <h2 className="text-lg font-semibold text-neutral-900 mb-3">
+          Your saved cards
+        </h2>
+        <PaymentMethodsPanel />
       </div>
 
       {/* Payment History */}
