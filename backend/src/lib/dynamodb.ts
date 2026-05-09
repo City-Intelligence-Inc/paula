@@ -30,4 +30,5 @@ export const Tables = {
   parents: `${prefix}-parents`,
   tutors: `${prefix}-tutors`,
   users: `${prefix}-users`,
+  secrets: `${prefix}-secrets`,
 } as const;
