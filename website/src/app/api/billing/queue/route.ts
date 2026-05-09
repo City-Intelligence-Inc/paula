@@ -1,55 +1,70 @@
 import { QueryCommand, ScanCommand, BatchGetCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
 
-// GET /api/billing/queue
-// Returns sessions in `completed` status (not yet billed) enriched with
-// student name, family/parent, default rate, and computed charge amount.
-// This is the data the admin reviews before approving charges.
-export async function GET() {
+// GET /api/billing/queue?days=14&limit=200
+//
+// Returns sessions where status=completed, newest first, scoped to a recent
+// window so the page doesn't try to render thousands of historical imports.
+//
+// The by-status GSI is hash=status, range=dateTime; we use a key condition
+// `dateTime > since` so the GSI itself does the date filter (cheap), then
+// page through the latest items first (ScanIndexForward=false).
+export async function GET(request: Request) {
   const auth = await requireUser();
   if (auth.response) return auth.response;
 
+  const { searchParams } = new URL(request.url);
+  const days = Math.max(
+    1,
+    Math.min(365, Number(searchParams.get("days") || 14)),
+  );
+  const limit = Math.max(
+    1,
+    Math.min(500, Number(searchParams.get("limit") || 200)),
+  );
+
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
   const c = ddb();
 
-  // Query sessions where status=completed via the by-status GSI.
-  // Fall back to a Scan if the GSI isn't provisioned yet.
   let sessionItems: Record<string, unknown>[] = [];
+  let truncated = false;
   try {
     const r = await c.send(
       new QueryCommand({
         TableName: Tables.sessions,
         IndexName: "by-status",
-        KeyConditionExpression: "#s = :s",
-        ExpressionAttributeNames: { "#s": "status" },
-        ExpressionAttributeValues: { ":s": "completed" },
+        KeyConditionExpression: "#s = :s AND #d > :since",
+        ExpressionAttributeNames: { "#s": "status", "#d": "dateTime" },
+        ExpressionAttributeValues: { ":s": "completed", ":since": since },
+        ScanIndexForward: false, // newest first
+        Limit: limit,
       }),
     );
     sessionItems = r.Items || [];
+    truncated = !!r.LastEvaluatedKey;
   } catch (err) {
     console.warn("[billing/queue] by-status GSI query failed, scanning", err);
     const r = await c.send(
       new ScanCommand({
         TableName: Tables.sessions,
-        FilterExpression: "#s = :s",
-        ExpressionAttributeNames: { "#s": "status" },
-        ExpressionAttributeValues: { ":s": "completed" },
-        Limit: 500,
+        FilterExpression: "#s = :s AND #d > :since",
+        ExpressionAttributeNames: { "#s": "status", "#d": "dateTime" },
+        ExpressionAttributeValues: { ":s": "completed", ":since": since },
+        Limit: limit,
       }),
     );
     sessionItems = r.Items || [];
+    truncated = !!r.LastEvaluatedKey;
   }
 
   const studentIds = Array.from(
     new Set(sessionItems.map((s) => s.studentId as string).filter(Boolean)),
   );
 
-  let students: Record<string, Record<string, unknown>> = {};
+  const students: Record<string, Record<string, unknown>> = {};
   if (studentIds.length > 0) {
-    const batches: string[][] = [];
     for (let i = 0; i < studentIds.length; i += 100) {
-      batches.push(studentIds.slice(i, i + 100));
-    }
-    for (const ids of batches) {
+      const ids = studentIds.slice(i, i + 100);
       const res = await c.send(
         new BatchGetCommand({
           RequestItems: {
@@ -70,7 +85,6 @@ export async function GET() {
       ? `${student.firstName} ${student.lastName}`
       : (s.studentId as string);
     const studentRate = (student?.rate as number | undefined) ?? 0;
-    // Session.rate is in cents; Student.rate is in dollars (legacy).
     const sessionRateCents = (s.rate as number | undefined) ?? null;
     const fallbackCents = Math.round(studentRate * 100);
     const amountCents = sessionRateCents ?? fallbackCents;
@@ -89,11 +103,14 @@ export async function GET() {
     };
   });
 
-  // Newest first.
-  queue.sort(
-    (a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
-  );
-
   const totalCents = queue.reduce((sum, q) => sum + q.amountCents, 0);
-  return Response.json({ queue, totalCents, count: queue.length });
+  return Response.json({
+    queue,
+    totalCents,
+    count: queue.length,
+    days,
+    limit,
+    truncated,
+    since,
+  });
 }

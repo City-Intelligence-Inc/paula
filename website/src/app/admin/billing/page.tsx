@@ -64,18 +64,23 @@ export default function AdminBillingPage() {
   const [charging, setCharging] = useState(false);
   const [results, setResults] = useState<ApproveResult[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [days, setDays] = useState(14);
+  const [truncated, setTruncated] = useState(false);
 
   const rowKey = (r: QueueRow) => `${r.studentId}#${r.dateTime}`;
 
-  async function loadQueue() {
+  async function loadQueue(d: number = days) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetchApi("/api/billing/queue");
+      const res = await fetchApi(`/api/billing/queue?days=${d}&limit=200`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load queue");
       setQueue(data.queue || []);
-      setSelected(new Set((data.queue || []).map((r: QueueRow) => rowKey(r))));
+      setTruncated(!!data.truncated);
+      // Don't auto-select. With 3000+ historical sessions in staging an
+      // accidental click would otherwise fire thousands of live charges.
+      setSelected(new Set());
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -84,7 +89,7 @@ export default function AdminBillingPage() {
   }
 
   useEffect(() => {
-    loadQueue();
+    loadQueue(days);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -195,10 +200,26 @@ export default function AdminBillingPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
+          <select
+            value={days}
+            onChange={(e) => {
+              const d = Number(e.target.value);
+              setDays(d);
+              loadQueue(d);
+            }}
+            disabled={loading || charging}
+            className="rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900"
+          >
+            <option value={7}>Last 7 days</option>
+            <option value={14}>Last 14 days</option>
+            <option value={30}>Last 30 days</option>
+            <option value={60}>Last 60 days</option>
+            <option value={90}>Last 90 days</option>
+          </select>
           <Button
             variant="outline"
             size="sm"
-            onClick={loadQueue}
+            onClick={() => loadQueue(days)}
             disabled={loading || charging}
           >
             <RefreshCw className="h-3 w-3" />
@@ -229,6 +250,17 @@ export default function AdminBillingPage() {
         <Card className="py-3 border border-red-200 rounded-lg bg-red-50">
           <CardContent>
             <p className="text-sm text-red-600">{error}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {truncated && (
+        <Card className="py-3 border border-amber-200 rounded-lg bg-amber-50">
+          <CardContent>
+            <p className="text-sm text-amber-800">
+              Showing the first 200 sessions in this window. Narrow the date
+              range to see older ones.
+            </p>
           </CardContent>
         </Card>
       )}
