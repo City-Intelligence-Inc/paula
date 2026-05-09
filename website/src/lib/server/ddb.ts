@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { auth } from "@clerk/nextjs/server";
 
 let _ddb: DynamoDBDocumentClient | null = null;
@@ -54,32 +54,11 @@ export async function requireUser() {
   }
 }
 
-// Admin gate. A caller is admin if EITHER:
-//   1. Their clerkUserId is listed (comma-separated) in ADMIN_CLERK_USER_IDS, or
-//   2. mathitude-users has a row with their clerkUserId where role === "admin".
-// Returns the same shape as requireUser().
+// Admin gate.
+// TEMPORARY (2026-05-09): every signed-in user is treated as admin so the
+// Mathitude team can use the portal before role assignments exist. Tighten
+// to role=admin / ADMIN_CLERK_USER_IDS allowlist before exposing the
+// platform to parents or external tutors.
 export async function requireAdmin() {
-  const base = await requireUser();
-  if (base.response) return base;
-  const userId = base.userId!;
-
-  const allowlist = (process.env.ADMIN_CLERK_USER_IDS || "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  if (allowlist.includes(userId)) return base;
-
-  try {
-    const r = await ddb().send(
-      new GetCommand({ TableName: Tables.users, Key: { clerkUserId: userId } }),
-    );
-    if (r.Item?.role === "admin") return base;
-  } catch (err) {
-    console.warn("[requireAdmin] users lookup failed:", err);
-  }
-
-  return {
-    userId: null,
-    response: Response.json({ error: "Forbidden" }, { status: 403 }),
-  };
+  return requireUser();
 }
