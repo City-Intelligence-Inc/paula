@@ -87,10 +87,14 @@ function CardForm({ parentId }: { parentId?: string }) {
         setMessage(stripeError.message ?? "Something went wrong.");
       } else {
         setSuccess(true);
-        setMessage("Card saved successfully!");
-        // Notify PaymentMethodsPanel(s) on the page to refetch.
+        setMessage("Card saved successfully — refreshing…");
+        // Two-step refresh: fire event for sibling panels, then hard reload
+        // so the page picks up newly-created Stripe customer + saved card.
+        // Card lookups go straight to Stripe; the reload guarantees the user
+        // sees the updated state regardless of any cache layer.
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("mathitude:card-saved"));
+          setTimeout(() => window.location.reload(), 800);
         }
       }
     } catch {

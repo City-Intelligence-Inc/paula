@@ -109,9 +109,37 @@ export function PaymentMethodsPanel({ parentId }: { parentId?: string } = {}) {
   if (!data?.stripeCustomerId) {
     return (
       <Card className="border border-neutral-200 rounded-lg bg-neutral-50">
-        <CardContent className="py-4 text-sm text-neutral-500">
-          No Stripe customer on file. The customer is created automatically
-          when the parent saves a card for the first time.
+        <CardContent className="py-4 text-sm text-neutral-500 space-y-2">
+          <p>
+            No Stripe customer on file yet. A customer is created the first
+            time you successfully save a card.
+          </p>
+          {error && (
+            <p className="text-xs text-red-600">Lookup error: {error}</p>
+          )}
+          {data?.parentId && (
+            <p className="text-xs text-neutral-400 font-mono">
+              parent: {data.parentId}
+            </p>
+          )}
+          <p className="text-xs text-neutral-500">
+            If you just saved a card and don&rsquo;t see it, the most common
+            cause is using a real card in test mode (Stripe declines those).
+            Try{" "}
+            <code className="rounded bg-white border border-neutral-200 px-1">
+              4242 4242 4242 4242
+            </code>{" "}
+            with any future expiry + any CVC.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={load}
+            disabled={loading}
+          >
+            <RefreshCw className="h-3 w-3" />
+            Recheck
+          </Button>
         </CardContent>
       </Card>
     );
