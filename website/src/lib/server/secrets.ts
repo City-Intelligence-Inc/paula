@@ -35,11 +35,19 @@ export interface StripeMeta {
 const CACHE_TTL_MS = 60_000;
 let cache: { value: StripeSecrets | null; expires: number } | null = null;
 
+// Trim any whitespace/newlines copied in from env vars — Vercel CLI is known
+// to add a trailing \n if you paste a key without stripping it. A malformed
+// Authorization header surfaces as a "connection error" after Stripe SDK
+// retries, which is confusing to debug.
+function clean(v: string | undefined | null): string {
+  return (v || "").trim();
+}
+
 function fromEnv(): StripeSecrets | null {
-  const secretKey = process.env.STRIPE_SECRET_KEY;
+  const secretKey = clean(process.env.STRIPE_SECRET_KEY);
   if (!secretKey || secretKey.includes("placeholder")) return null;
-  const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
+  const publishableKey = clean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+  const webhookSecret = clean(process.env.STRIPE_WEBHOOK_SECRET);
   return {
     secretKey,
     publishableKey,
@@ -59,11 +67,11 @@ export async function getStripeSecrets(): Promise<StripeSecrets | null> {
       new GetCommand({ TableName: Tables.secrets, Key: { id: "stripe" } }),
     );
     if (r.Item?.secretKey) {
-      const sk = r.Item.secretKey as string;
+      const sk = clean(r.Item.secretKey as string);
       value = {
         secretKey: sk,
-        publishableKey: (r.Item.publishableKey as string) || "",
-        webhookSecret: (r.Item.webhookSecret as string) || "",
+        publishableKey: clean(r.Item.publishableKey as string),
+        webhookSecret: clean(r.Item.webhookSecret as string),
         mode: sk.startsWith("sk_live_") ? "live" : "test",
         last4: sk.slice(-4),
         updatedAt: (r.Item.updatedAt as string) || "",
@@ -93,26 +101,26 @@ export async function getStripeMeta(): Promise<StripeMeta> {
   else if (process.env.STRIPE_SECRET_KEY) source = "env";
 
   if (source === "portal" && row) {
-    const sk = row.secretKey as string;
+    const sk = clean(row.secretKey as string);
     return {
       mode: sk.startsWith("sk_live_") ? "live" : "test",
       last4: sk.slice(-4),
-      publishableKey: (row.publishableKey as string) || "",
+      publishableKey: clean(row.publishableKey as string),
       hasSecretKey: true,
-      hasWebhookSecret: !!row.webhookSecret,
+      hasWebhookSecret: !!clean(row.webhookSecret as string),
       updatedAt: (row.updatedAt as string) || "",
       updatedBy: (row.updatedBy as string) || "unknown",
       source: "portal",
     };
   }
   if (source === "env") {
-    const sk = process.env.STRIPE_SECRET_KEY!;
+    const sk = clean(process.env.STRIPE_SECRET_KEY);
     return {
       mode: sk.startsWith("sk_live_") ? "live" : "test",
       last4: sk.slice(-4),
-      publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "",
+      publishableKey: clean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY),
       hasSecretKey: true,
-      hasWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
+      hasWebhookSecret: !!clean(process.env.STRIPE_WEBHOOK_SECRET),
       updatedAt: "",
       updatedBy: "env",
       source: "env",
