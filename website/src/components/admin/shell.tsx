@@ -16,6 +16,7 @@ import {
   Menu,
   ShieldCheck,
   Home,
+  Inbox,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -35,6 +36,11 @@ const navItems = [
     label: "Students",
     href: "/admin/students",
     icon: Users,
+  },
+  {
+    label: "Billing queue",
+    href: "/admin/billing",
+    icon: Inbox,
   },
   {
     label: "Payments",
