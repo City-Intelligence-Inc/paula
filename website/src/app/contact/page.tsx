@@ -178,7 +178,7 @@ function ContactForm() {
           htmlFor="studentInfo"
           className="block text-sm font-medium text-neutral-700 mb-1.5"
         >
-          Student info (optional)
+          Student info
         </label>
         <input
           type="text"
@@ -186,6 +186,7 @@ function ContactForm() {
           name="studentInfo"
           value={form.studentInfo}
           onChange={handleChange}
+          required
           className="w-full h-11 px-4 text-sm border border-neutral-200 rounded-md bg-white text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300"
           placeholder="Grade, school, or anything else useful"
         />
@@ -219,9 +220,9 @@ function ContactForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="inline-flex items-center justify-center rounded-md bg-[#7030A0] text-white hover:bg-[#5d288a] disabled:opacity-60 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
+        className="inline-flex items-center justify-center rounded-md bg-[#7030A0] text-white hover:bg-[#5d288a] disabled:opacity-60 font-medium text-sm uppercase tracking-wide px-8 py-3.5 min-w-[180px] transition-colors"
       >
-        {submitting ? "Sending…" : "Send to Mathitude"}
+        {submitting ? "SENDING…" : "SEND TO MATHITUDE"}
       </button>
     </form>
   );
@@ -241,9 +242,9 @@ export default function ContactPage() {
               Request a Consultation
             </h1>
             <p className="mt-6 text-lg md:text-xl text-black leading-relaxed text-center max-w-2xl mx-auto">
-              Tell us a little about your student and what you&apos;re hoping
-              for. Mathitude reads every note and will reach out to schedule a
-              free conversation about the right next step.
+              Tell us a little about your student and your math engagement
+              objectives. Mathitude will reach out to schedule a free
+              consultation.
             </p>
           </div>
         </section>
@@ -289,7 +290,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-medium text-black">Address</h3>
                     <p className="text-sm text-neutral-500">
-                      770 Menlove Suite 200A
+                      770 Menlo Ave, Suite 200A
                     </p>
                     <p className="text-sm text-neutral-500">Menlo Park, CA</p>
                     <p className="text-xs text-neutral-400 mt-0.5">

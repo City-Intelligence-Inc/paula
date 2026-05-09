@@ -38,15 +38,15 @@ export function Hero() {
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center bg-[#7030A0] text-white hover:bg-[#5d288a] rounded-full px-8 py-3.5 text-sm font-medium transition-colors min-w-[200px] min-h-[48px] shadow-sm hover:shadow-md"
+                className="inline-flex items-center justify-center bg-[#7030A0] text-white hover:bg-[#5d288a] rounded-full px-8 py-3.5 text-sm font-medium uppercase tracking-wide transition-colors min-w-[200px] min-h-[48px] shadow-sm hover:shadow-md"
               >
-                Request a consultation
+                Request a Consultation
               </Link>
               <Link
                 href="/tutoring"
                 className="inline-flex items-center justify-center text-neutral-700 hover:text-[#7030A0] rounded-md px-6 py-3.5 text-sm font-medium transition-colors min-h-[48px]"
               >
-                See all offerings &rarr;
+                Learn More &rarr;
               </Link>
             </div>
           </div>
@@ -56,7 +56,7 @@ export function Hero() {
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100">
                 <Image
-                  src="/photos/bucky_yuma1.jpg"
+                  src="/photos/bucky_avni1.jpg"
                   alt="Student building a colorful geometric structure"
                   fill
                   className="object-cover"
@@ -66,8 +66,8 @@ export function Hero() {
               </div>
               <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100">
                 <Image
-                  src="/photos/bucky_emma2.jpg"
-                  alt="Student exploring math with construction toys"
+                  src="/photos/bucky_raife_cara3.jpg"
+                  alt="Two students mid-jump in a hands-on math activity"
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 50vw, 25vw"

@@ -119,9 +119,9 @@ export function Services() {
           </div>
           <Link
             href="/contact"
-            className="inline-flex items-center justify-center rounded-full bg-[#7030A0] text-white hover:bg-[#5d288a] font-medium text-base px-9 py-4 transition-colors shadow-sm hover:shadow-md whitespace-nowrap"
+            className="inline-flex items-center justify-center rounded-full bg-[#7030A0] text-white hover:bg-[#5d288a] font-medium uppercase tracking-wide text-base px-9 py-4 transition-colors shadow-sm hover:shadow-md whitespace-nowrap"
           >
-            Request a free consultation
+            Request a Free Consultation
           </Link>
         </div>
       </div>

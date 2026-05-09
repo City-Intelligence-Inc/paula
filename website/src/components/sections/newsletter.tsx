@@ -76,7 +76,7 @@ export function Newsletter() {
                   <button
                     type="submit"
                     disabled={status === "loading"}
-                    className="min-h-[48px] bg-[#7030A0] text-white hover:bg-[#5d288a] rounded-md px-6 text-sm font-medium transition-colors disabled:opacity-50 whitespace-nowrap"
+                    className="min-h-[48px] bg-[#7030A0] text-white hover:bg-[#5d288a] rounded-md px-6 text-sm font-medium uppercase tracking-wide transition-colors disabled:opacity-50 whitespace-nowrap"
                   >
                     {status === "loading" ? "Subscribing..." : "Subscribe"}
                   </button>

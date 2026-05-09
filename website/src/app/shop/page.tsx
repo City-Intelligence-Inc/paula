@@ -140,7 +140,7 @@ export default function ShopPage() {
                 href={AMAZON_STORE}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-6 inline-flex items-center justify-center rounded-md bg-[#7030A0] text-white hover:bg-[#5d288a] font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
+                className="mt-6 inline-flex items-center justify-center rounded-md bg-[#7030A0] text-white hover:bg-[#5d288a] font-medium uppercase tracking-wide text-sm px-8 py-3.5 min-w-[180px] transition-colors"
               >
                 Visit Amazon Store
               </a>

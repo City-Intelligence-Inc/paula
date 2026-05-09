@@ -68,9 +68,9 @@ export default function TutoringHubPage() {
             <div className="mt-8 flex justify-center">
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center rounded-full bg-[#7030A0] text-white hover:bg-[#5d288a] font-medium text-base px-8 py-3.5 transition-colors shadow-sm hover:shadow-md"
+                className="inline-flex items-center justify-center rounded-full bg-[#7030A0] text-white hover:bg-[#5d288a] font-medium uppercase tracking-wide text-base px-8 py-3.5 transition-colors shadow-sm hover:shadow-md"
               >
-                Request a consultation
+                Request a Consultation
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Link>
             </div>

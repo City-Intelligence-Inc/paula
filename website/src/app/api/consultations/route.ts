@@ -43,10 +43,11 @@ export async function POST(request: Request) {
   const email = body.email?.trim();
   const message = body.message?.trim();
   const offering = body.offering?.trim();
+  const studentInfo = body.studentInfo?.trim();
 
-  if (!name || !email || !message) {
+  if (!name || !email || !message || !studentInfo) {
     return Response.json(
-      { error: "name, email, and message are required" },
+      { error: "name, email, studentInfo, and message are required" },
       { status: 400 },
     );
   }
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
     email,
     phone: body.phone?.trim() || undefined,
     offering: offering || "general",
-    studentInfo: body.studentInfo?.trim() || undefined,
+    studentInfo,
     notes: message,
     source: body.source?.trim() || undefined,
     createdAt: new Date().toISOString(),
