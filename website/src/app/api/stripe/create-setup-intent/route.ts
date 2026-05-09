@@ -59,15 +59,26 @@ export async function POST(request: Request) {
         parent = (ps.Items?.[0] as Record<string, unknown>) || null;
       }
     } else {
+      // NOTE: ScanCommand applies `Limit` before `FilterExpression`, so a
+      // Limit:1 here would silently miss matching parents and the bootstrap
+      // would keep creating duplicate Family+Parent+StripeCustomer rows on
+      // every Save Card click. Don't add Limit until we have a
+      // by-clerk-user GSI on parents.
       const ps = await c.send(
         new ScanCommand({
           TableName: Tables.parents,
           FilterExpression: "clerkUserId = :u",
           ExpressionAttributeValues: { ":u": userId },
-          Limit: 1,
         }),
       );
-      parent = (ps.Items?.[0] as Record<string, unknown>) || null;
+      // Prefer the most recently created match.
+      const matches = (ps.Items as Record<string, unknown>[]) || [];
+      matches.sort(
+        (a, b) =>
+          new Date((b.createdAt as string) || 0).getTime() -
+          new Date((a.createdAt as string) || 0).getTime(),
+      );
+      parent = matches[0] || null;
 
       // Bootstrap: if the signed-in user has no parent row yet, try to
       // match by Clerk email; if still nothing, auto-create a parent +

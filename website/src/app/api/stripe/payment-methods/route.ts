@@ -23,15 +23,22 @@ export async function GET(request: Request) {
     );
     parent = (r.Item as Record<string, unknown>) || null;
   } else {
+    // No Limit — Scan applies Limit before FilterExpression, so Limit:1
+    // would miss matches when the first item on disk doesn't match.
     const ps = await c.send(
       new ScanCommand({
         TableName: Tables.parents,
         FilterExpression: "clerkUserId = :u",
         ExpressionAttributeValues: { ":u": auth.userId },
-        Limit: 1,
       }),
     );
-    parent = (ps.Items?.[0] as Record<string, unknown>) || null;
+    const matches = (ps.Items as Record<string, unknown>[]) || [];
+    matches.sort(
+      (a, b) =>
+        new Date((b.createdAt as string) || 0).getTime() -
+        new Date((a.createdAt as string) || 0).getTime(),
+    );
+    parent = matches[0] || null;
   }
 
   if (!parent) {
