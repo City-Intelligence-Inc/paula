@@ -51,6 +51,12 @@ export function PaymentMethodsPanel({ parentId }: { parentId?: string } = {}) {
 
   useEffect(() => {
     load();
+    // Refresh when SaveCardForm fires its event after a successful save.
+    const onSaved = () => load();
+    if (typeof window !== "undefined") {
+      window.addEventListener("mathitude:card-saved", onSaved);
+      return () => window.removeEventListener("mathitude:card-saved", onSaved);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parentId]);
 

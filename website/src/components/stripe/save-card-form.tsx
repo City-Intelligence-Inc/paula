@@ -88,6 +88,10 @@ function CardForm({ parentId }: { parentId?: string }) {
       } else {
         setSuccess(true);
         setMessage("Card saved successfully!");
+        // Notify PaymentMethodsPanel(s) on the page to refetch.
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("mathitude:card-saved"));
+        }
       }
     } catch {
       setMessage("An unexpected error occurred.");
