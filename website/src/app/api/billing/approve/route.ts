@@ -5,7 +5,12 @@ import {
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
-import { buildChargeFields, getStripe, isStripeConfigured } from "@/lib/server/stripe";
+import {
+  buildChargeFields,
+  getStripe,
+  isStripeConfigured,
+  resolveDefaultPaymentMethod,
+} from "@/lib/server/stripe";
 
 
 interface QueueRow {
@@ -106,12 +111,10 @@ export async function POST(request: Request) {
       if (!stripeCustomerId) stripeCustomerId = student.stripeCustomerId;
       if (!stripeCustomerId) throw new Error("No Stripe customer on file");
 
-      const pmList = await stripe.paymentMethods.list({
-        customer: stripeCustomerId,
-        type: "card",
-        limit: 1,
-      });
-      const paymentMethod = pmList.data[0];
+      const paymentMethod = await resolveDefaultPaymentMethod(
+        stripe,
+        stripeCustomerId,
+      );
       if (!paymentMethod) throw new Error("No saved card on file");
 
       const studentName = `${student.firstName} ${student.lastName}`.trim();

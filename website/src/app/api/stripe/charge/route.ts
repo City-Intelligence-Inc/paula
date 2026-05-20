@@ -1,6 +1,10 @@
 import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
-import { buildChargeFields, getStripe } from "@/lib/server/stripe";
+import {
+  buildChargeFields,
+  getStripe,
+  resolveDefaultPaymentMethod,
+} from "@/lib/server/stripe";
 
 interface Body {
   studentId?: string;
@@ -73,12 +77,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const pmList = await stripe.paymentMethods.list({
-    customer: stripeCustomerId,
-    type: "card",
-    limit: 1,
-  });
-  const paymentMethod = pmList.data[0];
+  const paymentMethod = await resolveDefaultPaymentMethod(
+    stripe,
+    stripeCustomerId,
+  );
   if (!paymentMethod) {
     return Response.json(
       { error: "No saved card on file for this customer." },

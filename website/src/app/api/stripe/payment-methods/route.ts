@@ -72,16 +72,27 @@ export async function GET(request: Request) {
           | null) ?? null
       : null;
 
-  const paymentMethods = pmList.data.map((pm) => ({
-    id: pm.id,
-    brand: pm.card?.brand,
-    last4: pm.card?.last4,
-    expMonth: pm.card?.exp_month,
-    expYear: pm.card?.exp_year,
-    funding: pm.card?.funding,
-    created: new Date(pm.created * 1000).toISOString(),
-    isDefault: pm.id === defaultPmId,
-  }));
+  // Default card first, then newest → oldest. Matches the "Default" badge
+  // Stripe surfaces on the dashboard and the order this app's charge path
+  // selects (resolveDefaultPaymentMethod).
+  const paymentMethods = pmList.data
+    .slice()
+    .sort((a, b) => {
+      const aDefault = a.id === defaultPmId ? 1 : 0;
+      const bDefault = b.id === defaultPmId ? 1 : 0;
+      if (aDefault !== bDefault) return bDefault - aDefault;
+      return b.created - a.created;
+    })
+    .map((pm) => ({
+      id: pm.id,
+      brand: pm.card?.brand,
+      last4: pm.card?.last4,
+      expMonth: pm.card?.exp_month,
+      expYear: pm.card?.exp_year,
+      funding: pm.card?.funding,
+      created: new Date(pm.created * 1000).toISOString(),
+      isDefault: pm.id === defaultPmId,
+    }));
 
   return Response.json({
     parentId: parent.id,

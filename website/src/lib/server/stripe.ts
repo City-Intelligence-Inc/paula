@@ -31,6 +31,42 @@ export async function isStripeConfigured(): Promise<boolean> {
   return !!secrets?.secretKey;
 }
 
+// Resolve which PaymentMethod to charge for a customer.
+// Prefers customer.invoice_settings.default_payment_method (the field the
+// "Set as default" UI writes and the one Stripe's dashboard surfaces as
+// "Default"). Falls back to the most recent card on file so legacy customers
+// who pre-date the default-card UI still get charged.
+export async function resolveDefaultPaymentMethod(
+  stripe: Stripe,
+  customerId: string,
+): Promise<Stripe.PaymentMethod | null> {
+  const customer = await stripe.customers.retrieve(customerId);
+  if ("deleted" in customer && customer.deleted) return null;
+
+  const defaultPmId = customer.invoice_settings?.default_payment_method as
+    | string
+    | Stripe.PaymentMethod
+    | null
+    | undefined;
+
+  if (defaultPmId) {
+    if (typeof defaultPmId !== "string") return defaultPmId;
+    try {
+      const pm = await stripe.paymentMethods.retrieve(defaultPmId);
+      if (pm.customer === customerId) return pm;
+    } catch {
+      // Default PM was detached or never attached — fall through to first card.
+    }
+  }
+
+  const pmList = await stripe.paymentMethods.list({
+    customer: customerId,
+    type: "card",
+    limit: 1,
+  });
+  return pmList.data[0] ?? null;
+}
+
 // ---------------------------------------------------------
 // Privacy guardrails — Phase 2 Week 5 acceptance criteria.
 // statement_descriptor is hardcoded to "MATHITUDE" — never
