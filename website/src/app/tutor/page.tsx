@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useApi } from "@/hooks/use-api";
-import { UserCheck, Mail, Phone } from "lucide-react";
+import { UserCheck, Mail, Phone, BookOpen } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -83,6 +83,15 @@ export default function TutorPortalPage() {
               students here.
             </p>
           ) : null}
+          <div className="mt-4">
+            <Link
+              href="/tutor/resources"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#7030A0] hover:text-[#5d288a]"
+            >
+              <BookOpen className="h-4 w-4" />
+              Resource library
+            </Link>
+          </div>
         </div>
 
         {loading ? (

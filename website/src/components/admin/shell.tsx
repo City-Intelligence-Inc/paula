@@ -19,6 +19,7 @@ import {
   Inbox,
   UserCheck,
   Bell,
+  BookOpen,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -43,6 +44,11 @@ const navItems = [
     label: "Tutors",
     href: "/admin/tutors",
     icon: UserCheck,
+  },
+  {
+    label: "Resources",
+    href: "/admin/resources",
+    icon: BookOpen,
   },
   {
     label: "Billing queue",
