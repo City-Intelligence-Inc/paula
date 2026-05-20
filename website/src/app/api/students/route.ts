@@ -97,7 +97,7 @@ export async function POST(request: Request) {
     parentName: body.parentName || "",
     parentEmail: body.parentEmail || "",
     parentPhone: body.parentPhone || "",
-    tutorIds: ["tut_paula"],
+    tutorIds: [],
     createdAt: now,
     updatedAt: now,
   };

@@ -7,7 +7,7 @@ import { client } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Mail, Phone, CreditCard, Plus } from "lucide-react";
+import { ArrowLeft, Mail, Phone, CreditCard, Plus, UserCheck } from "lucide-react";
 import { PaymentMethodsPanel } from "@/components/stripe/payment-methods-panel";
 import { SaveCardForm } from "@/components/stripe/save-card-form";
 import type { Family, Parent, Student } from "@/lib/types";
@@ -22,6 +22,10 @@ export default function FamilyDetailPage({
   const [family, setFamily] = useState<Family | null>(null);
   const [parents, setParents] = useState<Parent[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [tutorsById, setTutorsById] = useState<
+    Record<string, { firstName: string; lastName: string }>
+  >({});
+  const [savingPayer, setSavingPayer] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,10 +45,39 @@ export default function FamilyDetailPage({
         setError(err.message);
         setLoading(false);
       });
+    fetchApi("/api/admin/tutors")
+      .then((r) => r.json())
+      .then((j) => {
+        if (cancelled) return;
+        const map: Record<string, { firstName: string; lastName: string }> = {};
+        for (const t of j.tutors || []) {
+          map[t.id] = { firstName: t.firstName, lastName: t.lastName };
+        }
+        setTutorsById(map);
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
   }, [fetchApi, id]);
+
+  async function setPrimaryPayer(parentId: string) {
+    if (!family || family.primaryPayerId === parentId) return;
+    setSavingPayer(parentId);
+    try {
+      const res = await fetchApi(`/api/families/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ primaryPayerId: parentId }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setFamily(json.family);
+      }
+    } finally {
+      setSavingPayer(null);
+    }
+  }
 
   if (loading) {
     return (
@@ -118,9 +151,25 @@ export default function FamilyDetailPage({
                       )}
                     </div>
                   </div>
-                  <span className="text-xs text-neutral-400">
-                    {parent.stripeCustomerId ? "Stripe ✓" : "no Stripe"}
-                  </span>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-xs text-neutral-400">
+                      {parent.stripeCustomerId ? "Stripe ✓" : "no Stripe"}
+                    </span>
+                    {family.primaryPayerId !== parent.id && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={savingPayer === parent.id}
+                        onClick={() => setPrimaryPayer(parent.id)}
+                        className="border border-neutral-200 text-neutral-600 hover:border-neutral-300 rounded-md text-xs whitespace-nowrap"
+                      >
+                        {savingPayer === parent.id
+                          ? "Saving…"
+                          : "Make primary payer"}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </Card>
             ))}
@@ -148,35 +197,57 @@ export default function FamilyDetailPage({
           <p className="text-sm text-neutral-400">No students linked yet.</p>
         ) : (
           <div className="space-y-2">
-            {students.map((student) => (
-              <Card
-                key={student.id}
-                className="py-0 border border-neutral-200 rounded-lg"
-              >
-                <Link
-                  href={`/admin/students/${student.id}`}
-                  className="flex items-center gap-4 p-4 hover:bg-neutral-50 transition-colors"
+            {students.map((student) => {
+              const assignedTutors = (student.tutorIds || [])
+                .map((tid) => tutorsById[tid])
+                .filter(Boolean) as { firstName: string; lastName: string }[];
+              return (
+                <Card
+                  key={student.id}
+                  className="py-0 border border-neutral-200 rounded-lg"
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-neutral-900 truncate">
-                      {student.firstName} {student.lastName}
-                    </p>
-                    <p className="text-xs text-neutral-500">
-                      Grade {student.grade}
-                    </p>
-                  </div>
-                  <Badge
-                    className={
-                      student.status === "active"
-                        ? "bg-neutral-900/5 text-neutral-900 border-neutral-200"
-                        : "bg-neutral-100 text-neutral-600 border-neutral-200"
-                    }
+                  <Link
+                    href={`/admin/students/${student.id}`}
+                    className="flex items-start gap-4 p-4 hover:bg-neutral-50 transition-colors"
                   >
-                    {student.status}
-                  </Badge>
-                </Link>
-              </Card>
-            ))}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-neutral-900 truncate">
+                        {student.firstName} {student.lastName}
+                      </p>
+                      <p className="text-xs text-neutral-500">
+                        Grade {student.grade}
+                      </p>
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        <UserCheck className="h-3 w-3 text-[#7030A0]" />
+                        {assignedTutors.length === 0 ? (
+                          <span className="text-xs text-neutral-400">
+                            No tutor assigned
+                          </span>
+                        ) : (
+                          assignedTutors.map((t, i) => (
+                            <span
+                              key={i}
+                              className="text-xs text-[#7030A0] bg-[#7030A0]/5 border border-[#7030A0]/10 rounded-full px-2 py-0.5"
+                            >
+                              {t.firstName} {t.lastName}
+                            </span>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                    <Badge
+                      className={
+                        student.status === "active"
+                          ? "bg-neutral-900/5 text-neutral-900 border-neutral-200"
+                          : "bg-neutral-100 text-neutral-600 border-neutral-200"
+                      }
+                    >
+                      {student.status}
+                    </Badge>
+                  </Link>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

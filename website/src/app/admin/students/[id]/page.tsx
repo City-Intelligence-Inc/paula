@@ -11,6 +11,7 @@ import {
   X,
   Plus,
   FileText,
+  UserCheck,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +73,10 @@ export default function StudentDetailPage({
   const [student, setStudent] = useState<Student | null>(null);
   const [notes, setNotes] = useState<SessionNote[]>([]);
   const [sessions, setSessions] = useState<RealSession[]>([]);
+  const [allTutors, setAllTutors] = useState<
+    { id: string; firstName: string; lastName: string; active?: boolean }[]
+  >([]);
+  const [savingTutors, setSavingTutors] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -139,8 +144,34 @@ export default function StudentDetailPage({
     fetchStudent();
     fetchNotes();
     fetchSessions();
+    fetchApi("/api/admin/tutors")
+      .then((r) => r.json())
+      .then((j) => setAllTutors(j.tutors || []))
+      .catch(() => setAllTutors([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  async function toggleTutor(tutorId: string) {
+    if (!student) return;
+    const current = student.tutorIds || [];
+    const next = current.includes(tutorId)
+      ? current.filter((t) => t !== tutorId)
+      : [...current, tutorId];
+    setSavingTutors(true);
+    try {
+      const res = await fetchApi(`/api/students/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tutorIds: next }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setStudent(json.student);
+      }
+    } finally {
+      setSavingTutors(false);
+    }
+  }
 
   async function handleSaveEdit(e: React.FormEvent) {
     e.preventDefault();
@@ -488,6 +519,64 @@ export default function StudentDetailPage({
                 </Button>
               </div>
             </form>
+          )}
+        </div>
+      </Card>
+
+      {/* Assigned tutors */}
+      <Card className="border border-neutral-200 rounded-lg overflow-hidden">
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-2">
+            <UserCheck className="h-5 w-5 text-[#7030A0]" />
+            <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">
+              Assigned Tutors
+            </h2>
+            {savingTutors && (
+              <span className="text-xs text-neutral-400">Saving…</span>
+            )}
+          </div>
+          <p className="text-sm text-neutral-500 mb-4">
+            {student.tutorIds && student.tutorIds.length > 0
+              ? `${student.tutorIds.length} assigned · click to add or remove.`
+              : "No tutors assigned yet. Click a tutor below to assign."}
+          </p>
+          {allTutors.length === 0 ? (
+            <p className="text-sm text-neutral-500">
+              No tutors exist yet.{" "}
+              <a
+                href="/admin/tutors"
+                className="font-medium text-[#7030A0] hover:text-[#5d288a]"
+              >
+                Add tutors →
+              </a>
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {allTutors.map((t) => {
+                const assigned = (student.tutorIds || []).includes(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => toggleTutor(t.id)}
+                    disabled={savingTutors}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 ${
+                      assigned
+                        ? "bg-[#7030A0] text-white hover:bg-[#5d288a]"
+                        : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+                    }`}
+                    title={t.id}
+                  >
+                    {assigned ? (
+                      <X className="h-3 w-3" />
+                    ) : (
+                      <Plus className="h-3 w-3" />
+                    )}
+                    {t.firstName} {t.lastName}
+                  </button>
+                );
+              })}
+            </div>
           )}
         </div>
       </Card>

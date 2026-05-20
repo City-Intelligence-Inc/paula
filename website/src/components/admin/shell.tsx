@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Home,
   Inbox,
+  UserCheck,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -36,6 +37,11 @@ const navItems = [
     label: "Students",
     href: "/admin/students",
     icon: Users,
+  },
+  {
+    label: "Tutors",
+    href: "/admin/tutors",
+    icon: UserCheck,
   },
   {
     label: "Billing queue",

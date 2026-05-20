@@ -11,6 +11,9 @@ export interface Student {
   rate: number;
   notes?: string;
   stripeCustomerId?: string;
+  familyId?: string;
+  tutorIds?: string[];
+  primaryPayerParentId?: string;
   createdAt: string;
   updatedAt: string;
 }
