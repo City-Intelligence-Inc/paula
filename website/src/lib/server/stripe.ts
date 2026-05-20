@@ -31,6 +31,66 @@ export async function isStripeConfigured(): Promise<boolean> {
   return !!secrets?.secretKey;
 }
 
+// Maintain the "customer always has a default card whenever any card is on
+// file" invariant. Called on read AND write paths so the state is self-
+// healing for legacy customers who pre-date the single-card policy:
+//   - If the recorded default PM is still attached: no-op.
+//   - If the recorded default is missing but other cards remain: promote
+//     the newest card to default.
+//   - If no cards remain but the recorded default points at a stale PM:
+//     clear the dangling default pointer.
+export async function ensureDefaultCard(
+  stripe: Stripe,
+  customerId: string,
+): Promise<{
+  defaultPaymentMethodId: string | null;
+  changed: boolean;
+}> {
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    if ("deleted" in customer && customer.deleted) {
+      return { defaultPaymentMethodId: null, changed: false };
+    }
+
+    const raw = customer.invoice_settings?.default_payment_method as
+      | string
+      | Stripe.PaymentMethod
+      | null
+      | undefined;
+    const currentId =
+      typeof raw === "string" ? raw : raw?.id || null;
+
+    const list = await stripe.paymentMethods.list({
+      customer: customerId,
+      type: "card",
+      limit: 100,
+    });
+
+    if (currentId && list.data.some((p) => p.id === currentId)) {
+      return { defaultPaymentMethodId: currentId, changed: false };
+    }
+
+    if (list.data.length === 0) {
+      if (currentId) {
+        await stripe.customers.update(customerId, {
+          invoice_settings: { default_payment_method: "" },
+        });
+        return { defaultPaymentMethodId: null, changed: true };
+      }
+      return { defaultPaymentMethodId: null, changed: false };
+    }
+
+    const newest = list.data.slice().sort((a, b) => b.created - a.created)[0];
+    await stripe.customers.update(customerId, {
+      invoice_settings: { default_payment_method: newest.id },
+    });
+    return { defaultPaymentMethodId: newest.id, changed: true };
+  } catch (err) {
+    console.warn("[ensureDefaultCard] failed for", customerId, err);
+    return { defaultPaymentMethodId: null, changed: false };
+  }
+}
+
 // Enforce single-card-per-customer:
 // - Sets the given paymentMethodId as the customer's default
 //   (invoice_settings.default_payment_method) so charges + the Stripe

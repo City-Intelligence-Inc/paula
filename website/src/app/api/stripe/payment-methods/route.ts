@@ -1,6 +1,6 @@
 import { GetCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
-import { getStripe } from "@/lib/server/stripe";
+import { ensureDefaultCard, getStripe } from "@/lib/server/stripe";
 
 // GET /api/stripe/payment-methods?parentId=...
 // or  /api/stripe/payment-methods   (auto-resolves the signed-in parent)
@@ -56,6 +56,13 @@ export async function GET(request: Request) {
   }
 
   const stripe = await getStripe();
+
+  // Self-heal the default-card invariant before reading. If cards exist but
+  // no default is set (legacy customers from before single-card-per-customer
+  // enforcement, or a Stripe-dashboard manual edit), promote the newest card
+  // to default. ensureDefaultCard is idempotent + no-op when state is fine.
+  await ensureDefaultCard(stripe, stripeCustomerId);
+
   const [pmList, customer] = await Promise.all([
     stripe.paymentMethods.list({
       customer: stripeCustomerId,
