@@ -31,6 +31,60 @@ export async function isStripeConfigured(): Promise<boolean> {
   return !!secrets?.secretKey;
 }
 
+// Enforce single-card-per-customer:
+// - Sets the given paymentMethodId as the customer's default
+//   (invoice_settings.default_payment_method) so charges + the Stripe
+//   dashboard "Default" badge agree with the most recent card.
+// - Detaches every OTHER card on the customer so there's only one card on
+//   file. Avoids the multi-card confusion Paula flagged where adding a new
+//   card in our UI didn't update what Stripe charged.
+//
+// Idempotent. Safe to call from the webhook and from a client-triggered
+// finalize endpoint.
+export async function enforceSingleCardForCustomer(
+  stripe: Stripe,
+  customerId: string,
+  paymentMethodId: string,
+): Promise<{
+  defaultPaymentMethodId: string;
+  detached: string[];
+}> {
+  // Make sure the new PM is attached + is the default before we detach
+  // anything else (so we never momentarily leave the customer with zero
+  // cards if there's a partial failure mid-routine).
+  const pm = await stripe.paymentMethods.retrieve(paymentMethodId);
+  if (pm.customer !== customerId) {
+    await stripe.paymentMethods.attach(paymentMethodId, {
+      customer: customerId,
+    });
+  }
+  await stripe.customers.update(customerId, {
+    invoice_settings: { default_payment_method: paymentMethodId },
+  });
+
+  const others = await stripe.paymentMethods.list({
+    customer: customerId,
+    type: "card",
+    limit: 100,
+  });
+  const detached: string[] = [];
+  for (const other of others.data) {
+    if (other.id === paymentMethodId) continue;
+    try {
+      await stripe.paymentMethods.detach(other.id);
+      detached.push(other.id);
+    } catch (err) {
+      console.warn(
+        "[enforceSingleCardForCustomer] detach failed",
+        other.id,
+        err,
+      );
+    }
+  }
+
+  return { defaultPaymentMethodId: paymentMethodId, detached };
+}
+
 // Resolve which PaymentMethod to charge for a customer.
 // Prefers customer.invoice_settings.default_payment_method (the field the
 // "Set as default" UI writes and the one Stripe's dashboard surfaces as

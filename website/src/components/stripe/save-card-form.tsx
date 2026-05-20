@@ -74,7 +74,7 @@ function CardForm({ parentId }: { parentId?: string }) {
         return;
       }
 
-      const { error: stripeError } = await stripe.confirmCardSetup(
+      const { error: stripeError, setupIntent } = await stripe.confirmCardSetup(
         clientSecret,
         {
           payment_method: {
@@ -86,6 +86,25 @@ function CardForm({ parentId }: { parentId?: string }) {
       if (stripeError) {
         setMessage(stripeError.message ?? "Something went wrong.");
       } else {
+        // Single-card-per-customer: promote the just-saved PM to default and
+        // detach older cards. Server-side webhook does the same on
+        // setup_intent.succeeded; this client call guarantees it's done by
+        // the time we reload, regardless of webhook configuration.
+        const newPmId =
+          typeof setupIntent?.payment_method === "string"
+            ? setupIntent.payment_method
+            : setupIntent?.payment_method?.id;
+        try {
+          await fetchApi("/api/stripe/payment-methods/finalize-new-card", {
+            method: "POST",
+            body: JSON.stringify({
+              parentId,
+              paymentMethodId: newPmId,
+            }),
+          });
+        } catch (e) {
+          console.warn("[save-card] finalize-new-card failed:", e);
+        }
         setSuccess(true);
         setMessage("Card saved successfully — refreshing…");
         // Two-step refresh: fire event for sibling panels, then hard reload
