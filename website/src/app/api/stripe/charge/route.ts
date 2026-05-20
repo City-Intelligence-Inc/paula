@@ -44,6 +44,7 @@ export async function POST(request: Request) {
         lastName: string;
         familyId?: string;
         stripeCustomerId?: string;
+        primaryPayerParentId?: string;
       }
     | undefined;
 
@@ -51,8 +52,11 @@ export async function POST(request: Request) {
     return Response.json({ error: "Student not found" }, { status: 404 });
   }
 
-  // Resolve the parent's Stripe customer (preferred path) and fall back to
-  // student.stripeCustomerId for legacy records.
+  // Resolve the Stripe customer to charge. Priority:
+  //   1. student.primaryPayerParentId (per-student override for split custody)
+  //   2. family.primaryPayerId
+  //   3. any parent on the family with a stripeCustomerId
+  //   4. legacy student.stripeCustomerId
   let stripeCustomerId: string | undefined;
   if (student.familyId) {
     const ps = await c.send(
@@ -60,13 +64,38 @@ export async function POST(request: Request) {
         TableName: Tables.parents,
         FilterExpression: "familyId = :f",
         ExpressionAttributeValues: { ":f": student.familyId },
-        Limit: 5,
+        Limit: 10,
       }),
     );
-    const primary = (ps.Items || []).find(
-      (p) => typeof p.stripeCustomerId === "string",
-    );
-    stripeCustomerId = primary?.stripeCustomerId as string | undefined;
+    const parents = (ps.Items || []) as Array<{
+      id: string;
+      stripeCustomerId?: string;
+    }>;
+    if (student.primaryPayerParentId) {
+      const explicit = parents.find(
+        (p) => p.id === student.primaryPayerParentId,
+      );
+      stripeCustomerId = explicit?.stripeCustomerId;
+    }
+    if (!stripeCustomerId) {
+      const famR = await c.send(
+        new GetCommand({
+          TableName: Tables.families,
+          Key: { id: student.familyId },
+        }),
+      );
+      const fam = famR.Item as { primaryPayerId?: string } | undefined;
+      if (fam?.primaryPayerId) {
+        const primary = parents.find((p) => p.id === fam.primaryPayerId);
+        stripeCustomerId = primary?.stripeCustomerId;
+      }
+    }
+    if (!stripeCustomerId) {
+      const anyParent = parents.find(
+        (p) => typeof p.stripeCustomerId === "string",
+      );
+      stripeCustomerId = anyParent?.stripeCustomerId;
+    }
   }
   if (!stripeCustomerId) stripeCustomerId = student.stripeCustomerId;
 

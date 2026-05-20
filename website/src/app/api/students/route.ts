@@ -31,6 +31,11 @@ interface NewStudentBody {
   parentPhone?: string;
   sessionType?: "individual" | "group";
   rate?: number;
+  // Pass to add this student to an existing family (sibling flow); when set
+  // we skip the family+parent autocreate and inherit billing from the
+  // existing family.
+  familyId?: string;
+  primaryPayerParentId?: string;
 }
 
 function slugify(s: string): string {
@@ -64,29 +69,39 @@ export async function POST(request: Request) {
     slugify(`${body.firstName}_${body.lastName}`) || `s_${Date.now()}`;
   const suffix = Math.random().toString(36).slice(2, 6);
   const studentId = `stu_${baseSlug}_${suffix}`;
-  const familyId = `fam_${baseSlug}_${suffix}`;
-  const parentId = `par_${baseSlug}_${suffix}`;
+  // Sibling flow: when familyId is provided, attach to existing family and
+  // skip the family+parent autocreate. The family's saved card and parents
+  // are reused — no need for parents to enter payment info twice.
+  const useExistingFamily = !!body.familyId?.trim();
+  const familyId = useExistingFamily
+    ? (body.familyId as string).trim()
+    : `fam_${baseSlug}_${suffix}`;
+  const parentId = useExistingFamily ? "" : `par_${baseSlug}_${suffix}`;
 
-  const family = {
-    id: familyId,
-    primaryPayerId: parentId,
-    createdAt: now,
-    updatedAt: now,
-  };
+  const family = useExistingFamily
+    ? null
+    : {
+        id: familyId,
+        primaryPayerId: parentId,
+        createdAt: now,
+        updatedAt: now,
+      };
 
   const [parentFirst, ...parentRest] = (body.parentName || "").trim().split(/\s+/);
-  const parent = {
-    id: parentId,
-    familyId,
-    firstName: parentFirst || body.parentName || "",
-    lastName: parentRest.join(" "),
-    email: body.parentEmail || "",
-    phone: body.parentPhone || "",
-    createdAt: now,
-    updatedAt: now,
-  };
+  const parent = useExistingFamily
+    ? null
+    : {
+        id: parentId,
+        familyId,
+        firstName: parentFirst || body.parentName || "",
+        lastName: parentRest.join(" "),
+        email: body.parentEmail || "",
+        phone: body.parentPhone || "",
+        createdAt: now,
+        updatedAt: now,
+      };
 
-  const student = {
+  const student: Record<string, unknown> = {
     id: studentId,
     familyId,
     firstName: body.firstName,
@@ -102,13 +117,25 @@ export async function POST(request: Request) {
     createdAt: now,
     updatedAt: now,
   };
+  if (body.primaryPayerParentId?.trim()) {
+    student.primaryPayerParentId = body.primaryPayerParentId.trim();
+  }
 
   try {
-    await Promise.all([
-      ddb().send(new PutCommand({ TableName: Tables.families, Item: family })),
-      ddb().send(new PutCommand({ TableName: Tables.parents, Item: parent })),
+    const writes: Promise<unknown>[] = [
       ddb().send(new PutCommand({ TableName: Tables.students, Item: student })),
-    ]);
+    ];
+    if (family) {
+      writes.push(
+        ddb().send(new PutCommand({ TableName: Tables.families, Item: family })),
+      );
+    }
+    if (parent) {
+      writes.push(
+        ddb().send(new PutCommand({ TableName: Tables.parents, Item: parent })),
+      );
+    }
+    await Promise.all(writes);
     await notifyAction({
       kind: "student.created",
       summary: `New student added: ${student.firstName} ${student.lastName}`,

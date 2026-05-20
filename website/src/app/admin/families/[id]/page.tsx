@@ -116,7 +116,13 @@ export default function FamilyDetailPage({
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-neutral-900 mb-3">Parents</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-neutral-900">Parents</h2>
+          <AddParentForm
+            familyId={family.id}
+            onAdded={(p) => setParents((prev) => [...prev, p])}
+          />
+        </div>
         {parents.length === 0 ? (
           <p className="text-sm text-neutral-400">No parents linked yet.</p>
         ) : (
@@ -190,9 +196,13 @@ export default function FamilyDetailPage({
       )}
 
       <div>
-        <h2 className="text-lg font-semibold text-neutral-900 mb-3">
-          Students
-        </h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-neutral-900">Students</h2>
+          <AddSiblingForm
+            familyId={family.id}
+            onAdded={(s) => setStudents((prev) => [...prev, s])}
+          />
+        </div>
         {students.length === 0 ? (
           <p className="text-sm text-neutral-400">No students linked yet.</p>
         ) : (
@@ -252,6 +262,246 @@ export default function FamilyDetailPage({
         )}
       </div>
     </div>
+  );
+}
+
+function AddParentForm({
+  familyId,
+  onAdded,
+}: {
+  familyId: string;
+  onAdded: (p: Parent) => void;
+}) {
+  const fetchApi = useApi();
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+  });
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const r = await fetchApi(`/api/families/${familyId}/parents`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const j = await r.json();
+      if (r.ok && j.parent) {
+        onAdded(j.parent);
+        setForm({ firstName: "", lastName: "", email: "", phone: "" });
+        setOpen(false);
+      } else {
+        alert(j.error || "Add failed");
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen(true)}
+        className="border border-neutral-200 text-neutral-600 hover:border-neutral-300 rounded-md text-xs"
+      >
+        <Plus className="h-3 w-3 mr-1" />
+        Add parent
+      </Button>
+    );
+  }
+
+  return (
+    <Card className="border border-neutral-200 rounded-lg overflow-hidden w-full mt-2">
+      <form onSubmit={submit} className="p-4 space-y-3">
+        <p className="text-xs text-neutral-500">
+          Add a second parent (e.g. the other parent paying). They&apos;ll get
+          their own Stripe customer once a card is saved.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <input
+            type="text"
+            required
+            placeholder="First name"
+            value={form.firstName}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, firstName: e.target.value }))
+            }
+            className="border border-neutral-200 rounded-md px-3 py-2 text-sm"
+          />
+          <input
+            type="text"
+            placeholder="Last name"
+            value={form.lastName}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, lastName: e.target.value }))
+            }
+            className="border border-neutral-200 rounded-md px-3 py-2 text-sm"
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+            className="border border-neutral-200 rounded-md px-3 py-2 text-sm"
+          />
+          <input
+            type="tel"
+            placeholder="Phone"
+            value={form.phone}
+            onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+            className="border border-neutral-200 rounded-md px-3 py-2 text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            type="submit"
+            disabled={saving}
+            className="bg-neutral-900 text-white hover:bg-neutral-800 rounded-md text-xs"
+          >
+            {saving ? "Saving…" : "Add Parent"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+            className="border border-neutral-200 text-neutral-600 hover:border-neutral-300 rounded-md text-xs"
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </Card>
+  );
+}
+
+function AddSiblingForm({
+  familyId,
+  onAdded,
+}: {
+  familyId: string;
+  onAdded: (s: Student) => void;
+}) {
+  const fetchApi = useApi();
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    grade: "",
+    rate: "",
+  });
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const r = await fetchApi(`/api/families/${familyId}/students`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          rate: parseFloat(form.rate) || 0,
+        }),
+      });
+      const j = await r.json();
+      if (r.ok && j.student) {
+        onAdded(j.student);
+        setForm({ firstName: "", lastName: "", grade: "", rate: "" });
+        setOpen(false);
+      } else {
+        alert(j.error || "Add failed");
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen(true)}
+        className="border border-neutral-200 text-neutral-600 hover:border-neutral-300 rounded-md text-xs"
+      >
+        <Plus className="h-3 w-3 mr-1" />
+        Add sibling
+      </Button>
+    );
+  }
+
+  return (
+    <Card className="border border-neutral-200 rounded-lg overflow-hidden w-full mt-2">
+      <form onSubmit={submit} className="p-4 space-y-3">
+        <p className="text-xs text-neutral-500">
+          Add another student under this family. Billing reuses the family&apos;s
+          existing card — no need for parents to enter payment info again.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <input
+            type="text"
+            required
+            placeholder="First name"
+            value={form.firstName}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, firstName: e.target.value }))
+            }
+            className="border border-neutral-200 rounded-md px-3 py-2 text-sm"
+          />
+          <input
+            type="text"
+            required
+            placeholder="Last name"
+            value={form.lastName}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, lastName: e.target.value }))
+            }
+            className="border border-neutral-200 rounded-md px-3 py-2 text-sm"
+          />
+          <input
+            type="text"
+            placeholder="Grade (K, 1–16)"
+            value={form.grade}
+            onChange={(e) => setForm((p) => ({ ...p, grade: e.target.value }))}
+            className="border border-neutral-200 rounded-md px-3 py-2 text-sm"
+          />
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Rate $/session"
+            value={form.rate}
+            onChange={(e) => setForm((p) => ({ ...p, rate: e.target.value }))}
+            className="border border-neutral-200 rounded-md px-3 py-2 text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            type="submit"
+            disabled={saving}
+            className="bg-neutral-900 text-white hover:bg-neutral-800 rounded-md text-xs"
+          >
+            {saving ? "Saving…" : "Add Sibling"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+            className="border border-neutral-200 text-neutral-600 hover:border-neutral-300 rounded-md text-xs"
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </Card>
   );
 }
 

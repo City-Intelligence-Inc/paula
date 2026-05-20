@@ -105,6 +105,10 @@ export default function StudentDetailPage({
   const [allTutors, setAllTutors] = useState<
     { id: string; firstName: string; lastName: string; active?: boolean }[]
   >([]);
+  const [familyParents, setFamilyParents] = useState<
+    { id: string; firstName?: string; lastName?: string; email?: string }[]
+  >([]);
+  const [savingPayer, setSavingPayer] = useState(false);
   const [savingTutors, setSavingTutors] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -179,6 +183,35 @@ export default function StudentDetailPage({
       .catch(() => setAllTutors([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Load family parents whenever the student loads, so the payer dropdown
+  // can list "Mom · Dad · Other parent" for split-custody cases.
+  useEffect(() => {
+    if (!student?.familyId) return;
+    fetchApi(`/api/families/${student.familyId}/parents`)
+      .then((r) => r.json())
+      .then((j) => setFamilyParents(j.parents || []))
+      .catch(() => setFamilyParents([]));
+  }, [fetchApi, student?.familyId]);
+
+  async function changePrimaryPayer(parentId: string) {
+    if (!student) return;
+    setSavingPayer(true);
+    try {
+      const next = parentId || null;
+      const res = await fetchApi(`/api/students/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ primaryPayerParentId: next }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setStudent(json.student);
+      }
+    } finally {
+      setSavingPayer(false);
+    }
+  }
 
   async function toggleTutor(tutorId: string) {
     if (!student) return;
@@ -551,6 +584,39 @@ export default function StudentDetailPage({
           )}
         </div>
       </Card>
+
+      {/* Primary payer — only shown when this student is part of a multi-parent family */}
+      {familyParents.length > 1 && (
+        <Card className="border border-neutral-200 rounded-lg overflow-hidden">
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-neutral-900 tracking-tight mb-1">
+              Primary Payer
+            </h2>
+            <p className="text-sm text-neutral-500 mb-4">
+              Which parent&apos;s card is charged for this student. Set when
+              parents split custody or take turns paying. Defaults to the
+              family&apos;s primary payer.
+            </p>
+            <select
+              value={student.primaryPayerParentId || ""}
+              onChange={(e) => changePrimaryPayer(e.target.value)}
+              disabled={savingPayer}
+              className="w-full sm:w-auto border border-neutral-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
+            >
+              <option value="">Family default</option>
+              {familyParents.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.firstName || ""} {p.lastName || ""}
+                  {p.email ? ` (${p.email})` : ""}
+                </option>
+              ))}
+            </select>
+            {savingPayer && (
+              <span className="ml-3 text-xs text-neutral-400">Saving…</span>
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* Assigned tutors */}
       <Card className="border border-neutral-200 rounded-lg overflow-hidden">
