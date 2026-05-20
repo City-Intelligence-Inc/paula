@@ -5,6 +5,7 @@ import {
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireAdmin } from "@/lib/server/ddb";
+import { notifyAction } from "@/lib/server/notify";
 
 interface PutBody {
   firstName?: string;
@@ -134,6 +135,17 @@ export async function DELETE(
     );
   }
 
+  const existing = await c.send(
+    new GetCommand({ TableName: Tables.tutors, Key: { id } }),
+  );
+  const tu = existing.Item as
+    | { firstName?: string; lastName?: string }
+    | undefined;
   await c.send(new DeleteCommand({ TableName: Tables.tutors, Key: { id } }));
+  await notifyAction({
+    kind: "tutor.removed",
+    summary: `Tutor removed: ${tu?.firstName || ""} ${tu?.lastName || id}`.trim(),
+    details: { tutorId: id },
+  }).catch(() => {});
   return Response.json({ ok: true });
 }

@@ -1,4 +1,5 @@
 import { requireUser } from "@/lib/server/ddb";
+import { notifyAction } from "@/lib/server/notify";
 import { ensureDefaultCard, getStripe } from "@/lib/server/stripe";
 
 // DELETE /api/stripe/payment-methods/:id  → detach a payment method.
@@ -29,6 +30,17 @@ export async function DELETE(
     if (customerId) {
       await ensureDefaultCard(stripe, customerId);
     }
+
+    await notifyAction({
+      kind: "card.removed",
+      summary: `Card detached: ${pm.card?.brand || "card"} ending in ${pm.card?.last4 || "????"}`,
+      details: {
+        customer: customerId || null,
+        brand: pm.card?.brand || null,
+        last4: pm.card?.last4 || null,
+        paymentMethodId: id,
+      },
+    }).catch(() => {});
 
     return Response.json({ ok: true, id: detached.id });
   } catch (err) {

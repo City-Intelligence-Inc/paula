@@ -1,5 +1,6 @@
 import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireAdmin } from "@/lib/server/ddb";
+import { notifyAction } from "@/lib/server/notify";
 
 interface TutorBody {
   firstName?: string;
@@ -70,6 +71,15 @@ export async function POST(request: Request) {
     await ddb().send(
       new PutCommand({ TableName: Tables.tutors, Item: tutor }),
     );
+    await notifyAction({
+      kind: "tutor.created",
+      summary: `New tutor added: ${tutor.firstName} ${tutor.lastName}`,
+      details: {
+        tutorId: tutor.id as string,
+        email: (tutor.email as string) || "—",
+        phone: (tutor.phone as string) || "—",
+      },
+    }).catch(() => {});
     return Response.json({ tutor }, { status: 201 });
   } catch (err) {
     console.error("[POST /api/admin/tutors] failed:", err);

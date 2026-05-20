@@ -1,5 +1,6 @@
 import { DeleteCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
+import { notifyAction } from "@/lib/server/notify";
 
 interface ResourceBody {
   title?: string;
@@ -72,6 +73,15 @@ export async function POST(request: Request) {
     await ddb().send(
       new PutCommand({ TableName: Tables.resources, Item: item }),
     );
+    await notifyAction({
+      kind: "resource.added",
+      summary: `Resource added: ${item.title as string}`,
+      details: {
+        resourceId: item.id as string,
+        category: (item.category as string) || "—",
+        url: (item.url as string) || "—",
+      },
+    }).catch(() => {});
     return Response.json({ resource: item }, { status: 201 });
   } catch (err) {
     console.error("[POST /api/resources] failed:", err);
@@ -111,6 +121,11 @@ export async function DELETE(request: Request) {
     await ddb().send(
       new DeleteCommand({ TableName: Tables.resources, Key: key }),
     );
+    await notifyAction({
+      kind: "resource.removed",
+      summary: `Resource removed: ${(item.title as string) || id}`,
+      details: { resourceId: id, category: (item.category as string) || "—" },
+    }).catch(() => {});
     return Response.json({ ok: true });
   } catch (err) {
     console.error("[DELETE /api/resources] failed:", err);

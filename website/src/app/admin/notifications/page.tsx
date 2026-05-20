@@ -2,13 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { useApi } from "@/hooks/use-api";
-import { Bell, CreditCard, Calendar, CheckCircle2 } from "lucide-react";
+import {
+  Bell,
+  CreditCard,
+  Calendar,
+  CheckCircle2,
+  User,
+  UserCheck,
+  BookOpen,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 interface Notification {
   id: string;
   createdAt: string;
   kind: string;
+  // Generic fields written by notifyAction()
+  summary?: string;
+  details?: Record<string, unknown>;
+  // Hand-coded event fields (legacy)
   parentId?: string;
   parentName?: string;
   parentEmail?: string;
@@ -26,6 +38,19 @@ interface Notification {
   error?: string;
   read?: boolean;
 }
+
+const KIND_ICON: Record<string, string> = {
+  "payment_method.updated": "card",
+  "card.removed": "card",
+  "card.default_changed": "card",
+  "session.invite_sent": "calendar",
+  "session.rsvp": "check",
+  "student.created": "student",
+  "tutor.created": "tutor",
+  "tutor.removed": "tutor",
+  "resource.added": "book",
+  "resource.removed": "book",
+};
 
 function fmt(iso: string): string {
   const d = new Date(iso);
@@ -85,15 +110,17 @@ export default function NotificationsPage() {
             >
               <div className="p-4 flex items-start gap-3">
                 <div className="shrink-0 mt-0.5">
-                  {n.kind === "payment_method.updated" ? (
-                    <CreditCard className="h-4 w-4 text-[#7030A0]" />
-                  ) : n.kind === "session.invite_sent" ? (
-                    <Calendar className="h-4 w-4 text-[#7030A0]" />
-                  ) : n.kind === "session.rsvp" ? (
-                    <CheckCircle2 className="h-4 w-4 text-[#7030A0]" />
-                  ) : (
-                    <Bell className="h-4 w-4 text-neutral-400" />
-                  )}
+                  {(() => {
+                    const icon = KIND_ICON[n.kind];
+                    const cls = "h-4 w-4 text-[#7030A0]";
+                    if (icon === "card") return <CreditCard className={cls} />;
+                    if (icon === "calendar") return <Calendar className={cls} />;
+                    if (icon === "check") return <CheckCircle2 className={cls} />;
+                    if (icon === "student") return <User className={cls} />;
+                    if (icon === "tutor") return <UserCheck className={cls} />;
+                    if (icon === "book") return <BookOpen className={cls} />;
+                    return <Bell className="h-4 w-4 text-neutral-400" />;
+                  })()}
                 </div>
                 <div className="min-w-0 flex-1">
                   {n.kind === "payment_method.updated" ? (
@@ -146,6 +173,8 @@ export default function NotificationsPage() {
                         {n.dateTime?.slice(0, 16)}
                       </span>
                     </p>
+                  ) : n.summary ? (
+                    <p className="text-sm text-neutral-900">{n.summary}</p>
                   ) : (
                     <p className="text-sm text-neutral-900 font-mono text-xs">
                       {n.kind}

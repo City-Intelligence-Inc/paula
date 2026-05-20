@@ -1,6 +1,7 @@
 import { ScanCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { ScanCommandInput } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
+import { notifyAction } from "@/lib/server/notify";
 
 export async function GET(request: Request) {
   const auth = await requireUser();
@@ -108,6 +109,18 @@ export async function POST(request: Request) {
       ddb().send(new PutCommand({ TableName: Tables.parents, Item: parent })),
       ddb().send(new PutCommand({ TableName: Tables.students, Item: student })),
     ]);
+    await notifyAction({
+      kind: "student.created",
+      summary: `New student added: ${student.firstName} ${student.lastName}`,
+      details: {
+        studentId: student.id,
+        grade: student.grade || "—",
+        parentName: student.parentName || "—",
+        parentEmail: student.parentEmail || "—",
+        familyId: student.familyId,
+      },
+    }).catch(() => {});
+
     return Response.json({ student }, { status: 201 });
   } catch (err) {
     console.error("[POST /api/students] failed:", err);

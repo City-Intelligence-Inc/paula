@@ -1,5 +1,6 @@
 import { GetCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
+import { notifyAction } from "@/lib/server/notify";
 import { getStripe } from "@/lib/server/stripe";
 
 interface Body {
@@ -62,5 +63,31 @@ export async function POST(request: Request) {
   await stripe.customers.update(parent.stripeCustomerId as string, {
     invoice_settings: { default_payment_method: body.paymentMethodId },
   });
+
+  const parentName =
+    `${(parent.firstName as string) || ""} ${(parent.lastName as string) || ""}`
+      .trim() || (parent.email as string) || "Parent";
+  // Look up brand/last4 on the new default for nicer notification copy.
+  let brand: string | undefined;
+  let last4: string | undefined;
+  try {
+    const pm = await stripe.paymentMethods.retrieve(body.paymentMethodId);
+    brand = pm.card?.brand;
+    last4 = pm.card?.last4;
+  } catch {
+    // best-effort
+  }
+  await notifyAction({
+    kind: "card.default_changed",
+    summary: `${parentName} set default card to ${brand ? brand : "card"} ending in ${last4 || "????"}`,
+    details: {
+      parentId: parent.id,
+      parentName,
+      brand: brand || null,
+      last4: last4 || null,
+      paymentMethodId: body.paymentMethodId,
+    },
+  }).catch(() => {});
+
   return Response.json({ ok: true, defaultPaymentMethodId: body.paymentMethodId });
 }
