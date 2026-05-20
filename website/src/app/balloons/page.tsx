@@ -303,6 +303,10 @@ export default function BalloonsPage() {
                     src: "/balloons/carousel-2.jpg",
                     alt: "Multiple Sierpinski balloon tetrahedra glowing in a yard at dusk alongside lit-up cone trees",
                   },
+                  {
+                    src: "/balloons/carousel-3.jpg",
+                    alt: "Group of students standing inside a giant red, green, blue, and white Sierpinski balloon tetrahedron in a driveway",
+                  },
                 ]}
               />
             </div>
