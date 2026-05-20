@@ -43,8 +43,35 @@ interface RealSession {
 }
 
 const gradeOptions = [
-  "K", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
+  "K",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "11",
+  "12",
+  "13",
+  "14",
+  "15",
+  "16",
 ];
+
+function gradeLabel(g: string): string {
+  if (g === "K") return "Kindergarten";
+  const n = parseInt(g, 10);
+  if (!Number.isFinite(n)) return `Grade ${g}`;
+  if (n >= 13 && n <= 16) {
+    const year = ["First", "Second", "Third", "Fourth"][n - 13];
+    return `College ${year} Year`;
+  }
+  return `Grade ${g}`;
+}
 
 const inputClass =
   "w-full border border-neutral-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300";
@@ -400,7 +427,7 @@ export default function StudentDetailPage({
                   >
                     {gradeOptions.map((g) => (
                       <option key={g} value={g}>
-                        {g === "K" ? "Kindergarten" : `Grade ${g}`}
+                        {gradeLabel(g)}
                       </option>
                     ))}
                   </select>

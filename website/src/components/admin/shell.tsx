@@ -18,6 +18,7 @@ import {
   Home,
   Inbox,
   UserCheck,
+  Bell,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -52,6 +53,11 @@ const navItems = [
     label: "Payments",
     href: "/admin/payments",
     icon: CreditCard,
+  },
+  {
+    label: "Notifications",
+    href: "/admin/notifications",
+    icon: Bell,
   },
   {
     label: "Calendar",
