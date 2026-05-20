@@ -1,22 +1,46 @@
-// Admin notification email helper.
+// Notification email helper. Uses Resend's HTTP API directly so we don't
+// carry an SDK dependency just for transactional email.
 //
-// Uses Resend's HTTP API directly (no SDK) so we don't carry a dependency
-// solely to send transactional email. Configure two env vars:
+// Environment:
+//   RESEND_API_KEY            — Resend API key (re_…)
+//   ADMIN_NOTIFICATION_EMAIL  — comma-separated list of admin recipients.
+//                               Defaults to phamilton@mathitude.com and
+//                               ari@coframe.com so that every notification
+//                               reaches Paula AND Ari without needing the
+//                               env var configured.
 //
-//   RESEND_API_KEY            — your Resend API key (re_…)
-//   ADMIN_NOTIFICATION_EMAIL  — where admin alerts should be delivered
-//                               (default: ari@coframe.com)
-//
-// Best-effort by design: returns { ok, error } and never throws. Callers
-// should not block the user-facing path on email delivery.
+// Best-effort throughout: returns { ok, error } and never throws so callers
+// can layer it under user-facing flows without blocking the UX path.
 
 const RESEND_FROM = "Mathitude Notifications <onboarding@resend.dev>";
+
+export const DEFAULT_ADMIN_RECIPIENTS = [
+  "phamilton@mathitude.com",
+  "ari@coframe.com",
+];
+
+export function adminRecipients(): string[] {
+  const raw = process.env.ADMIN_NOTIFICATION_EMAIL;
+  if (!raw) return DEFAULT_ADMIN_RECIPIENTS;
+  const list = raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return list.length > 0 ? list : DEFAULT_ADMIN_RECIPIENTS;
+}
+
+export interface NotifyAttachment {
+  filename: string;
+  content: string;     // base64-encoded body
+  contentType?: string;
+}
 
 export interface AdminNotifyInput {
   subject: string;
   html: string;
   text?: string;
-  to?: string;
+  to?: string | string[];
+  attachments?: NotifyAttachment[];
 }
 
 export async function sendAdminNotification(
@@ -27,10 +51,11 @@ export async function sendAdminNotification(
     return { ok: false, error: "RESEND_API_KEY not configured" };
   }
 
-  const to =
-    input.to ||
-    process.env.ADMIN_NOTIFICATION_EMAIL ||
-    "ari@coframe.com";
+  const to: string[] = Array.isArray(input.to)
+    ? input.to
+    : typeof input.to === "string"
+      ? [input.to]
+      : adminRecipients();
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -45,6 +70,9 @@ export async function sendAdminNotification(
         subject: input.subject,
         html: input.html,
         ...(input.text ? { text: input.text } : {}),
+        ...(input.attachments && input.attachments.length > 0
+          ? { attachments: input.attachments }
+          : {}),
       }),
     });
 
@@ -59,4 +87,13 @@ export async function sendAdminNotification(
       error: err instanceof Error ? err.message : String(err),
     };
   }
+}
+
+// Encode an ICS string as a base64 attachment Resend accepts directly.
+export function icsAttachment(filename: string, ics: string): NotifyAttachment {
+  return {
+    filename: filename.endsWith(".ics") ? filename : `${filename}.ics`,
+    content: Buffer.from(ics, "utf8").toString("base64"),
+    contentType: "text/calendar; method=REQUEST; charset=UTF-8",
+  };
 }

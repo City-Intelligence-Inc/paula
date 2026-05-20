@@ -12,6 +12,8 @@ import {
   Plus,
   FileText,
   UserCheck,
+  Calendar,
+  Send,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -673,6 +675,47 @@ export default function StudentDetailPage({
                         {s.notes}
                       </pre>
                     )}
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <a
+                        href={`/api/sessions/${student.id}/${encodeURIComponent(s.dateTime)}/ics`}
+                        className="inline-flex items-center gap-1 text-xs font-medium text-[#7030A0] hover:text-[#5d288a]"
+                      >
+                        <Calendar className="h-3 w-3" />
+                        Add to calendar
+                      </a>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const series = prompt(
+                            "Series weeks (e.g. 10 for a 10-week class). Leave blank for single invite.",
+                            "",
+                          );
+                          const seriesCount = parseInt(series || "", 10);
+                          const r = await fetchApi(
+                            `/api/sessions/${student.id}/${encodeURIComponent(s.dateTime)}/invite`,
+                            {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify(
+                                Number.isFinite(seriesCount) && seriesCount > 1
+                                  ? { seriesCount }
+                                  : {},
+                              ),
+                            },
+                          );
+                          const j = await r.json();
+                          alert(
+                            r.ok
+                              ? `Invite sent to ${j.recipients?.length || 0} recipient(s).`
+                              : `Failed: ${j.error}`,
+                          );
+                        }}
+                        className="inline-flex items-center gap-1 text-xs font-medium text-neutral-600 hover:text-[#7030A0]"
+                      >
+                        <Send className="h-3 w-3" />
+                        Email invite
+                      </button>
+                    </div>
                   </div>
                 );
               })}

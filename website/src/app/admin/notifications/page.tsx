@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useApi } from "@/hooks/use-api";
-import { Bell, CreditCard } from "lucide-react";
+import { Bell, CreditCard, Calendar, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 interface Notification {
@@ -15,6 +15,15 @@ interface Notification {
   last4?: string;
   brand?: string;
   paymentMethodId?: string;
+  studentId?: string;
+  studentName?: string;
+  dateTime?: string;
+  email?: string;
+  name?: string;
+  rsvp?: string;
+  recipients?: string[];
+  ok?: boolean;
+  error?: string;
   read?: boolean;
 }
 
@@ -78,6 +87,10 @@ export default function NotificationsPage() {
                 <div className="shrink-0 mt-0.5">
                   {n.kind === "payment_method.updated" ? (
                     <CreditCard className="h-4 w-4 text-[#7030A0]" />
+                  ) : n.kind === "session.invite_sent" ? (
+                    <Calendar className="h-4 w-4 text-[#7030A0]" />
+                  ) : n.kind === "session.rsvp" ? (
+                    <CheckCircle2 className="h-4 w-4 text-[#7030A0]" />
                   ) : (
                     <Bell className="h-4 w-4 text-neutral-400" />
                   )}
@@ -91,6 +104,48 @@ export default function NotificationsPage() {
                       ending in{" "}
                       <span className="font-mono font-medium">{n.last4}</span>
                     </p>
+                  ) : n.kind === "session.invite_sent" ? (
+                    <p className="text-sm text-neutral-900">
+                      Calendar invite sent for{" "}
+                      <span className="font-medium">
+                        {n.studentName || n.studentId}
+                      </span>
+                      {n.recipients && n.recipients.length > 0 ? (
+                        <>
+                          {" "}
+                          to{" "}
+                          <span className="text-neutral-600">
+                            {n.recipients.length} recipient
+                            {n.recipients.length === 1 ? "" : "s"}
+                          </span>
+                        </>
+                      ) : null}
+                      {n.ok === false && n.error ? (
+                        <span className="ml-2 text-red-600 text-xs">
+                          (failed: {n.error})
+                        </span>
+                      ) : null}
+                    </p>
+                  ) : n.kind === "session.rsvp" ? (
+                    <p className="text-sm text-neutral-900">
+                      <span className="font-medium">{n.name || n.email}</span>{" "}
+                      RSVPed{" "}
+                      <span
+                        className={
+                          n.rsvp === "yes"
+                            ? "font-medium text-emerald-700"
+                            : n.rsvp === "no"
+                              ? "font-medium text-neutral-500"
+                              : "font-medium text-amber-600"
+                        }
+                      >
+                        {n.rsvp?.toUpperCase()}
+                      </span>{" "}
+                      for session on{" "}
+                      <span className="text-neutral-600">
+                        {n.dateTime?.slice(0, 16)}
+                      </span>
+                    </p>
                   ) : (
                     <p className="text-sm text-neutral-900 font-mono text-xs">
                       {n.kind}
@@ -99,6 +154,7 @@ export default function NotificationsPage() {
                   <p className="text-xs text-neutral-500 mt-1">
                     {fmt(n.createdAt)}
                     {n.parentEmail ? ` · ${n.parentEmail}` : ""}
+                    {n.email && !n.parentEmail ? ` · ${n.email}` : ""}
                   </p>
                 </div>
               </div>
