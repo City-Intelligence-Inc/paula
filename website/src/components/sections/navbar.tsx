@@ -9,8 +9,18 @@ import {
   UserButton,
   ClerkLoaded,
   useAuth,
+  useUser,
 } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
+
+// Emails that should see the "Admin" shortcut in the navbar instead of the
+// parent-facing "Dashboard" link. Mirrors the server-side admin recipient
+// list in src/lib/server/notify.ts — admin pages are still gated by Clerk
+// middleware regardless of what shows here.
+const ADMIN_EMAILS = new Set([
+  "phamilton@mathitude.com",
+  "ari@coframe.com",
+]);
 
 const navLinks = [
   { label: "Tutoring & Groups", href: "/tutoring" },
@@ -96,16 +106,28 @@ export function Navbar() {
 
 function AuthButtons({ mobile }: { mobile?: boolean }) {
   const { isSignedIn } = useAuth();
+  const { user } = useUser();
 
   if (isSignedIn) {
+    const email = user?.primaryEmailAddress?.emailAddress?.toLowerCase() || "";
+    const isAdmin = ADMIN_EMAILS.has(email);
     return (
       <div className={mobile ? "mt-2 px-3 flex items-center gap-3" : "ml-3 flex items-center gap-3"}>
-        <Link
-          href="/dashboard"
-          className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors"
-        >
-          Dashboard
-        </Link>
+        {isAdmin ? (
+          <Link
+            href="/admin"
+            className="inline-flex items-center h-9 px-3 rounded-md bg-[#7030A0] text-white text-sm font-medium hover:bg-[#5d2884] transition-colors"
+          >
+            Admin
+          </Link>
+        ) : (
+          <Link
+            href="/dashboard"
+            className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors"
+          >
+            Dashboard
+          </Link>
+        )}
         <UserButton />
       </div>
     );
