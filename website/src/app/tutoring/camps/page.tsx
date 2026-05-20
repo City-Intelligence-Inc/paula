@@ -16,16 +16,16 @@ export default function GroupCampsPage() {
               >
                 Tutoring &amp; Groups
               </Link>{" "}
-              / Small group engagement
+              / Small group classes
             </p>
             <h1
               className="text-5xl md:text-6xl lg:text-7xl text-[#7030A0] tracking-tight text-center leading-[1.05]"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
-              Small Group Engagement
+              Small Group Classes
             </h1>
             <p className="mt-6 text-lg md:text-xl text-black leading-relaxed text-center max-w-2xl mx-auto">
-              Gather a small group of students for a focused, fun week of
+              Gather a small group of students for an 8–12 week journey of
               mathematical exploration — customized around the group&apos;s
               interests and grade level.
             </p>
@@ -45,12 +45,13 @@ export default function GroupCampsPage() {
             <div className="space-y-0 divide-y divide-neutral-200">
               <div className="py-10 first:pt-0">
                 <h2 className="text-lg font-medium text-black">
-                  Summer &amp; school breaks
+                  8 to 12 weeks
                 </h2>
                 <p className="mt-2 text-black leading-relaxed">
-                  Group camps run during summer and school breaks — the
-                  perfect setting for a deep, week-long dive into mathematical
-                  thinking without the pressure of the school year calendar.
+                  Classes run 8 to 12 weeks — long enough to build real
+                  momentum, short enough to keep things focused. Each cohort
+                  has a beginning, middle, and end, with room for ideas to
+                  develop and connect over the arc of the term.
                 </p>
               </div>
 
@@ -59,11 +60,11 @@ export default function GroupCampsPage() {
                   Small, hand-picked groups
                 </h2>
                 <p className="mt-2 text-black leading-relaxed">
-                  Camps are private, meaning you bring the group — classmates,
-                  siblings, neighborhood friends, or homeschool co-op. Mathitude
-                  works with families to keep group sizes small so every
-                  student gets individual attention alongside the social
-                  benefits of a cohort.
+                  Classes are private, meaning you bring the group — classmates,
+                  siblings, neighborhood friends, or a homeschool co-op.
+                  Mathitude keeps group sizes small so every student gets
+                  individual attention alongside the social benefits of a
+                  cohort.
                 </p>
               </div>
 
@@ -72,10 +73,10 @@ export default function GroupCampsPage() {
                   Tailored to the group
                 </h2>
                 <p className="mt-2 text-black leading-relaxed">
-                  Each camp is customized around the grade level and interests
+                  Each class is customized around the grade level and interests
                   of the students. Whether the group wants to explore number
                   theory, geometry, logic puzzles, or a problem-solving
-                  curriculum, Mathitude designs the week around what will spark
+                  curriculum, Mathitude designs the term around what will spark
                   engagement.
                 </p>
               </div>
@@ -85,9 +86,9 @@ export default function GroupCampsPage() {
                   Making math social
                 </h2>
                 <p className="mt-2 text-black leading-relaxed">
-                  Group camps are a unique way to make math social. Students
-                  learn to collaborate on problems, explain their thinking,
-                  and discover that the best math often happens in
+                  Small group classes are a unique way to make math social.
+                  Students learn to collaborate on problems, explain their
+                  thinking, and discover that the best math often happens in
                   conversation.
                 </p>
               </div>
@@ -98,8 +99,12 @@ export default function GroupCampsPage() {
                 </h2>
                 <p className="mt-2 text-black leading-relaxed">
                   Reach out with your group size, grade levels, availability,
-                  and any themes or goals you have in mind. Mathitude will follow
-                  up to design a camp that fits your group.
+                  and any themes or goals you have in mind. Mathitude will
+                  follow up to design a class that fits your group.
+                </p>
+                <p className="mt-4 text-sm text-neutral-600 leading-relaxed">
+                  Inquire as to any summer camp or school break experiences —
+                  Mathitude might have something to fit your needs.
                 </p>
               </div>
             </div>

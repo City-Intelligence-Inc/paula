@@ -86,24 +86,11 @@ export default function PrivateTutoringPage() {
                   Enrichment &amp; academic support
                 </h2>
                 <p className="mt-2 text-black leading-relaxed">
-                  About 60% of Mathitude&apos;s tutoring work is enrichment —
-                  exploring curiosity, building deep thinking, and developing
-                  mathematical superpowers. The remaining 40% is academic
-                  support: strengthening foundational skills, building
+                  Mathitude blends enrichment — exploring curiosity, building
+                  deep thinking, developing mathematical superpowers — with
+                  academic support: strengthening foundational skills, building
                   confidence, and helping students succeed in their coursework.
-                </p>
-              </div>
-
-              <div className="py-10">
-                <h2 className="text-lg font-medium text-black">
-                  Waitlist
-                </h2>
-                <p className="mt-2 text-black leading-relaxed">
-                  Due to high demand, Mathitude tutoring is currently on a
-                  waitlist basis. We encourage families to reach out early to
-                  secure a spot. Mathitude works closely with each family and
-                  takes great care in matching students with the right format
-                  and schedule.
+                  The mix is shaped around each student.
                 </p>
               </div>
             </div>
@@ -114,17 +101,18 @@ export default function PrivateTutoringPage() {
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
             <div className="text-center">
               <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
-                Curious about private group camps?
+                Curious about small group classes?
               </h2>
               <p className="mt-4 text-black leading-relaxed max-w-xl mx-auto">
-                Mathitude also runs private group camps during summer and
-                school breaks — a different format for a different goal.
+                Mathitude also runs small group classes for siblings,
+                classmates, or homeschool co-ops — a different format for a
+                different goal.
               </p>
               <Link
                 href="/tutoring/camps"
                 className="mt-6 inline-flex text-sm font-medium text-black hover:text-[#7030A0] transition-colors"
               >
-                See group camps &rarr;
+                See small group classes &rarr;
               </Link>
             </div>
           </div>
@@ -137,8 +125,7 @@ export default function PrivateTutoringPage() {
                 Ready to get started?
               </h2>
               <p className="mt-4 text-white/60 max-w-xl mx-auto leading-relaxed">
-                Reach out to discuss your student&apos;s goals and join the
-                Mathitude waitlist.
+                Reach out and let&apos;s talk about your student&apos;s goals.
               </p>
               <div className="mt-10">
                 <Link

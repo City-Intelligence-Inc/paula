@@ -90,24 +90,14 @@ export default function TutoringHubPage() {
                       {o.title}
                     </h2>
                     <p className="mt-3 text-black leading-relaxed text-base">
-                      {o.description}
-                    </p>
-                    <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2">
+                      {o.description}{" "}
                       <Link
                         href={o.href}
-                        className="inline-flex items-center gap-1.5 text-sm font-medium text-black hover:text-[#7030A0] transition-colors"
+                        className="font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors whitespace-nowrap"
                       >
-                        Learn more
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        More&hellip;
                       </Link>
-                      <Link
-                        href={`/contact?offering=${o.offering}`}
-                        className="inline-flex items-center gap-1.5 text-sm font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors"
-                      >
-                        Request a consultation
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
+                    </p>
                   </div>
                 </div>
               ))}
