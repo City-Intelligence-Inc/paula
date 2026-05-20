@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 const ADMIN_EMAILS = new Set([
   "phamilton@mathitude.com",
   "ari@coframe.com",
+  "nljq16@stanford.edu",
 ]);
 
 const navLinks = [

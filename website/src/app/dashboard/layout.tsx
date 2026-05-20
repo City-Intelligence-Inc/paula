@@ -4,7 +4,11 @@ import { DashboardShell } from "@/components/dashboard/shell";
 
 // Mirrors ADMIN_EMAILS in src/components/sections/navbar.tsx — admins land
 // on /admin instead of the parent dashboard when they sign in.
-const ADMIN_EMAILS = new Set(["phamilton@mathitude.com", "ari@coframe.com"]);
+const ADMIN_EMAILS = new Set([
+  "phamilton@mathitude.com",
+  "ari@coframe.com",
+  "nljq16@stanford.edu",
+]);
 
 export default async function DashboardLayout({
   children,
