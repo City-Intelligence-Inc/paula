@@ -66,14 +66,18 @@ function NavLink({
     <Link
       href={item.href}
       onClick={onClick}
-      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
         active
-          ? "bg-neutral-900 text-white"
-          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+          ? "bg-mathitude-purple/10 text-mathitude-purple"
+          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 hover:translate-x-0.5"
       }`}
     >
-      <item.icon className="h-4 w-4 shrink-0" />
-      {item.label}
+      <item.icon
+        className={`h-4 w-4 shrink-0 transition-colors duration-200 ${
+          active ? "text-mathitude-purple" : ""
+        }`}
+      />
+      <span>{item.label}</span>
     </Link>
   );
 }

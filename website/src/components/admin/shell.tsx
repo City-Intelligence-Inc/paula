@@ -122,22 +122,24 @@ function NavLink({
   active: boolean;
   onClick?: () => void;
 }) {
+  // Stripe-style active state — purple-tinted surface + purple text +
+  // purple icon. Reads as "this is where you are" without shouting.
   return (
     <Link
       href={item.href}
       onClick={onClick}
       className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
         active
-          ? "bg-neutral-900 text-white shadow-sm"
+          ? "bg-mathitude-purple/10 text-mathitude-purple"
           : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 hover:translate-x-0.5"
       }`}
     >
       <item.icon
-        className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
-          active ? "" : "group-hover:scale-105"
+        className={`h-4 w-4 shrink-0 transition-colors duration-200 ${
+          active ? "text-mathitude-purple" : ""
         }`}
       />
-      {item.label}
+      <span>{item.label}</span>
     </Link>
   );
 }
