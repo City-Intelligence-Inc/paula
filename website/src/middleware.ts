@@ -1,10 +1,15 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// Gate admin + dashboard + the tutor portal. The "/tutor" matcher uses
+// explicit exact + trailing-slash forms so it doesn't accidentally swallow
+// the marketing pages under /tutoring (camps, private, etc.) which must
+// stay public — those are reachable without sign-in.
 const isProtected = createRouteMatcher([
   "/admin(.*)",
   "/dashboard(.*)",
-  "/tutor(.*)",
+  "/tutor",
+  "/tutor/(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
