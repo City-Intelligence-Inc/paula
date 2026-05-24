@@ -58,6 +58,7 @@ export default function AdminFinancialsPage() {
   const [data, setData] = useState<Financials | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [barsArmed, setBarsArmed] = useState(false);
 
   useEffect(() => {
     fetchApi("/api/admin/financials")
@@ -69,6 +70,21 @@ export default function AdminFinancialsPage() {
       .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
   }, [fetchApi]);
+
+  // Two-frame trick: render bars at width 0, then bump barsArmed in the next
+  // tick so the width transition can play. Skip if reduced-motion is on.
+  useEffect(() => {
+    if (!data) return;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      setBarsArmed(true);
+      return;
+    }
+    const t = setTimeout(() => setBarsArmed(true), 50);
+    return () => clearTimeout(t);
+  }, [data]);
 
   if (loading) {
     return (
@@ -111,8 +127,8 @@ export default function AdminFinancialsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="border border-neutral-200 rounded-lg">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 admin-stagger">
+        <Card className="border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
           <CardContent className="py-4">
             <div className="flex items-center gap-2 text-xs text-neutral-500 uppercase tracking-wide">
               <DollarSign className="h-3 w-3" />
@@ -126,7 +142,7 @@ export default function AdminFinancialsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card className="border border-neutral-200 rounded-lg">
+        <Card className="border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
           <CardContent className="py-4">
             <div className="flex items-center gap-2 text-xs text-neutral-500 uppercase tracking-wide">
               <Clock className="h-3 w-3" />
@@ -140,7 +156,7 @@ export default function AdminFinancialsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card className="border border-neutral-200 rounded-lg">
+        <Card className="border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
           <CardContent className="py-4">
             <div className="flex items-center gap-2 text-xs text-neutral-500 uppercase tracking-wide">
               <AlertCircle className="h-3 w-3" />
@@ -154,7 +170,7 @@ export default function AdminFinancialsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card className="border border-neutral-200 rounded-lg">
+        <Card className="border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
           <CardContent className="py-4">
             <div className="flex items-center gap-2 text-xs text-neutral-500 uppercase tracking-wide">
               <FileWarning className="h-3 w-3" />
@@ -171,7 +187,7 @@ export default function AdminFinancialsPage() {
       </div>
 
       {data.monthsSorted.length > 0 && (
-        <Card className="border border-neutral-200 rounded-lg">
+        <Card className="border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
           <CardContent className="py-4">
             <h2 className="font-medium text-neutral-900 mb-3">
               Revenue by month
@@ -184,8 +200,12 @@ export default function AdminFinancialsPage() {
                   </span>
                   <div className="flex-1 bg-neutral-100 rounded h-3 overflow-hidden">
                     <div
-                      className="h-full bg-mathitude-purple"
-                      style={{ width: `${(m.cents / maxMonth) * 100}%` }}
+                      className="h-full bg-mathitude-purple transition-[width] duration-700 ease-out"
+                      style={{
+                        width: barsArmed
+                          ? `${(m.cents / maxMonth) * 100}%`
+                          : "0%",
+                      }}
                     />
                   </div>
                   <span className="w-24 text-sm text-neutral-700 text-right font-tabular">
@@ -199,7 +219,7 @@ export default function AdminFinancialsPage() {
       )}
 
       {data.topStudents.length > 0 && (
-        <Card className="border border-neutral-200 rounded-lg">
+        <Card className="border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
           <CardContent className="py-4">
             <h2 className="font-medium text-neutral-900 mb-3">
               Top students by paid revenue
@@ -221,7 +241,7 @@ export default function AdminFinancialsPage() {
         </Card>
       )}
 
-      <Card className="border border-neutral-200 rounded-lg">
+      <Card className="border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
         <CardContent className="py-4">
           <h2 className="font-medium text-neutral-900 mb-3">
             Recent payments

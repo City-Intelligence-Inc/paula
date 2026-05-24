@@ -189,7 +189,7 @@ export default function AdminFamiliesPage() {
       )}
 
       {!loading && !error && filtered.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 admin-stagger">
           {filtered.map((family) => {
             const name = familyName(family);
             const subtitle = family.primary?.email || family.id;
@@ -199,7 +199,7 @@ export default function AdminFamiliesPage() {
                 href={`/admin/families/${family.id}`}
                 className="group block"
               >
-                <Card className="py-0 overflow-hidden border border-neutral-200 rounded-lg transition-all group-hover:border-neutral-400 group-hover:shadow-sm h-full">
+                <Card className="py-0 overflow-hidden border border-[color:var(--color-border-warm)] rounded-lg transition-all duration-200 group-hover:border-mathitude-purple/40 group-hover:shadow-md group-hover:-translate-y-0.5 h-full">
                   <div className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">

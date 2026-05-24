@@ -212,26 +212,26 @@ export function PaymentMethodsPanel({ parentId }: { parentId?: string } = {}) {
       </div>
 
       {error && (
-        <div className="rounded-md border-0 badge-error px-3 py-2 text-sm">
+        <div className="rounded-md border-0 badge-error px-3 py-2 text-sm slide-down-in">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="rounded-md border-0 badge-success px-3 py-2 text-sm">
+        <div className="rounded-md border-0 badge-success px-3 py-2 text-sm slide-down-in">
           {success}
         </div>
       )}
 
       {noDefaultAfterSave && (
-        <div className="rounded-md border-0 badge-warning px-3 py-2 text-sm">
+        <div className="rounded-md border-0 badge-warning px-3 py-2 text-sm slide-down-in">
           You&apos;re removing the default card. Pick a new default from your
           remaining cards before saving.
         </div>
       )}
 
       {noCardsAfterSave && (
-        <div className="rounded-md border-0 badge-warning px-3 py-2 text-sm">
+        <div className="rounded-md border-0 badge-warning px-3 py-2 text-sm slide-down-in">
           You&apos;re about to remove all saved cards. Mathitude won&apos;t be
           able to charge you for future sessions until you add a new card.
         </div>
@@ -273,13 +273,13 @@ export function PaymentMethodsPanel({ parentId }: { parentId?: string } = {}) {
                     <p className="text-xs text-neutral-500">
                       Expires {String(pm.expMonth).padStart(2, "0")}/{pm.expYear}
                       {staged && (
-                        <span className="ml-2 text-red-600">
+                        <span className="ml-2 text-[color:var(--color-state-error)] pending-pulse">
                           — pending removal
                         </span>
                       )}
                       {!staged &&
                         draft.pendingDefaultId === pm.id && (
-                          <span className="ml-2 text-mathitude-purple">
+                          <span className="ml-2 text-mathitude-purple pending-pulse">
                             — pending default
                           </span>
                         )}

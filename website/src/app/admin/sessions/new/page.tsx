@@ -247,7 +247,7 @@ export default function NewSessionPage() {
         </p>
       </div>
 
-      <form onSubmit={submit} className="space-y-5">
+      <form onSubmit={submit} className="space-y-5 admin-stagger">
         <Card className="border border-neutral-200 rounded-lg">
           <CardContent className="py-4 space-y-4">
             <h2 className="font-medium text-neutral-900">Session type</h2>
@@ -320,8 +320,8 @@ export default function NewSessionPage() {
                 >
                   <option value="">— pick a student —</option>
                   {students.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {(s.firstName || "") + " " + (s.lastName || "")} ({s.id})
+                    <option key={s.id} value={s.id} title={s.id}>
+                      {(s.firstName || s.lastName) ? `${s.firstName || ""} ${s.lastName || ""}`.trim() : "Student"}
                     </option>
                   ))}
                 </select>
@@ -349,8 +349,9 @@ export default function NewSessionPage() {
                           }
                         }}
                       />
-                      {s.firstName} {s.lastName}{" "}
-                      <span className="text-xs text-neutral-400">({s.id})</span>
+                      <span title={s.id}>
+                        {s.firstName} {s.lastName}
+                      </span>
                     </label>
                   ))}
                 </div>
@@ -514,12 +515,20 @@ export default function NewSessionPage() {
                                 className="border border-neutral-200 rounded-md px-2 py-1 text-sm bg-white flex-1 min-w-[12rem]"
                               >
                                 <option value="">— pick a family —</option>
-                                {families.map((f) => (
-                                  <option key={f.id} value={f.id}>
-                                    {f.primary?.firstName || ""}{" "}
-                                    {f.primary?.lastName || ""} ({f.id})
-                                  </option>
-                                ))}
+                                {families.map((f) => {
+                                  const lastName = f.primary?.lastName?.trim();
+                                  const firstName = f.primary?.firstName?.trim();
+                                  const label = lastName
+                                    ? `${lastName} family`
+                                    : firstName
+                                      ? `${firstName}'s family`
+                                      : "Family";
+                                  return (
+                                    <option key={f.id} value={f.id} title={f.id}>
+                                      {label}
+                                    </option>
+                                  );
+                                })}
                               </select>
                             )}
 
@@ -532,13 +541,17 @@ export default function NewSessionPage() {
                                 className="border border-neutral-200 rounded-md px-2 py-1 text-sm bg-white flex-1 min-w-[12rem]"
                               >
                                 <option value="">— pick a parent —</option>
-                                {families.flatMap((f) =>
-                                  (f.parents || []).map((par) => (
-                                    <option key={par.id} value={par.id}>
-                                      {par.firstName} {par.lastName} ({f.id})
+                                {families.flatMap((f) => {
+                                  const famLast = f.primary?.lastName?.trim();
+                                  const famLabel = famLast
+                                    ? `${famLast} family`
+                                    : "Family";
+                                  return (f.parents || []).map((par) => (
+                                    <option key={par.id} value={par.id} title={par.id}>
+                                      {par.firstName} {par.lastName} — {famLabel}
                                     </option>
-                                  )),
-                                )}
+                                  ));
+                                })}
                               </select>
                             )}
 
@@ -644,12 +657,12 @@ export default function NewSessionPage() {
         </Card>
 
         {error && (
-          <div className="rounded-md border-0 badge-error px-3 py-2 text-sm">
+          <div className="rounded-md border-0 badge-error px-3 py-2 text-sm slide-down-in">
             {error}
           </div>
         )}
         {success && (
-          <div className="rounded-md border-0 badge-success px-3 py-2 text-sm">
+          <div className="rounded-md border-0 badge-success px-3 py-2 text-sm slide-down-in">
             {success}
           </div>
         )}

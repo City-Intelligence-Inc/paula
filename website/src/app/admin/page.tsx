@@ -51,14 +51,22 @@ function computeEndTime(time: string, duration: number): string {
   return `${hour}:${endM.toString().padStart(2, "0")} ${ampm}`;
 }
 
-function SessionCard({ session }: { session: ScheduleSession }) {
+function SessionCard({
+  session,
+  studentNameById,
+}: {
+  session: ScheduleSession;
+  studentNameById: Record<string, string>;
+}) {
   const isGroup = session.type === "group";
   const startFormatted = formatTime(session.time);
   const endFormatted = computeEndTime(session.time, session.duration);
+  const studentLabel =
+    studentNameById[session.studentId] || "Student";
 
   return (
     <Card
-      className={`py-0 overflow-hidden border border-neutral-200 rounded-lg`}
+      className={`py-0 overflow-hidden border border-[color:var(--color-border-warm)] rounded-lg transition-all hover-lift`}
     >
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
@@ -69,8 +77,11 @@ function SessionCard({ session }: { session: ScheduleSession }) {
               ) : (
                 <User className="h-4 w-4 text-neutral-400 shrink-0" />
               )}
-              <h4 className="font-semibold text-neutral-900 text-sm truncate">
-                {isGroup ? `Group Session` : `Student: ${session.studentId}`}
+              <h4
+                className="font-semibold text-neutral-900 text-sm truncate"
+                title={session.studentId}
+              >
+                {isGroup ? "Group session" : studentLabel}
               </h4>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-neutral-500">
@@ -90,15 +101,16 @@ function SessionCard({ session }: { session: ScheduleSession }) {
         </div>
 
         {isGroup && session.students && session.students.length > 0 && (
-          <div className="mt-2 pt-2 border-t border-neutral-100">
+          <div className="mt-2 pt-2 border-t border-[color:var(--color-border-warm)]">
             <p className="text-xs text-neutral-400 mb-1">Students:</p>
             <div className="flex flex-wrap gap-1">
-              {session.students.map((name) => (
+              {session.students.map((sid) => (
                 <span
-                  key={name}
+                  key={sid}
+                  title={sid}
                   className="text-xs bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-full"
                 >
-                  {name}
+                  {studentNameById[sid] || "Student"}
                 </span>
               ))}
             </div>
@@ -114,18 +126,33 @@ function SessionCard({ session }: { session: ScheduleSession }) {
 export default function AdminSchedulePage() {
   const fetchApi = useApi();
   const [sessions, setSessions] = useState<ScheduleSession[]>([]);
+  const [studentNameById, setStudentNameById] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchApi("/api/sessions")
-      .then((res) => res.json())
-      .then((json) => {
-        // Filter out notes — only show real sessions
-        const allSessions = json.sessions || [];
+    Promise.all([
+      fetchApi("/api/sessions").then((res) => res.json()),
+      fetchApi("/api/students").then((res) => res.json()),
+    ])
+      .then(([sessJson, stuJson]) => {
+        const allSessions = sessJson.sessions || [];
         const realSessions = allSessions.filter(
           (s: Record<string, unknown>) => s.type !== "note"
         ) as ScheduleSession[];
         setSessions(realSessions);
+
+        // Build {studentId → "Jane Smith"} so cards render human names
+        // instead of stu_jane_smith_abc.
+        const map: Record<string, string> = {};
+        for (const s of (stuJson.students || []) as Array<{
+          id: string;
+          firstName?: string;
+          lastName?: string;
+        }>) {
+          const name = `${s.firstName || ""} ${s.lastName || ""}`.trim();
+          if (name) map[s.id] = name;
+        }
+        setStudentNameById(map);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -240,9 +267,13 @@ export default function AdminSchedulePage() {
             {days.map((day) => (
               <TabsContent key={day} value={day} className="mt-4">
                 {schedule[day].length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-3 admin-stagger">
                     {schedule[day].map((session, idx) => (
-                      <SessionCard key={`${session.studentId}-${session.dateTime}-${idx}`} session={session} />
+                      <SessionCard
+                        key={`${session.studentId}-${session.dateTime}-${idx}`}
+                        session={session}
+                        studentNameById={studentNameById}
+                      />
                     ))}
                   </div>
                 ) : (

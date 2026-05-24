@@ -126,13 +126,17 @@ function NavLink({
     <Link
       href={item.href}
       onClick={onClick}
-      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+      className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
         active
-          ? "bg-neutral-900 text-white"
-          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+          ? "bg-neutral-900 text-white shadow-sm"
+          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 hover:translate-x-0.5"
       }`}
     >
-      <item.icon className="h-4 w-4 shrink-0" />
+      <item.icon
+        className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
+          active ? "" : "group-hover:scale-105"
+        }`}
+      />
       {item.label}
     </Link>
   );
@@ -224,7 +228,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       {/* Main content */}
       <main className="flex-1 overflow-auto">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div
+          key={pathname}
+          className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 admin-page-enter"
+        >
           {children}
         </div>
       </main>

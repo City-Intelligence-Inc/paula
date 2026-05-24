@@ -11,6 +11,11 @@ import { ArrowLeft, Mail, Phone, CreditCard, Plus, UserCheck, Trash2 } from "luc
 import { PaymentMethodsPanel } from "@/components/stripe/payment-methods-panel";
 import { SaveCardForm } from "@/components/stripe/save-card-form";
 import type { Family, Parent, Student, GuardianRelationship } from "@/lib/types";
+import {
+  familyDisplayName,
+  parentDisplayName,
+  studentDisplayName,
+} from "@/lib/names";
 
 const RELATIONSHIP_OPTIONS: { value: GuardianRelationship; label: string }[] = [
   { value: "parent", label: "Parent" },
@@ -153,8 +158,15 @@ export default function FamilyDetailPage({
         >
           <ArrowLeft className="h-3 w-3" /> Families
         </Link>
-        <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight mt-2">
-          {family.id}
+        <h1
+          className="text-2xl font-semibold text-neutral-900 tracking-tight mt-2"
+          title={family.id}
+        >
+          {familyDisplayName({
+            id: family.id,
+            parents: parents,
+            primary: parents.find((p) => p.id === family.primaryPayerId) || parents[0],
+          })}
         </h1>
         {family.address && (
           <p className="text-sm text-neutral-500 mt-1">

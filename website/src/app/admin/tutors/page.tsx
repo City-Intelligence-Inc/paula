@@ -282,9 +282,6 @@ export default function TutorsPage() {
                             {t.phone}
                           </span>
                         )}
-                        <span className="font-mono text-[10px] text-neutral-300">
-                          {t.id}
-                        </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -336,9 +333,6 @@ export default function TutorsPage() {
                                   </span>
                                 ) : null}
                               </a>
-                              <span className="font-mono text-[10px] text-neutral-300">
-                                {s.id}
-                              </span>
                             </li>
                           ))}
                         </ul>

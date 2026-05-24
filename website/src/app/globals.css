@@ -256,6 +256,105 @@ body {
   }
 }
 
+/* Operator-portal motion kit — keep it tasteful. Every transition serves
+   a function: state change, surface entry, attention. No decorative motion. */
+
+/* Page enter — applied via .page-enter on admin sub-pages */
+@keyframes admin-page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.admin-page-enter {
+  animation: admin-page-in 320ms ease-out both;
+}
+
+/* Card stagger — children of .admin-stagger ease in with 60ms delay each */
+@keyframes admin-card-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.admin-stagger > * {
+  animation: admin-card-in 240ms ease-out both;
+}
+.admin-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.admin-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.admin-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.admin-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.admin-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.admin-stagger > *:nth-child(6) { animation-delay: 300ms; }
+.admin-stagger > *:nth-child(7) { animation-delay: 360ms; }
+.admin-stagger > *:nth-child(8) { animation-delay: 420ms; }
+
+/* Subtle hover lift — already defined above, keep one source of truth */
+
+/* Pulse for the "pending change" caption on staged billing rows */
+@keyframes pending-pulse {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+.pending-pulse {
+  animation: pending-pulse 2s ease-in-out infinite;
+}
+
+/* Slide-down for toast/error tiles. Used by .badge-error, .badge-success
+   when they appear after a submit. */
+@keyframes slide-down-in {
+  from { opacity: 0; transform: translateY(-6px); max-height: 0; }
+  to   { opacity: 1; transform: translateY(0);    max-height: 200px; }
+}
+.slide-down-in {
+  animation: slide-down-in 240ms ease-out both;
+}
+
+/* Skeleton shimmer for loading states */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(232, 227, 217, 0.4) 0%,
+    rgba(232, 227, 217, 0.7) 50%,
+    rgba(232, 227, 217, 0.4) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+/* Button press feedback — subtle scale on active */
+button:not(:disabled):active,
+a.button-press:active {
+  transform: scale(0.98);
+  transition: transform 80ms ease-out;
+}
+
+/* Nav-link active indicator slide — when the active sidebar item changes */
+@keyframes nav-active-in {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+/* Respect motion preferences globally */
+@media (prefers-reduced-motion: reduce) {
+  .admin-page-enter,
+  .admin-stagger > *,
+  .slide-down-in,
+  .pending-pulse,
+  .skeleton {
+    animation: none !important;
+  }
+  button:not(:disabled):active,
+  a.button-press:active {
+    transform: none;
+  }
+  .hover-lift:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
 /* Operator portal utilities — DESIGN.md (2026-05-24). */
 
 /* Tabular numerals + Geist for financials, payment tables, anything with
