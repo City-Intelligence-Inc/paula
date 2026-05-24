@@ -18,6 +18,22 @@ export interface Student {
   updatedAt: string;
 }
 
+export type SessionOffering =
+  | "tutoring"
+  | "group-parent-ed"
+  | "stem-fair"
+  | "family-advising"
+  | "speaking";
+
+export interface SessionPayerSplit {
+  // Family OR parent OR free-form counterparty name (for non-family payers
+  // like a school paying for a STEM-fair appearance).
+  familyId?: string;
+  parentId?: string;
+  counterpartyName?: string;
+  pct: number; // 0–100
+}
+
 export interface Session {
   studentId: string;
   dateTime: string; // ISO string, sort key
@@ -27,8 +43,15 @@ export interface Session {
   type: "individual" | "group" | "note";
   status: "scheduled" | "completed" | "cancelled";
   notes?: string;
+  privateNotes?: string;
   content?: string; // for session notes
   students?: string[]; // for group sessions, list of student IDs
+  // Post-session form extensions (5/17 spec):
+  offering?: SessionOffering;
+  tutorId?: string;
+  rate?: number; // dollars (legacy) or cents (when amountCents is set)
+  amountCents?: number; // canonical charge total
+  payers?: SessionPayerSplit[]; // null/empty = single primary payer fallback
 }
 
 export interface Payment {
@@ -82,6 +105,16 @@ export interface Family {
   updatedAt: string;
 }
 
+export type GuardianRelationship =
+  | "parent"
+  | "stepparent"
+  | "grandparent"
+  | "aunt"
+  | "uncle"
+  | "nanny"
+  | "guardian"
+  | "other";
+
 export interface Parent {
   id: string;
   familyId: string;
@@ -91,6 +124,11 @@ export interface Parent {
   phone?: string;
   stripeCustomerId?: string;
   clerkUserId?: string;
+  // Relationship to the children in the family. Defaults to "parent" for
+  // backwards-compatibility with rows that pre-date this field. "parent"
+  // (and "stepparent") cannot be removed from the UI — only secondary
+  // caregivers (nanny, aunt, uncle, grandparent, guardian, other) can be.
+  relationship?: GuardianRelationship;
   createdAt: string;
   updatedAt: string;
 }

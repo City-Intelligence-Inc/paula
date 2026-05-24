@@ -84,7 +84,21 @@ function CardForm({ parentId }: { parentId?: string }) {
       );
 
       if (stripeError) {
-        setMessage(stripeError.message ?? "Something went wrong.");
+        // Stripe surfaces "Your card number is incorrect.", "Your card has
+        // expired.", "Your card was declined.", etc. via stripeError.message.
+        // Map a couple of common codes to friendlier copy; otherwise pass
+        // through Stripe's message verbatim — it's user-friendly.
+        const friendly =
+          stripeError.code === "incomplete_number"
+            ? "Please enter your full card number."
+            : stripeError.code === "incomplete_expiry"
+              ? "Please enter the card's expiration date."
+              : stripeError.code === "incomplete_cvc"
+                ? "Please enter the card's CVC."
+                : stripeError.code === "card_declined"
+                  ? `Your card was declined${stripeError.decline_code ? ` (${stripeError.decline_code})` : ""}. Try a different card.`
+                  : stripeError.message ?? "Invalid card information.";
+        setMessage(friendly);
       } else {
         // Single-card-per-customer: promote the just-saved PM to default and
         // detach older cards. Server-side webhook does the same on
@@ -106,14 +120,18 @@ function CardForm({ parentId }: { parentId?: string }) {
           console.warn("[save-card] finalize-new-card failed:", e);
         }
         setSuccess(true);
-        setMessage("Card saved successfully — refreshing…");
-        // Two-step refresh: fire event for sibling panels, then hard reload
-        // so the page picks up newly-created Stripe customer + saved card.
-        // Card lookups go straight to Stripe; the reload guarantees the user
-        // sees the updated state regardless of any cache layer.
+        setMessage("Card added. It's now in your saved cards — set it as default and click Save Changes if you'd like to use it for future charges.");
+        // Notify the panel so it reloads from Stripe + clears any draft state.
+        // No hard reload — the panel handles re-render and the user can
+        // continue staging default/remove changes for Save Changes.
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("mathitude:card-saved"));
-          setTimeout(() => window.location.reload(), 800);
+        }
+        // Reset the card form so a follow-up add starts clean.
+        try {
+          elements.getElement(CardElement)?.clear();
+        } catch {
+          /* noop */
         }
       }
     } catch {
@@ -156,7 +174,7 @@ function CardForm({ parentId }: { parentId?: string }) {
         disabled={!stripe || loading}
         className="w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-50"
       >
-        {loading ? "Saving..." : "Save Card"}
+        {loading ? "Adding…" : "Add Card"}
       </button>
     </form>
   );

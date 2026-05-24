@@ -45,13 +45,16 @@ export default function GroupCampsPage() {
             <div className="space-y-0 divide-y divide-neutral-200">
               <div className="py-10 first:pt-0">
                 <h2 className="text-lg font-medium text-black">
-                  8 to 12 weeks
+                  An Exciting Adventure
                 </h2>
                 <p className="mt-2 text-black leading-relaxed">
-                  Classes run 8 to 12 weeks — long enough to build real
-                  momentum, short enough to keep things focused. Each cohort
-                  has a beginning, middle, and end, with room for ideas to
-                  develop and connect over the arc of the term.
+                  Small group classes run 8 to 12 weeks — long enough to build
+                  real momentum, short enough to keep things focused. Each
+                  cohort has a beginning, middle, and end, with room for ideas
+                  to develop and connect over the arc of the term. School
+                  breaks are reserved for development sprints and conference
+                  attendance, so cohorts are scheduled around the academic
+                  calendar rather than during summer or holiday camps.
                 </p>
               </div>
 

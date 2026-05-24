@@ -20,6 +20,7 @@ import {
   UserCheck,
   Bell,
   BookOpen,
+  DollarSign,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -29,6 +30,11 @@ const navItems = [
     label: "Weekly Schedule",
     href: "/admin",
     icon: Calendar,
+  },
+  {
+    label: "Log session",
+    href: "/admin/sessions/new",
+    icon: FileText,
   },
   {
     label: "Families",
@@ -59,6 +65,16 @@ const navItems = [
     label: "Payments",
     href: "/admin/payments",
     icon: CreditCard,
+  },
+  {
+    label: "Financials",
+    href: "/admin/financials",
+    icon: DollarSign,
+  },
+  {
+    label: "Admins",
+    href: "/admin/admins",
+    icon: ShieldCheck,
   },
   {
     label: "Notifications",

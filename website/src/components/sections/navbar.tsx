@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import {
   SignInButton,
@@ -13,11 +13,10 @@ import {
 } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 
-// Emails that should see the "Admin" shortcut in the navbar instead of the
-// parent-facing "Dashboard" link. Mirrors the server-side admin recipient
-// list in src/lib/server/notify.ts — admin pages are still gated by Clerk
-// middleware regardless of what shows here.
-const ADMIN_EMAILS = new Set([
+// Bootstrap admin set — instant decision before the /api/me/is-admin fetch
+// resolves. Newly-added admins via /admin/admins won't appear in this set
+// but the async fetch below picks them up.
+const BOOTSTRAP_ADMIN_EMAILS = new Set([
   "phamilton@mathitude.com",
   "ari@coframe.com",
   "nljq16@stanford.edu",
@@ -108,10 +107,30 @@ export function Navbar() {
 function AuthButtons({ mobile }: { mobile?: boolean }) {
   const { isSignedIn } = useAuth();
   const { user } = useUser();
+  const [dbAdmin, setDbAdmin] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!isSignedIn) {
+      setDbAdmin(null);
+      return;
+    }
+    let cancelled = false;
+    fetch("/api/me/is-admin")
+      .then((r) => r.json())
+      .then((j) => {
+        if (!cancelled) setDbAdmin(!!j.isAdmin);
+      })
+      .catch(() => {
+        if (!cancelled) setDbAdmin(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isSignedIn]);
 
   if (isSignedIn) {
     const email = user?.primaryEmailAddress?.emailAddress?.toLowerCase() || "";
-    const isAdmin = ADMIN_EMAILS.has(email);
+    const isAdmin = dbAdmin ?? BOOTSTRAP_ADMIN_EMAILS.has(email);
     return (
       <div className={mobile ? "mt-2 px-3 flex items-center gap-3" : "ml-3 flex items-center gap-3"}>
         {isAdmin ? (

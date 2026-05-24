@@ -105,9 +105,9 @@ export default function BillingPage() {
         description="Manage your payment method and view your payment history."
       />
 
-      {/* Save Card */}
+      {/* Add a new card */}
       <div className="max-w-md">
-        <div className="mb-8 space-y-3">
+        <div className="mb-6 space-y-3">
           <div className="flex items-start gap-3">
             <span className="shrink-0 w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-600">1</span>
             <p className="text-sm text-neutral-600">Enter your card details below. Your card is stored securely by Stripe — Mathitude never sees your card number.</p>
@@ -118,17 +118,24 @@ export default function BillingPage() {
           </div>
           <div className="flex items-start gap-3">
             <span className="shrink-0 w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-600">3</span>
-            <p className="text-sm text-neutral-600">To update your card, simply save a new one — it will replace the old one automatically.</p>
+            <p className="text-sm text-neutral-600">Manage existing cards below — changes to default and removals take effect once you click <span className="font-medium text-neutral-900">Save Changes</span>.</p>
           </div>
         </div>
-        <SaveCardForm />
+        <h2 className="text-lg font-semibold text-neutral-900 mb-3">
+          Add a new card
+        </h2>
+        <SaveCardForm hideHeader />
       </div>
 
-      {/* Saved cards */}
+      {/* Manage saved cards */}
       <div className="max-w-2xl">
-        <h2 className="text-lg font-semibold text-neutral-900 mb-3">
+        <h2 className="text-lg font-semibold text-neutral-900 mb-1">
           Your saved cards
         </h2>
+        <p className="text-sm text-neutral-500 mb-3">
+          Update which card is default or remove cards you no longer use. Click
+          Save Changes to apply.
+        </p>
         <PaymentMethodsPanel />
       </div>
 

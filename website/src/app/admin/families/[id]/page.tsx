@@ -7,10 +7,32 @@ import { client } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Mail, Phone, CreditCard, Plus, UserCheck } from "lucide-react";
+import { ArrowLeft, Mail, Phone, CreditCard, Plus, UserCheck, Trash2 } from "lucide-react";
 import { PaymentMethodsPanel } from "@/components/stripe/payment-methods-panel";
 import { SaveCardForm } from "@/components/stripe/save-card-form";
-import type { Family, Parent, Student } from "@/lib/types";
+import type { Family, Parent, Student, GuardianRelationship } from "@/lib/types";
+
+const RELATIONSHIP_OPTIONS: { value: GuardianRelationship; label: string }[] = [
+  { value: "parent", label: "Parent" },
+  { value: "stepparent", label: "Stepparent" },
+  { value: "grandparent", label: "Grandparent" },
+  { value: "aunt", label: "Aunt" },
+  { value: "uncle", label: "Uncle" },
+  { value: "nanny", label: "Nanny" },
+  { value: "guardian", label: "Legal guardian" },
+  { value: "other", label: "Other" },
+];
+
+function relationshipLabel(r?: GuardianRelationship): string {
+  if (!r) return "Parent";
+  const match = RELATIONSHIP_OPTIONS.find((o) => o.value === r);
+  return match?.label || "Parent";
+}
+
+const PROTECTED_RELATIONSHIPS = new Set<GuardianRelationship>([
+  "parent",
+  "stepparent",
+]);
 
 export default function FamilyDetailPage({
   params,
@@ -79,6 +101,33 @@ export default function FamilyDetailPage({
     }
   }
 
+  async function removeCaregiver(parent: Parent) {
+    const rel = parent.relationship || "parent";
+    if (PROTECTED_RELATIONSHIPS.has(rel)) {
+      alert(
+        `Parents and stepparents cannot be removed. Change the relationship type first if ${parent.firstName} is actually a different caregiver.`,
+      );
+      return;
+    }
+    if (!confirm(`Remove ${parent.firstName} ${parent.lastName} (${relationshipLabel(rel)}) from this family?`)) {
+      return;
+    }
+    try {
+      const res = await fetchApi(
+        `/api/families/${id}/parents?parentId=${encodeURIComponent(parent.id)}`,
+        { method: "DELETE" },
+      );
+      const json = await res.json();
+      if (!res.ok) {
+        alert(json.error || "Could not remove caregiver");
+        return;
+      }
+      setParents((prev) => prev.filter((p) => p.id !== parent.id));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Could not remove caregiver");
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -117,68 +166,97 @@ export default function FamilyDetailPage({
 
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-neutral-900">Parents</h2>
+          <h2 className="text-lg font-semibold text-neutral-900">
+            Parents & caregivers
+          </h2>
           <AddParentForm
             familyId={family.id}
             onAdded={(p) => setParents((prev) => [...prev, p])}
           />
         </div>
+        <p className="text-xs text-neutral-500 mb-3">
+          Add a parent, stepparent, grandparent, nanny, or other guardian.
+          Biological parents and stepparents are protected and cannot be
+          removed from the UI.
+        </p>
         {parents.length === 0 ? (
-          <p className="text-sm text-neutral-400">No parents linked yet.</p>
+          <p className="text-sm text-neutral-400">No caregivers linked yet.</p>
         ) : (
           <div className="space-y-2">
-            {parents.map((parent) => (
-              <Card
-                key={parent.id}
-                className="py-0 border border-neutral-200 rounded-lg"
-              >
-                <div className="flex items-center gap-4 p-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-neutral-900 truncate">
-                        {parent.firstName} {parent.lastName}
-                      </p>
-                      {family.primaryPayerId === parent.id && (
-                        <Badge className="bg-neutral-900/5 text-neutral-900 border-neutral-200">
-                          Primary payer
+            {parents.map((parent) => {
+              const rel = parent.relationship || "parent";
+              const isProtected = PROTECTED_RELATIONSHIPS.has(rel);
+              const isPrimaryPayer = family.primaryPayerId === parent.id;
+              return (
+                <Card
+                  key={parent.id}
+                  className="py-0 border border-neutral-200 rounded-lg"
+                >
+                  <div className="flex items-center gap-4 p-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium text-neutral-900 truncate">
+                          {parent.firstName} {parent.lastName}
+                        </p>
+                        <Badge className="bg-neutral-100 text-neutral-700 border-neutral-200">
+                          {relationshipLabel(rel)}
                         </Badge>
-                      )}
+                        {isPrimaryPayer && (
+                          <Badge className="bg-neutral-900/5 text-neutral-900 border-neutral-200">
+                            Primary payer
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 mt-0.5 text-xs text-neutral-500 flex-wrap">
+                        {parent.email && (
+                          <span className="flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {parent.email}
+                          </span>
+                        )}
+                        {parent.phone && (
+                          <span className="flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {parent.phone}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 mt-0.5 text-xs text-neutral-500">
-                      <span className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        {parent.email}
+                    <div className="flex items-center gap-3 shrink-0 flex-wrap">
+                      <span className="text-xs text-neutral-400">
+                        {parent.stripeCustomerId ? "Stripe ✓" : "no Stripe"}
                       </span>
-                      {parent.phone && (
-                        <span className="flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
-                          {parent.phone}
-                        </span>
+                      {!isPrimaryPayer && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={savingPayer === parent.id}
+                          onClick={() => setPrimaryPayer(parent.id)}
+                          className="border border-neutral-200 text-neutral-600 hover:border-neutral-300 rounded-md text-xs whitespace-nowrap"
+                        >
+                          {savingPayer === parent.id
+                            ? "Saving…"
+                            : "Make primary payer"}
+                        </Button>
+                      )}
+                      {!isProtected && !isPrimaryPayer && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeCaregiver(parent)}
+                          className="text-red-600 hover:bg-red-50 text-xs"
+                          title="Remove caregiver"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-xs text-neutral-400">
-                      {parent.stripeCustomerId ? "Stripe ✓" : "no Stripe"}
-                    </span>
-                    {family.primaryPayerId !== parent.id && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={savingPayer === parent.id}
-                        onClick={() => setPrimaryPayer(parent.id)}
-                        className="border border-neutral-200 text-neutral-600 hover:border-neutral-300 rounded-md text-xs whitespace-nowrap"
-                      >
-                        {savingPayer === parent.id
-                          ? "Saving…"
-                          : "Make primary payer"}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
@@ -275,11 +353,18 @@ function AddParentForm({
   const fetchApi = useApi();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    relationship: GuardianRelationship;
+  }>({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
+    relationship: "parent",
   });
 
   async function submit(e: React.FormEvent) {
@@ -294,7 +379,13 @@ function AddParentForm({
       const j = await r.json();
       if (r.ok && j.parent) {
         onAdded(j.parent);
-        setForm({ firstName: "", lastName: "", email: "", phone: "" });
+        setForm({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          relationship: "parent",
+        });
         setOpen(false);
       } else {
         alert(j.error || "Add failed");
@@ -313,7 +404,7 @@ function AddParentForm({
         className="border border-neutral-200 text-neutral-600 hover:border-neutral-300 rounded-md text-xs"
       >
         <Plus className="h-3 w-3 mr-1" />
-        Add parent
+        Add caregiver
       </Button>
     );
   }
@@ -322,8 +413,9 @@ function AddParentForm({
     <Card className="border border-neutral-200 rounded-lg overflow-hidden w-full mt-2">
       <form onSubmit={submit} className="p-4 space-y-3">
         <p className="text-xs text-neutral-500">
-          Add a second parent (e.g. the other parent paying). They&apos;ll get
-          their own Stripe customer once a card is saved.
+          Add a caregiver to this family — second parent, stepparent, nanny,
+          aunt, grandparent, or legal guardian. They share the family&apos;s
+          primary card on file by default.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <input
@@ -359,6 +451,29 @@ function AddParentForm({
             onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
             className="border border-neutral-200 rounded-md px-3 py-2 text-sm"
           />
+          <label className="text-sm text-neutral-600 sm:col-span-2">
+            Relationship to child
+            <select
+              value={form.relationship}
+              onChange={(e) =>
+                setForm((p) => ({
+                  ...p,
+                  relationship: e.target.value as GuardianRelationship,
+                }))
+              }
+              className="mt-1 w-full border border-neutral-200 rounded-md px-3 py-2 text-sm bg-white"
+            >
+              {RELATIONSHIP_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <span className="block text-xs text-neutral-400 mt-1">
+              Parents and stepparents are protected — once saved they cannot be
+              removed via the UI.
+            </span>
+          </label>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -366,7 +481,7 @@ function AddParentForm({
             disabled={saving}
             className="bg-neutral-900 text-white hover:bg-neutral-800 rounded-md text-xs"
           >
-            {saving ? "Saving…" : "Add Parent"}
+            {saving ? "Saving…" : "Add caregiver"}
           </Button>
           <Button
             type="button"
