@@ -43,8 +43,24 @@ function ContactForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitting(true);
     setError(null);
+
+    // Required-field guard (5/17 spec). The HTML `required` attribute does
+    // its own browser-side validation, but we duplicate here so the error
+    // message names the specific blank fields instead of stopping at the
+    // first one. Phone is intentionally optional.
+    const missing: string[] = [];
+    if (!form.name.trim()) missing.push("Your name");
+    if (!form.email.trim()) missing.push("Email");
+    if (!form.offering) missing.push("What are you interested in");
+    if (!form.studentInfo.trim()) missing.push("Student info");
+    if (!form.message.trim()) missing.push("Tell us a little about what you're hoping for");
+    if (missing.length > 0) {
+      setError(`Please fill in: ${missing.join(", ")}.`);
+      return;
+    }
+
+    setSubmitting(true);
 
     try {
       const res = await fetch("/api/consultations", {
@@ -98,7 +114,7 @@ function ContactForm() {
             htmlFor="name"
             className="block text-sm font-medium text-neutral-700 mb-1.5"
           >
-            Your name
+            Your name<span className="text-[color:var(--color-state-error)] ml-0.5" aria-hidden>*</span>
           </label>
           <input
             type="text"
@@ -135,7 +151,7 @@ function ContactForm() {
           htmlFor="email"
           className="block text-sm font-medium text-neutral-700 mb-1.5"
         >
-          Email
+          Email<span className="text-[color:var(--color-state-error)] ml-0.5" aria-hidden>*</span>
         </label>
         <input
           type="email"
@@ -154,7 +170,7 @@ function ContactForm() {
           htmlFor="offering"
           className="block text-sm font-medium text-neutral-700 mb-1.5"
         >
-          What are you interested in?
+          What are you interested in?<span className="text-[color:var(--color-state-error)] ml-0.5" aria-hidden>*</span>
         </label>
         <select
           id="offering"
@@ -178,7 +194,7 @@ function ContactForm() {
           htmlFor="studentInfo"
           className="block text-sm font-medium text-neutral-700 mb-1.5"
         >
-          Student info
+          Student info<span className="text-[color:var(--color-state-error)] ml-0.5" aria-hidden>*</span>
         </label>
         <input
           type="text"
@@ -197,7 +213,7 @@ function ContactForm() {
           htmlFor="message"
           className="block text-sm font-medium text-neutral-700 mb-1.5"
         >
-          Tell us a little about what you&apos;re hoping for
+          Tell us a little about what you&apos;re hoping for<span className="text-[color:var(--color-state-error)] ml-0.5" aria-hidden>*</span>
         </label>
         <textarea
           id="message"
@@ -211,8 +227,12 @@ function ContactForm() {
         />
       </div>
 
+      <p className="text-xs text-neutral-500">
+        Fields marked <span className="text-[color:var(--color-state-error)]">*</span> are required.
+      </p>
+
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-md border-0 badge-error px-4 py-3 text-sm">
           {error}
         </div>
       )}

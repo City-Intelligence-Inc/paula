@@ -100,6 +100,10 @@ export default function NewSessionPage() {
   const [studentId, setStudentId] = useState("");
   const [groupStudents, setGroupStudents] = useState<string[]>([]);
   const [tutorId, setTutorId] = useState("");
+  // Session lead — the tutor actually delivering this session. Optional per
+  // 5/17 spec. Defaults to the assigned tutor; can be overridden when
+  // someone else covers (substitute, paired tutor, Paula stepping in).
+  const [sessionLeadId, setSessionLeadId] = useState("");
   const [date, setDate] = useState(todayDate());
   const [time, setTime] = useState(nowHHMM());
   const [duration, setDuration] = useState("60");
@@ -204,6 +208,7 @@ export default function NewSessionPage() {
           type,
           offering,
           tutorId: tutorId || undefined,
+          sessionLeadId: sessionLeadId || undefined,
           amountCents,
           notes,
           privateNotes,
@@ -385,21 +390,49 @@ export default function NewSessionPage() {
             </div>
 
             {tutors.length > 0 && (
-              <label className="text-sm text-neutral-700 block">
-                Tutor
-                <select
-                  value={tutorId}
-                  onChange={(e) => setTutorId(e.target.value)}
-                  className="mt-1 w-full border border-neutral-200 rounded-md px-3 py-2 text-sm bg-white"
-                >
-                  <option value="">— optional —</option>
-                  {tutors.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.firstName} {t.lastName}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="text-sm text-neutral-700 block">
+                  Assigned tutor
+                  <select
+                    value={tutorId}
+                    onChange={(e) => {
+                      setTutorId(e.target.value);
+                      // Default session lead to assigned tutor when nothing
+                      // has been explicitly set.
+                      if (!sessionLeadId) setSessionLeadId(e.target.value);
+                    }}
+                    className="mt-1 w-full border border-neutral-200 rounded-md px-3 py-2 text-sm bg-white"
+                  >
+                    <option value="">— optional —</option>
+                    {tutors.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.firstName} {t.lastName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm text-neutral-700 block">
+                  Session lead (optional)
+                  <select
+                    value={sessionLeadId}
+                    onChange={(e) => setSessionLeadId(e.target.value)}
+                    className="mt-1 w-full border border-neutral-200 rounded-md px-3 py-2 text-sm bg-white"
+                  >
+                    <option value="">— same as assigned tutor —</option>
+                    {tutors.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.firstName} {t.lastName}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="block text-xs text-neutral-400 mt-1">
+                    Use when a different tutor actually delivers the session
+                    (substitute, paired tutor, Paula stepping in). Rate
+                    overrides + tutor-specific pricing track on the session
+                    row.
+                  </span>
+                </label>
+              </div>
             )}
           </CardContent>
         </Card>

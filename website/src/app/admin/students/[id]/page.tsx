@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { Student } from "@/lib/types";
+import { GRADE_OPTIONS as gradeOptions, gradeLabel } from "@/lib/grades";
 
 interface SessionNote {
   studentId: string;
@@ -42,37 +43,6 @@ interface RealSession {
   content?: string;
   students?: string[];
   tutorId?: string;
-}
-
-const gradeOptions = [
-  "K",
-  "1",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "11",
-  "12",
-  "13",
-  "14",
-  "15",
-  "16",
-];
-
-function gradeLabel(g: string): string {
-  if (g === "K") return "Kindergarten";
-  const n = parseInt(g, 10);
-  if (!Number.isFinite(n)) return `Grade ${g}`;
-  if (n >= 13 && n <= 16) {
-    const year = ["First", "Second", "Third", "Fourth"][n - 13];
-    return `College ${year} Year`;
-  }
-  return `Grade ${g}`;
 }
 
 const inputClass =

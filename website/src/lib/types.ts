@@ -49,6 +49,11 @@ export interface Session {
   // Post-session form extensions (5/17 spec):
   offering?: SessionOffering;
   tutorId?: string;
+  // Session lead — the tutor who actually delivered this session, when it
+  // differs from the student's assigned tutor (substitute, paired tutor,
+  // Paula stepping in). Rate is then resolved against this person for
+  // tutor-specific pricing per the 5/17 spec.
+  sessionLeadId?: string;
   rate?: number; // dollars (legacy) or cents (when amountCents is set)
   amountCents?: number; // canonical charge total
   payers?: SessionPayerSplit[]; // null/empty = single primary payer fallback

@@ -51,17 +51,25 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Right — photo collage */}
+          {/* Right — photo collage + video tile.
+              The first tile is a video slot (5/17 spec). When the asset
+              /videos/bucky-ball-hero.mp4 is present it plays muted/looped
+              autoplay; otherwise the poster image stands in so the layout
+              never breaks. Drop the source file into website/public/videos/
+              to enable. */}
           <div className="relative">
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100">
-                <Image
-                  src="/photos/bucky_avni1.jpg"
-                  alt="Student building a colorful geometric structure"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 50vw, 25vw"
-                  priority
+                <video
+                  src="/videos/bucky-ball-hero.mp4"
+                  poster="/photos/bucky_avni1.jpg"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  aria-label="Mathitude students building bucky balls"
                 />
               </div>
               <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100">

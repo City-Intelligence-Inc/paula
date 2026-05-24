@@ -6,6 +6,7 @@ import { useApi } from "@/hooks/use-api";
 import { UserCheck, Mail, Phone, BookOpen } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { gradeLabel } from "@/lib/grades";
 
 interface Tutor {
   id: string;
@@ -23,16 +24,6 @@ interface Student {
   parentName?: string;
   parentEmail?: string;
   parentPhone?: string;
-}
-
-function gradeLabel(g?: string): string {
-  if (!g) return "";
-  if (g === "K") return "Kindergarten";
-  const n = parseInt(g, 10);
-  if (Number.isFinite(n) && n >= 13 && n <= 16) {
-    return `College Year ${n - 12}`;
-  }
-  return `Grade ${g}`;
 }
 
 export default function TutorPortalPage() {

@@ -77,6 +77,11 @@ const navItems = [
     icon: ShieldCheck,
   },
   {
+    label: "Consultations",
+    href: "/admin/consultations",
+    icon: Mail,
+  },
+  {
     label: "Notifications",
     href: "/admin/notifications",
     icon: Bell,
@@ -175,7 +180,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="border-t border-[color:var(--color-border-warm)] px-4 py-4">
+      <div className="border-t border-[color:var(--color-border-warm)] px-4 py-4 space-y-3">
+        <Link
+          href="/dashboard"
+          className="block text-xs text-mathitude-purple hover:text-[#5d288a] font-medium"
+        >
+          View as parent →
+        </Link>
         <div className="flex items-center gap-3">
           <UserButton />
           <div className="text-sm">

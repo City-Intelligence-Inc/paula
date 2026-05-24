@@ -54,6 +54,7 @@ interface NewSessionBody {
   status?: "scheduled" | "completed" | "cancelled";
   offering?: Offering;
   tutorId?: string;
+  sessionLeadId?: string;
   notes?: string;
   privateNotes?: string;
   amountCents?: number;
@@ -143,6 +144,7 @@ export async function POST(request: Request) {
     updatedAt: new Date().toISOString(),
   };
   if (body.tutorId?.trim()) session.tutorId = body.tutorId.trim();
+  if (body.sessionLeadId?.trim()) session.sessionLeadId = body.sessionLeadId.trim();
   if (typeof body.amountCents === "number" && body.amountCents >= 0) {
     session.amountCents = body.amountCents;
   }

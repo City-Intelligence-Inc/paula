@@ -12,9 +12,11 @@ import { Separator } from "@/components/ui/separator";
 import { titleCase } from "@/lib/title-case";
 import type { Student } from "@/lib/types";
 
-const gradeOptions = [
-  "K", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
-];
+import {
+  GRADE_OPTIONS as gradeOptions,
+  gradeShort as gradeLabel,
+  gradeRank,
+} from "@/lib/grades";
 
 const inputClass =
   "w-full border border-neutral-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300";
@@ -24,24 +26,6 @@ function fullName(s: Student): string {
   const ln = titleCase(s.lastName);
   if (!ln || ln === fn) return fn || s.id;
   return `${fn} ${ln}`;
-}
-
-function gradeLabel(g: string | undefined): string {
-  if (!g) return "—";
-  const u = g.toUpperCase();
-  if (u === "K" || u === "KG") return "K";
-  if (u === "PK" || u === "PK3" || u === "PK4") return "Pre-K";
-  return g;
-}
-
-// Numeric grade rank for sorting: Pre-K < K < 1 < 2 < ... < 12
-function gradeRank(g: string | undefined): number {
-  if (!g) return 999;
-  const u = g.toUpperCase();
-  if (u.startsWith("PK")) return -1;
-  if (u === "K" || u === "KG") return 0;
-  const n = parseInt(g, 10);
-  return isNaN(n) ? 998 : n;
 }
 
 type SortKey = "name" | "grade" | "status" | "type" | "parent";

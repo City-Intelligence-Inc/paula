@@ -136,7 +136,7 @@ function AuthButtons({ mobile }: { mobile?: boolean }) {
         {isAdmin ? (
           <Link
             href="/admin"
-            className="inline-flex items-center h-9 px-3 rounded-md bg-[#7030A0] text-white text-sm font-medium hover:bg-[#5d2884] transition-colors"
+            className="inline-flex items-center h-9 px-3 rounded-md bg-[#7030A0] text-white text-sm font-medium uppercase tracking-wide hover:bg-[#5d2884] transition-colors"
           >
             Admin
           </Link>

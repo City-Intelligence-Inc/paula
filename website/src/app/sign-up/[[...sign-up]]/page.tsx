@@ -157,7 +157,7 @@ export default function SignUpPage() {
                 socialButtonsBlockButton:
                   "border border-neutral-200 hover:bg-neutral-50 text-neutral-700 font-medium rounded-lg",
                 formButtonPrimary:
-                  "bg-[#7030A0] hover:bg-[#5d288a] rounded-lg font-medium shadow-none",
+                  "bg-[#7030A0] hover:bg-[#5d288a] rounded-lg font-medium uppercase tracking-wide shadow-none",
                 formFieldInput:
                   "border-neutral-200 focus:border-[#7030A0] focus:ring-1 focus:ring-[#7030A0] rounded-lg bg-white",
                 formFieldLabel: "text-neutral-600 text-sm font-medium",

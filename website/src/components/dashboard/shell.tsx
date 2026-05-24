@@ -13,6 +13,8 @@ import {
   LayoutDashboard,
   Menu,
   X,
+  ShieldCheck,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -76,7 +78,13 @@ function NavLink({
   );
 }
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+export function DashboardShell({
+  children,
+  isAdmin = false,
+}: {
+  children: React.ReactNode;
+  isAdmin?: boolean;
+}) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -97,6 +105,25 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
       {/* Nav */}
       <ScrollArea className="flex-1 px-3 py-4">
+        {isAdmin && (
+          <Link
+            href="/admin"
+            onClick={() => setMobileOpen(false)}
+            className="mb-4 flex items-center justify-between gap-2 rounded-lg bg-[#7030A0] hover:bg-[#5d288a] text-white px-3 py-2.5 text-sm font-semibold uppercase tracking-wide transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 shrink-0" />
+              Admin Portal
+            </span>
+            <ArrowRight className="h-4 w-4 shrink-0" />
+          </Link>
+        )}
+        {isAdmin && (
+          <p className="px-3 mb-3 text-xs text-neutral-400">
+            You&apos;re viewing the parent dashboard. Use the button above to
+            return to the admin portal.
+          </p>
+        )}
         <nav className="space-y-1">
           {navItems.map((item) => (
             <NavLink
