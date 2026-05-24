@@ -120,7 +120,7 @@ function CardForm({ parentId }: { parentId?: string }) {
           console.warn("[save-card] finalize-new-card failed:", e);
         }
         setSuccess(true);
-        setMessage("Card added. It's now in your saved cards — set it as default and click Save Changes if you'd like to use it for future charges.");
+        setMessage("Card added. Set as default below if you want to charge it.");
         // Notify the panel so it reloads from Stripe + clears any draft state.
         // No hard reload — the panel handles re-render and the user can
         // continue staging default/remove changes for Save Changes.

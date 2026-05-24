@@ -6,7 +6,7 @@ import {
 import type Stripe from "stripe";
 import { ddb, Tables } from "@/lib/server/ddb";
 import {
-  enforceSingleCardForCustomer,
+  ensureDefaultCard,
   getStripe,
   getWebhookSecret,
 } from "@/lib/server/stripe";
@@ -60,24 +60,17 @@ export async function POST(request: Request) {
         break;
       }
       case "setup_intent.succeeded": {
-        // A parent just saved a new card. Enforce single-card-per-customer:
-        // promote the just-saved PM to default and detach any older cards
-        // so future charges always hit the most recent card on file.
+        // 5/17 spec: multiple cards are supported. Adding a card must NOT
+        // detach existing cards. Only ensure the customer has a default
+        // (self-heals if state is broken). The user picks the default
+        // explicitly via Save Changes on the panel.
         const setupIntent = event.data.object as Stripe.SetupIntent;
         const customerId =
           typeof setupIntent.customer === "string"
             ? setupIntent.customer
             : setupIntent.customer?.id;
-        const paymentMethodId =
-          typeof setupIntent.payment_method === "string"
-            ? setupIntent.payment_method
-            : setupIntent.payment_method?.id;
-        if (customerId && paymentMethodId) {
-          await enforceSingleCardForCustomer(
-            stripe,
-            customerId,
-            paymentMethodId,
-          );
+        if (customerId) {
+          await ensureDefaultCard(stripe, customerId);
         }
         break;
       }
