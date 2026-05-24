@@ -248,6 +248,41 @@ function ContactForm() {
   );
 }
 
+// Matches the field count + heights of the real form so swap-in is invisible.
+function ContactFormSkeleton() {
+  return (
+    <div className="space-y-5" aria-hidden="true">
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <div className="h-4 w-20 skeleton mb-1.5" />
+          <div className="h-11 w-full skeleton" />
+        </div>
+        <div>
+          <div className="h-4 w-28 skeleton mb-1.5" />
+          <div className="h-11 w-full skeleton" />
+        </div>
+      </div>
+      <div>
+        <div className="h-4 w-12 skeleton mb-1.5" />
+        <div className="h-11 w-full skeleton" />
+      </div>
+      <div>
+        <div className="h-4 w-44 skeleton mb-1.5" />
+        <div className="h-11 w-full skeleton" />
+      </div>
+      <div>
+        <div className="h-4 w-24 skeleton mb-1.5" />
+        <div className="h-11 w-full skeleton" />
+      </div>
+      <div>
+        <div className="h-4 w-60 skeleton mb-1.5" />
+        <div className="h-32 w-full skeleton" />
+      </div>
+      <div className="h-12 w-44 skeleton" />
+    </div>
+  );
+}
+
 export default function ContactPage() {
   return (
     <>
@@ -321,7 +356,7 @@ export default function ContactPage() {
               </div>
 
               <div className="lg:col-span-3">
-                <Suspense fallback={null}>
+                <Suspense fallback={<ContactFormSkeleton />}>
                   <ContactForm />
                 </Suspense>
               </div>

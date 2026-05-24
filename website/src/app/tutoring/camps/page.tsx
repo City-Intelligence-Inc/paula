@@ -105,9 +105,9 @@ export default function GroupCampsPage() {
                   and any themes or goals you have in mind. Mathitude will
                   follow up to design a class that fits your group.
                 </p>
-                <p className="mt-4 text-sm text-neutral-600 leading-relaxed">
-                  Inquire as to any summer camp or school break experiences —
-                  Mathitude might have something to fit your needs.
+                <p className="mt-5 text-base text-neutral-800 leading-relaxed border-l-2 border-[#7030A0]/30 pl-4">
+                  <span className="font-medium">Summer or school break?</span>{" "}
+                  Inquire — Mathitude might have something to fit your needs.
                 </p>
               </div>
             </div>

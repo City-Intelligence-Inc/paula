@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useApi } from "@/hooks/use-api";
 import { Clock, User, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -12,6 +11,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { CommandDeck } from "@/components/admin/command-deck";
 
 interface ScheduleSession {
   studentId: string;
@@ -195,35 +195,15 @@ export default function AdminSchedulePage() {
   const groupCount = sessions.filter((s) => s.type === "group").length;
 
   return (
-    <div className="space-y-6">
-      {/* First-time admin guide */}
-      <div className="mb-8 p-5 rounded-lg bg-neutral-50 border border-neutral-200">
-        <h2 className="text-sm font-medium text-neutral-900 mb-2">Quick Start Guide</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-          <Link href="/admin/students" className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 transition-colors">
-            <span className="w-5 h-5 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-600">1</span>
-            Add your students
-          </Link>
-          <Link href="/admin/calendar" className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 transition-colors">
-            <span className="w-5 h-5 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-600">2</span>
-            Set up the calendar
-          </Link>
-          <Link href="/admin/payments" className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 transition-colors">
-            <span className="w-5 h-5 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-600">3</span>
-            Review payments
-          </Link>
-          <Link href="/admin/pages" className="flex items-center gap-2 text-neutral-600 hover:text-neutral-900 transition-colors">
-            <span className="w-5 h-5 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-600">4</span>
-            Edit page content
-          </Link>
-        </div>
-      </div>
+    <div className="space-y-8">
+      {/* Command deck — Paula's morning briefing */}
+      <CommandDeck />
 
-      {/* Header */}
+      {/* Weekly schedule header */}
       <div>
-        <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">
+        <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">
           Weekly Schedule
-        </h1>
+        </h2>
         <p className="text-sm text-neutral-500 mt-1">
           {totalSessions} sessions &middot; {individualCount} individual &middot;{" "}
           {groupCount} group
@@ -231,9 +211,20 @@ export default function AdminSchedulePage() {
       </div>
 
       {sessions.length === 0 && (
-        <div className="text-center py-12 text-neutral-500">
-          <p className="text-sm">No sessions scheduled yet.</p>
-        </div>
+        <Card className="border border-dashed border-[color:var(--color-border-warm)] rounded-lg bg-[color:var(--color-surface-card)]/50">
+          <div className="text-center py-12 px-4">
+            <p className="text-sm text-neutral-700 font-medium">Quiet week.</p>
+            <p className="text-xs text-neutral-500 mt-1">
+              Once sessions are scheduled, they&apos;ll group here by day.
+            </p>
+            <a
+              href="/admin/sessions/new"
+              className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-mathitude-purple hover:text-[#5d288a]"
+            >
+              Log a session →
+            </a>
+          </div>
+        </Card>
       )}
 
       {sessions.length > 0 && (

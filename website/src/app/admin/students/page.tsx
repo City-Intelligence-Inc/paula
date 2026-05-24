@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { titleCase } from "@/lib/title-case";
+import { downloadCsv } from "@/lib/csv";
 import type { Student } from "@/lib/types";
 
 import {
@@ -184,13 +185,43 @@ export default function AdminStudentsPage() {
             {students.length} total
           </p>
         </div>
-        <Button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
-        >
-          {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {showForm ? "Cancel" : "Add Student"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={filtered.length === 0}
+            onClick={() =>
+              downloadCsv(
+                filtered as unknown as Record<string, unknown>[],
+                [
+                  { key: "firstName", header: "First name" },
+                  { key: "lastName", header: "Last name" },
+                  { key: "grade", header: "Grade" },
+                  { key: "status", header: "Status" },
+                  { key: "sessionType", header: "Session type" },
+                  { key: "rate", header: "Rate" },
+                  { key: "parentName", header: "Parent name" },
+                  { key: "parentEmail", header: "Parent email" },
+                  { key: "parentPhone", header: "Parent phone" },
+                  { key: "familyId", header: "Family ID" },
+                  { key: "id", header: "Student ID" },
+                  { key: "createdAt", header: "Created" },
+                ],
+                "students",
+              )
+            }
+            className="border border-neutral-200 text-neutral-700 hover:bg-neutral-50 rounded-md"
+          >
+            Export CSV
+          </Button>
+          <Button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
+          >
+            {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {showForm ? "Cancel" : "Add Student"}
+          </Button>
+        </div>
       </div>
 
       {successMessage && (

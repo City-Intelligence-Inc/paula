@@ -5,6 +5,7 @@ import { useApi } from "@/hooks/use-api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, Search } from "lucide-react";
+import { downloadCsv } from "@/lib/csv";
 
 interface Consultation {
   id: string;
@@ -35,40 +36,26 @@ function offeringLabel(o?: string): string {
   return OFFERING_LABELS[o] || o;
 }
 
-function downloadCsv(rows: Consultation[]) {
-  const headers = [
-    "createdAt",
-    "parentName",
-    "email",
-    "phone",
-    "offering",
-    "studentInfo",
-    "notes",
-    "source",
-    "id",
-  ];
-  const escape = (v: unknown) => {
-    const s = v == null ? "" : String(v);
-    if (s.includes(",") || s.includes('"') || s.includes("\n")) {
-      return `"${s.replace(/"/g, '""')}"`;
-    }
-    return s;
-  };
-  const lines = [
-    headers.join(","),
-    ...rows.map((r) =>
-      headers.map((h) => escape((r as unknown as Record<string, unknown>)[h])).join(","),
-    ),
-  ];
-  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `consultations-${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+function exportConsultations(rows: Consultation[]) {
+  downloadCsv(
+    rows as unknown as Record<string, unknown>[],
+    [
+      { key: "createdAt", header: "Submitted" },
+      { key: "parentName", header: "Name" },
+      { key: "email", header: "Email" },
+      { key: "phone", header: "Phone" },
+      {
+        key: "offering",
+        header: "Interest",
+        value: (r) => offeringLabel((r as unknown as Consultation).offering),
+      },
+      { key: "studentInfo", header: "Student info" },
+      { key: "notes", header: "Message" },
+      { key: "source", header: "Source page" },
+      { key: "id", header: "ID" },
+    ],
+    "consultations",
+  );
 }
 
 export default function AdminConsultationsPage() {
@@ -119,7 +106,7 @@ export default function AdminConsultationsPage() {
         </div>
         <button
           type="button"
-          onClick={() => downloadCsv(filtered)}
+          onClick={() => exportConsultations(filtered)}
           disabled={filtered.length === 0}
           className="self-start rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
         >

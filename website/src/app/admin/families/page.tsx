@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Plus, Search, Users, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { titleCase } from "@/lib/title-case";
+import { downloadCsv } from "@/lib/csv";
 
 type FamSortKey = "name" | "students" | "primary";
 type FamSortDir = "asc" | "desc";
@@ -122,15 +123,60 @@ export default function AdminFamiliesPage() {
             {studentTotal} {studentTotal === 1 ? "student" : "students"}
           </p>
         </div>
-        <Button
-          asChild
-          className="bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
-        >
-          <Link href="/admin/families/new">
-            <Plus className="h-4 w-4" />
-            Add Family
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={filtered.length === 0}
+            onClick={() =>
+              downloadCsv(
+                filtered.map((f) => ({
+                  familyName: familyName(f),
+                  primaryParent:
+                    `${f.primary?.firstName || ""} ${f.primary?.lastName || ""}`.trim() || "(none)",
+                  primaryEmail: f.primary?.email || "",
+                  primaryPhone: f.primary?.phone || "",
+                  studentCount: f.students.length,
+                  studentNames: f.students
+                    .map((s) => `${s.firstName || ""} ${s.lastName || ""}`.trim())
+                    .filter(Boolean)
+                    .join(" / "),
+                  street: f.address?.street || "",
+                  city: f.address?.city || "",
+                  state: f.address?.state || "",
+                  zip: f.address?.zip || "",
+                  familyId: f.id,
+                })),
+                [
+                  { key: "familyName", header: "Family" },
+                  { key: "primaryParent", header: "Primary parent" },
+                  { key: "primaryEmail", header: "Email" },
+                  { key: "primaryPhone", header: "Phone" },
+                  { key: "studentCount", header: "# students" },
+                  { key: "studentNames", header: "Students" },
+                  { key: "street", header: "Street" },
+                  { key: "city", header: "City" },
+                  { key: "state", header: "State" },
+                  { key: "zip", header: "ZIP" },
+                  { key: "familyId", header: "Family ID" },
+                ],
+                "families",
+              )
+            }
+            className="border border-neutral-200 text-neutral-700 hover:bg-neutral-50 rounded-md"
+          >
+            Export CSV
+          </Button>
+          <Button
+            asChild
+            className="bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
+          >
+            <Link href="/admin/families/new">
+              <Plus className="h-4 w-4" />
+              Add Family
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">

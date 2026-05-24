@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SortableHeader, useSort } from "@/components/admin/sortable-th";
 import { titleCase } from "@/lib/title-case";
+import { downloadCsv } from "@/lib/csv";
 import type { Student, Payment } from "@/lib/types";
 
 type BillingSortKey = "name" | "grade" | "rate" | "balance" | "status";
@@ -277,11 +278,52 @@ export default function AdminPaymentsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">Payments</h1>
-        <p className="text-sm text-neutral-500 mt-1">
-          Manage billing and track payment status
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">Payments</h1>
+          <p className="text-sm text-neutral-500 mt-1">
+            Manage billing and track payment status
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={payments.length === 0}
+          onClick={() => {
+            const studentName = (sid: string) => {
+              const s = students.find((x) => x.id === sid);
+              return s
+                ? `${titleCase(s.firstName || "")} ${titleCase(s.lastName || "")}`.trim()
+                : sid;
+            };
+            downloadCsv(
+              payments.map((p) => ({
+                createdAt: p.createdAt,
+                student: studentName(p.studentId),
+                description: p.description || "",
+                amount: ((p.amount || 0) / 100).toFixed(2),
+                status: p.paymentStatus,
+                stripePaymentIntentId: p.stripePaymentIntentId || "",
+                stripeChargeId: p.stripeChargeId || "",
+                studentId: p.studentId,
+              })),
+              [
+                { key: "createdAt", header: "Date" },
+                { key: "student", header: "Student" },
+                { key: "description", header: "Description" },
+                { key: "amount", header: "Amount (USD)" },
+                { key: "status", header: "Status" },
+                { key: "stripePaymentIntentId", header: "Stripe payment intent" },
+                { key: "stripeChargeId", header: "Stripe charge" },
+                { key: "studentId", header: "Student ID" },
+              ],
+              "payments",
+            );
+          }}
+          className="border border-neutral-200 text-neutral-700 hover:bg-neutral-50 rounded-md self-start"
+        >
+          Export CSV
+        </Button>
       </div>
 
       {/* Summary cards */}
