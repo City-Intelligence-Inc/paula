@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useApi } from "@/hooks/use-api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, Search } from "lucide-react";
+import { Mail, Phone, Search, UserPlus } from "lucide-react";
 import { downloadCsv } from "@/lib/csv";
 
 interface Consultation {
@@ -197,6 +198,34 @@ export default function AdminConsultationsPage() {
                     {c.notes}
                   </p>
                 )}
+                <div className="flex items-center gap-2 pt-2 border-t border-[color:var(--color-border-warm)]">
+                  <Link
+                    href={{
+                      pathname: "/admin/families/new",
+                      query: {
+                        fromConsultation: "1",
+                        fromName: c.parentName || "",
+                        fromEmail: c.email || "",
+                        fromPhone: c.phone || "",
+                        fromStudent: c.studentInfo || "",
+                      },
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-md bg-[#7030A0] text-white hover:bg-[#5d288a] px-3 py-1.5 text-xs font-medium uppercase tracking-wide transition-colors"
+                  >
+                    <UserPlus className="h-3 w-3" />
+                    Convert to family
+                  </Link>
+                  {c.email && (
+                    <a
+                      href={`mailto:${c.email}?subject=${encodeURIComponent(
+                        "Re: Your Mathitude consultation",
+                      )}`}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 text-neutral-700 hover:bg-neutral-50 px-3 py-1.5 text-xs font-medium transition-colors"
+                    >
+                      Reply by email
+                    </a>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

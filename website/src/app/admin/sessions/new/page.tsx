@@ -315,7 +315,20 @@ export default function NewSessionPage() {
                 Student
                 <select
                   value={studentId}
-                  onChange={(e) => setStudentId(e.target.value)}
+                  onChange={(e) => {
+                    const newId = e.target.value;
+                    setStudentId(newId);
+                    // Smart default: auto-fill Total charge with the
+                    // student's default rate (in dollars). Skip if the
+                    // user already typed an amount — they may be intent-
+                    // ionally overriding for this session.
+                    if (newId && !amount.trim()) {
+                      const picked = students.find((s) => s.id === newId);
+                      if (picked?.rate && picked.rate > 0) {
+                        setAmount(String(picked.rate));
+                      }
+                    }
+                  }}
                   className="mt-1 w-full border border-neutral-200 rounded-md px-3 py-2 text-sm bg-white"
                 >
                   <option value="">— pick a student —</option>
@@ -325,6 +338,15 @@ export default function NewSessionPage() {
                     </option>
                   ))}
                 </select>
+                {studentId &&
+                  (() => {
+                    const picked = students.find((s) => s.id === studentId);
+                    return picked?.rate ? (
+                      <span className="block text-xs text-neutral-500 mt-1">
+                        Default rate: ${picked.rate.toLocaleString()} — auto-filled below, override if needed.
+                      </span>
+                    ) : null;
+                  })()}
               </label>
             ) : (
               <div>

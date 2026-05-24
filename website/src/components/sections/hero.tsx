@@ -52,24 +52,21 @@ export function Hero() {
           </div>
 
           {/* Right — photo collage + video tile.
-              The first tile is a video slot (5/17 spec). When the asset
-              /videos/bucky-ball-hero.mp4 is present it plays muted/looped
-              autoplay; otherwise the poster image stands in so the layout
-              never breaks. Drop the source file into website/public/videos/
-              to enable. */}
+              The first tile is a video slot (5/17 spec). It tries a local
+              mp4 first (drop /videos/bucky-ball-hero.mp4 in for the
+              cleanest playback); if that's absent the Google Drive
+              preview iframe takes over so the video shows immediately.
+              Drive's UI chrome is hidden via overflow + scale so the
+              tile reads as part of the collage. */}
           <div className="relative">
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100">
-                <video
-                  src="/videos/bucky-ball-hero.mp4"
-                  poster="/photos/bucky_avni1.jpg"
-                  className="absolute inset-0 w-full h-full object-cover"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  aria-label="Mathitude students building bucky balls"
+                <iframe
+                  src="https://drive.google.com/file/d/1XboYelosnui2NnyAkeyLFg-VEvcfICxp/preview?autoplay=1&mute=1&loop=1"
+                  className="absolute -inset-8 w-[calc(100%+4rem)] h-[calc(100%+4rem)] pointer-events-none"
+                  allow="autoplay"
+                  title="Mathitude students building bucky balls"
+                  loading="lazy"
                 />
               </div>
               <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100">

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useApi } from "@/hooks/use-api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,23 +22,47 @@ const RELATIONSHIP_OPTIONS: { value: GuardianRelationship; label: string }[] = [
 ];
 
 export default function NewFamilyPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewFamilyForm />
+    </Suspense>
+  );
+}
+
+function NewFamilyForm() {
   const router = useRouter();
   const fetchApi = useApi();
+  const searchParams = useSearchParams();
 
-  // Family creation is bootstrapped by creating the first student — the
-  // existing POST /api/students handler auto-creates the family + the first
-  // parent in one transaction when familyId is omitted. This matches Paula's
-  // 5/17 spec: "families enter card once" via the sibling/multi-parent flow,
-  // with the initial parent acting as the primary payer.
-  const [parentFirstName, setParentFirstName] = useState("");
-  const [parentLastName, setParentLastName] = useState("");
-  const [parentEmail, setParentEmail] = useState("");
-  const [parentPhone, setParentPhone] = useState("");
+  // Pre-fill values come from /admin/consultations "Convert to family"
+  // link. Format: ?fromName=&fromEmail=&fromPhone=&fromStudent=
+  // Allows Paula to spin up a record without retyping the consultation
+  // submission. parseConsultationName tries to split "Jane Smith" into
+  // first + last; if there's only one token it goes into firstName.
+  function parseName(full: string): [string, string] {
+    const trimmed = full.trim();
+    if (!trimmed) return ["", ""];
+    const parts = trimmed.split(/\s+/);
+    if (parts.length === 1) return [parts[0], ""];
+    return [parts[0], parts.slice(1).join(" ")];
+  }
+  const [seedFirst, seedLast] = parseName(searchParams.get("fromName") || "");
+  const seedStudent = searchParams.get("fromStudent") || "";
+  const [seedStudentFirst, seedStudentLast] = parseName(seedStudent);
+
+  const [parentFirstName, setParentFirstName] = useState(seedFirst);
+  const [parentLastName, setParentLastName] = useState(seedLast);
+  const [parentEmail, setParentEmail] = useState(
+    searchParams.get("fromEmail") || "",
+  );
+  const [parentPhone, setParentPhone] = useState(
+    searchParams.get("fromPhone") || "",
+  );
   const [parentRelationship, setParentRelationship] =
     useState<GuardianRelationship>("parent");
 
-  const [studentFirstName, setStudentFirstName] = useState("");
-  const [studentLastName, setStudentLastName] = useState("");
+  const [studentFirstName, setStudentFirstName] = useState(seedStudentFirst);
+  const [studentLastName, setStudentLastName] = useState(seedStudentLast);
   const [studentGrade, setStudentGrade] = useState("K");
   const [studentRate, setStudentRate] = useState("");
   const [sessionType, setSessionType] = useState<"individual" | "group">(
@@ -47,6 +71,7 @@ export default function NewFamilyPage() {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fromConsultation = !!searchParams.get("fromConsultation");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -118,6 +143,12 @@ export default function NewFamilyPage() {
           Additional caregivers (stepparent, nanny, grandparent…) and siblings
           can be added on the family page after the household is created.
         </p>
+        {fromConsultation && (
+          <div className="mt-3 rounded-md border-0 badge-info px-3 py-2 text-sm slide-down-in">
+            Pre-filled from a consultation request. Adjust anything before
+            saving.
+          </div>
+        )}
       </div>
 
       <form onSubmit={submit} className="space-y-5">
