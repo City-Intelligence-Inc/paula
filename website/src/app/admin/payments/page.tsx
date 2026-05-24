@@ -32,12 +32,12 @@ type PaymentStatus = "paid" | "pending" | "overdue" | "failed";
 function statusBadgeClass(status: PaymentStatus) {
   switch (status) {
     case "paid":
-      return "bg-neutral-900/5 text-neutral-900 border-neutral-200";
+      return "badge-success border-transparent";
     case "pending":
-      return "bg-neutral-100 text-neutral-600 border-neutral-200";
+      return "badge-warning border-transparent";
     case "overdue":
     case "failed":
-      return "bg-red-50 text-red-600 border-red-200";
+      return "badge-error border-transparent";
   }
 }
 
@@ -392,9 +392,9 @@ export default function AdminPaymentsPage() {
           </div>
         </div>
 
-        <Card className="py-0 overflow-hidden border border-neutral-200 rounded-lg">
+        <div className="overflow-hidden border border-[color:var(--color-border-warm)] rounded-lg bg-white">
           {/* Table header */}
-          <div className="hidden sm:grid grid-cols-[1fr_80px_100px_100px_80px_100px] gap-4 px-4 py-3 bg-neutral-50 border-b border-neutral-200">
+          <div className="hidden sm:grid grid-cols-[1fr_80px_100px_100px_80px_100px] gap-4 px-4 py-2.5 bg-neutral-50 border-b border-[color:var(--color-border-warm)]">
             <SortableHeader sortKey="name" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Student</SortableHeader>
             <SortableHeader sortKey="grade" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Grade</SortableHeader>
             <SortableHeader sortKey="rate" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Rate/mo</SortableHeader>
@@ -404,7 +404,7 @@ export default function AdminPaymentsPage() {
           </div>
 
           {/* Rows */}
-          <div className="divide-y divide-neutral-200">
+          <div className="divide-y divide-[color:var(--color-border-warm)]">
             {filteredBilling.length === 0 && students.length === 0 && (
               <div className="text-center py-8 text-neutral-500">
                 <p className="text-sm">No students yet.</p>
@@ -414,7 +414,7 @@ export default function AdminPaymentsPage() {
             {filteredBilling.map((sb) => (
               <div
                 key={sb.student.id}
-                className="grid grid-cols-1 sm:grid-cols-[1fr_80px_100px_100px_80px_100px] gap-2 sm:gap-4 items-center px-4 py-3"
+                className="grid grid-cols-1 sm:grid-cols-[1fr_80px_100px_100px_80px_100px] gap-2 sm:gap-4 items-center px-4 py-2.5"
               >
                 <div>
                   <p className="font-medium text-neutral-900 text-sm">
@@ -455,7 +455,7 @@ export default function AdminPaymentsPage() {
               </div>
             )}
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Payment history */}
@@ -463,9 +463,9 @@ export default function AdminPaymentsPage() {
         <h2 className="text-lg font-semibold text-neutral-900 mb-4">
           Recent Payment History
         </h2>
-        <Card className="py-0 overflow-hidden border border-neutral-200 rounded-lg">
+        <div className="overflow-hidden border border-[color:var(--color-border-warm)] rounded-lg bg-white">
           {/* Table header */}
-          <div className="hidden sm:grid grid-cols-[120px_1fr_100px_80px_80px] gap-4 px-4 py-3 bg-neutral-50 border-b border-neutral-200">
+          <div className="hidden sm:grid grid-cols-[120px_1fr_100px_80px_80px] gap-4 px-4 py-2.5 bg-neutral-50 border-b border-[color:var(--color-border-warm)]">
             <SortableHeader sortKey="date" activeKey={paymentSort.key} dir={paymentSort.dir} onClick={paymentSort.toggle}>Date</SortableHeader>
             <SortableHeader sortKey="student" activeKey={paymentSort.key} dir={paymentSort.dir} onClick={paymentSort.toggle}>Student</SortableHeader>
             <SortableHeader sortKey="amount" activeKey={paymentSort.key} dir={paymentSort.dir} onClick={paymentSort.toggle}>Amount</SortableHeader>
@@ -473,7 +473,7 @@ export default function AdminPaymentsPage() {
             <SortableHeader sortKey="status" activeKey={paymentSort.key} dir={paymentSort.dir} onClick={paymentSort.toggle}>Status</SortableHeader>
           </div>
 
-          <div className="divide-y divide-neutral-200">
+          <div className="divide-y divide-[color:var(--color-border-warm)]">
             {recentPayments.length === 0 && (
               <div className="text-center py-8 text-neutral-500">
                 <p className="text-sm">No payment history yet.</p>
@@ -483,13 +483,13 @@ export default function AdminPaymentsPage() {
             {recentPayments.map((payment, idx) => (
               <div
                 key={`${payment.studentId}-${payment.createdAt}-${idx}`}
-                className="grid grid-cols-1 sm:grid-cols-[120px_1fr_100px_80px_80px] gap-2 sm:gap-4 items-center px-4 py-3"
+                className="grid grid-cols-1 sm:grid-cols-[120px_1fr_100px_80px_80px] gap-2 sm:gap-4 items-center px-4 py-2.5"
               >
-                <span className="text-sm text-neutral-500">{formatDate(payment.createdAt)}</span>
+                <span className="text-sm text-neutral-500 font-tabular">{formatDate(payment.createdAt)}</span>
                 <span className="text-sm font-medium text-neutral-900">
                   {studentName(payment.studentId)}
                 </span>
-                <span className="text-sm text-neutral-600">
+                <span className="text-sm text-neutral-600 font-tabular">
                   {formatAmount(payment.amount)}
                 </span>
                 <span className="hidden sm:block text-sm text-neutral-500 truncate">
@@ -501,7 +501,7 @@ export default function AdminPaymentsPage() {
               </div>
             ))}
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );
