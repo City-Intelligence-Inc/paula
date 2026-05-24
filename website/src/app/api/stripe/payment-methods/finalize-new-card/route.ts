@@ -1,7 +1,7 @@
 import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
 import { sendAdminNotification } from "@/lib/server/notify";
-import { ensureDefaultCard, getStripe } from "@/lib/server/stripe";
+import { enforceSingleCardForCustomer, getStripe } from "@/lib/server/stripe";
 
 interface Body {
   parentId?: string;
@@ -81,23 +81,17 @@ export async function POST(request: Request) {
     );
   }
 
-  // New flow (5/17 Save Changes spec): keep multiple cards. The added card
-  // is attached and shows up in the panel; the user decides which one is
-  // default via "Save Changes". If this is the first card on file, promote
-  // it to default automatically so the customer is never left in a no-default
-  // state with cards on file.
-  const pm = await stripe.paymentMethods.retrieve(paymentMethodId);
-  if (pm.customer !== customerId) {
-    await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId });
-  }
-  const defaultState = await ensureDefaultCard(stripe, customerId);
-  const result = {
-    defaultPaymentMethodId: defaultState.defaultPaymentMethodId || paymentMethodId,
-    detached: [] as string[],
-  };
-  // ensureDefaultCard only promotes if no default exists. If there's already
-  // a default on the customer, leave it alone — the user picks via Save
-  // Changes.
+  // Paula's clarification (5/24 eve): one card per parent. To use a
+  // different card, switch the family's primary payer to the other parent.
+  // Each parent has their own Stripe customer; this enforces single-card-
+  // per-customer = single-card-per-parent. Adding a new card to a parent
+  // detaches their previous card so the next charge always hits the most
+  // recent card.
+  const result = await enforceSingleCardForCustomer(
+    stripe,
+    customerId,
+    paymentMethodId,
+  );
 
   // Admin notification: per Paula's 5/17 note ("Can we get some sort of
   // notification sent to the admin email with the last 4 digits of the card?").

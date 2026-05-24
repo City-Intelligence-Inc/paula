@@ -286,14 +286,15 @@ export function PaymentMethodsPanel({ parentId }: { parentId?: string } = {}) {
             <Card className="border border-[color:var(--color-border-warm)] rounded-lg bg-neutral-50 p-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs text-neutral-500">
-                  Enter the card details. Stripe stores the card; Mathitude
-                  never sees the number.
+                  {hasCards
+                    ? "Adding a card replaces the existing one for this parent. To keep two cards on file, add the second card under a different parent on this family."
+                    : "Enter the card details. Stripe stores the card; Mathitude never sees the number."}
                 </p>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setAddingCard(false)}
-                  className="border border-neutral-200 text-neutral-700 hover:bg-neutral-50 rounded-md text-xs"
+                  className="border border-neutral-200 text-neutral-700 hover:bg-neutral-50 rounded-md text-xs shrink-0 ml-2"
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -308,7 +309,7 @@ export function PaymentMethodsPanel({ parentId }: { parentId?: string } = {}) {
               className="w-full border border-dashed border-[color:var(--color-border-warm)] text-neutral-700 hover:bg-neutral-50 rounded-md text-sm py-3"
             >
               <Plus className="h-4 w-4" />
-              Add another card
+              {hasCards ? "Replace card" : "Add a card"}
             </Button>
           )}
         </div>
@@ -405,10 +406,14 @@ export function PaymentMethodsPanel({ parentId }: { parentId?: string } = {}) {
             );
           })}
 
-          {/* Hint when there's only one card and the user is in edit mode */}
+          {/* Each parent has one card on file. To switch which card is
+              charged, switch the family's primary payer to the parent
+              whose card you want billed. */}
           {editing && !multipleCards && (
             <p className="text-xs text-neutral-500 px-1">
-              Add a second card above to choose which one Mathitude charges.
+              This parent has one card on file. To charge a different card,
+              switch the family&apos;s primary payer to a different parent
+              (above), or replace this card.
             </p>
           )}
         </div>
