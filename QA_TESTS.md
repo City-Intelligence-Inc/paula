@@ -1,9 +1,11 @@
-# Mathitude Portal QA — 2026-05-24
+# Mathitude Portal QA — 2026-05-24 (pass 2)
 
 Test suite covering the 5/17 spec work shipped today: billing Save Changes,
 master admin portal, multi-guardian model, post-session form, marketing copy
-fixes, design system rollout. Run through in order; each section is
-self-contained.
+fixes, design system rollout, families/new fix, session lead, asterisks +
+form validation, extended grade levels, landing video slot, consultation
+admin view, dashboard ↔ admin cross-links. Run through in order; each
+section is self-contained.
 
 ---
 
@@ -449,6 +451,145 @@ Use any existing family ID, or create a new student to spawn one.
 - **Stripe single-card-per-customer enforcement removed.** Customers can now have multiple cards on file simultaneously. Old "auto-detach previous card" behavior is gone. This is the 5/17 spec change.
 - **Public webhook URL** must still be registered in the Stripe dashboard for live webhooks to flow. Settings → Stripe in admin shows the URL to copy.
 - **Real database** behind staging is the `mathitude-staging-*` DynamoDB tables in us-west-2. If Paula's real customer data should be tested instead, that's a separate environment promotion.
+
+---
+
+## 14. Pass-2 additions — 5/17 spec follow-ups
+
+### T-FAM-NEW-01 — /admin/families/new no longer 404s
+1. Open `/admin/families/new`
+2. **Expected:** Page loads. Heading: "Add a new family". Two cards:
+   "Primary caregiver" + "First student". NOT a "Family not found" error.
+
+### T-FAM-NEW-02 — Required-field validation
+1. Click "Create family" with all fields empty
+2. **Expected:** Cranberry error listing every missing required field
+   (Parent first name, Parent last name, Parent email, Student first name,
+   Student last name). Form does NOT submit.
+
+### T-FAM-NEW-03 — Happy path
+1. Fill all required fields (parent first/last/email, student first/last).
+   Pick a grade. Leave optional fields blank.
+2. Click "Create family"
+3. **Expected:** Button shows "Creating…", then redirect to
+   `/admin/families/[the-new-id]`. New family appears on `/admin/families`.
+
+### T-FAM-NEW-04 — Relationship selector
+1. **Expected:** "Relationship to student" dropdown has 8 options: Parent
+   (default), Stepparent, Grandparent, Aunt, Uncle, Nanny, Legal guardian,
+   Other.
+
+### T-GRADE-01 — Extended grades on family create
+1. On `/admin/families/new`, click the Grade dropdown
+2. **Expected:** Options: Pre-K, Kindergarten, Grades 1–12, Undergrad —
+   First year / Sophomore / Junior / Senior, Graduate school, Other / gap
+   year. Total 21 entries.
+
+### T-GRADE-02 — Extended grades on student detail
+1. Open any student via `/admin/students/[id]` and click Edit
+2. **Expected:** Same 21 grade options visible in the Grade dropdown.
+
+### T-GRADE-03 — Legacy 13–16 values still render correctly
+1. Find any student whose grade was imported as `13`, `14`, `15`, or `16`
+   (legacy college Years 1–4)
+2. **Expected:** Renders as "Undergrad — First year" / "Sophomore" / etc.
+   In the dense student list it shows "UG1" / "UG2" / etc.
+
+### T-SESS-LEAD-01 — Session lead selector appears
+1. Open `/admin/sessions/new`
+2. Scroll to "Who & when"
+3. **Expected:** When at least one tutor exists, you see TWO selects side
+   by side: "Assigned tutor" + "Session lead (optional)". Helper text under
+   session lead explains substitute/paired-tutor scenarios.
+
+### T-SESS-LEAD-02 — Session lead defaults to assigned tutor
+1. Pick an assigned tutor
+2. **Expected:** Session lead select auto-fills with the same tutor.
+
+### T-SESS-LEAD-03 — Session lead persists differently from tutor
+1. Pick "Jane Doe" as assigned tutor
+2. Change session lead to "Paula Hamilton" (or another tutor)
+3. Fill the rest of the form, submit
+4. **Expected:** Session saved. Inspect via DDB or `/admin/schedule` —
+   `tutorId` is jane_doe's id; `sessionLeadId` is paula's id.
+
+### T-CONTACT-AST-01 — Red asterisks on required fields
+1. Open `/contact` in a private window
+2. **Expected:** Asterisks appear after these labels in cranberry color:
+   "Your name *", "Email *", "What are you interested in? *", "Student
+   info *", "Tell us a little about what you're hoping for *". NO asterisk
+   after "Phone (optional)".
+3. Bottom of the form has a small line: "Fields marked * are required."
+
+### T-CONTACT-VAL-01 — Submit with all blanks
+1. Click "SEND TO MATHITUDE" with all fields empty
+2. **Expected:** Cranberry error: "Please fill in: Your name, Email, What
+   are you interested in, Student info, Tell us a little about what
+   you're hoping for." (Lists every missing field, not just the first.)
+
+### T-CONTACT-VAL-02 — Submit with phone blank only
+1. Fill all other fields. Leave phone blank.
+2. Submit
+3. **Expected:** Form submits successfully (phone is optional).
+
+### T-CONSULT-01 — /admin/consultations renders
+1. As admin, visit `/admin/consultations`
+2. **Expected:** Heading "Consultation requests". A search box. An "Export
+   CSV" button. List of submissions sorted newest-first.
+
+### T-CONSULT-02 — CSV export
+1. Click "Export CSV"
+2. **Expected:** Browser downloads `consultations-YYYY-MM-DD.csv`. Open
+   it — columns: createdAt, parentName, email, phone, offering,
+   studentInfo, notes, source, id.
+
+### T-CONSULT-03 — Search filter
+1. Type a name from one of the requests in the search box
+2. **Expected:** List filters live. Clearing the search restores the full
+   list.
+
+### T-CONSULT-04 — Sidebar nav entry
+1. **Expected:** "Consultations" appears in the admin sidebar between
+   "Financials"/"Admins" and "Notifications" with a Mail icon.
+
+### T-HERO-VIDEO-01 — Video slot in hero
+1. Open `/` in a private window
+2. Inspect the first photo tile (top-left of the 2x2 collage on desktop)
+3. **Expected:** It's a `<video>` element with `src="/videos/bucky-ball-hero.mp4"`,
+   `autoplay muted loop playsInline`, `poster="/photos/bucky_avni1.jpg"`.
+   Until the .mp4 is uploaded, the poster image shows in its place.
+
+### T-NAV-NAV-01 — Navbar Admin button is UPPERCASE
+1. Sign in as admin. Look at the top-right of any public page.
+2. **Expected:** "ADMIN" button (uppercase, tracking-wide). Not "Admin".
+
+### T-NAV-CLERK-01 — Clerk sign-in button UPPERCASE
+1. Sign out. Go to `/sign-in`.
+2. **Expected:** Primary "Continue" / "Sign in" button is uppercase
+   tracking-wide.
+
+### T-CROSS-01 — Dashboard sidebar shows Admin button for admins
+1. Sign in as admin. Visit `/dashboard` directly (no longer auto-redirected
+   to /admin).
+2. **Expected:** Top of the sidebar has a prominent purple "ADMIN PORTAL"
+   button with a ShieldCheck icon. Below it: small helper text. The parent
+   nav items follow.
+
+### T-CROSS-02 — Dashboard does NOT show admin button for parents
+1. Sign in as a non-admin parent. Visit `/dashboard`.
+2. **Expected:** No "Admin Portal" button. No helper text about admin
+   access. Just the parent navigation.
+
+### T-CROSS-03 — Admin sidebar shows "View as parent" link
+1. Sign in as admin. Open `/admin`.
+2. Look at the sidebar footer (above the UserButton)
+3. **Expected:** Small purple "View as parent →" link. Clicking it goes
+   to `/dashboard`.
+
+### T-FAQ-01 — Paula FAQ doc exists
+1. Open `/PAULA_FAQ.md` in the repo
+2. **Expected:** Doc covers consultation emails, DB access paths, pricing
+   model, SOC2 path, env vars.
 
 ---
 
