@@ -212,26 +212,26 @@ export function PaymentMethodsPanel({ parentId }: { parentId?: string } = {}) {
       </div>
 
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="rounded-md border-0 badge-error px-3 py-2 text-sm">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+        <div className="rounded-md border-0 badge-success px-3 py-2 text-sm">
           {success}
         </div>
       )}
 
       {noDefaultAfterSave && (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <div className="rounded-md border-0 badge-warning px-3 py-2 text-sm">
           You&apos;re removing the default card. Pick a new default from your
           remaining cards before saving.
         </div>
       )}
 
       {noCardsAfterSave && (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <div className="rounded-md border-0 badge-warning px-3 py-2 text-sm">
           You&apos;re about to remove all saved cards. Mathitude won&apos;t be
           able to charge you for future sessions until you add a new card.
         </div>

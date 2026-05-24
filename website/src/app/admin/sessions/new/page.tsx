@@ -611,12 +611,12 @@ export default function NewSessionPage() {
         </Card>
 
         {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <div className="rounded-md border-0 badge-error px-3 py-2 text-sm">
             {error}
           </div>
         )}
         {success && (
-          <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          <div className="rounded-md border-0 badge-success px-3 py-2 text-sm">
             {success}
           </div>
         )}

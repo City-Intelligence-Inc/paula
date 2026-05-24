@@ -42,12 +42,14 @@ function dollars(cents: number): string {
 
 function StatusBadge({ status }: { status?: string }) {
   if (!status) return null;
+  // Warm semantic palette per DESIGN.md — moss/mustard/cranberry, not the
+  // generic emerald/amber/red Tailwind defaults.
   const cls =
     status === "paid"
-      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      ? "badge-success border-transparent"
       : status === "pending"
-        ? "bg-amber-50 text-amber-700 border-amber-200"
-        : "bg-red-50 text-red-700 border-red-200";
+        ? "badge-warning border-transparent"
+        : "badge-error border-transparent";
   return <Badge className={cls}>{status}</Badge>;
 }
 
@@ -87,7 +89,7 @@ export default function AdminFinancialsPage() {
         <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">
           Financials
         </h1>
-        <Card className="border border-red-200 rounded-lg bg-red-50">
+        <Card className="border border-transparent rounded-lg badge-error">
           <CardContent className="py-4 text-sm text-red-700">
             {error || "No data."}
           </CardContent>
@@ -130,7 +132,7 @@ export default function AdminFinancialsPage() {
               <Clock className="h-3 w-3" />
               Pending
             </div>
-            <p className="text-2xl font-semibold text-amber-700 mt-1">
+            <p className="text-2xl font-semibold text-[color:var(--color-state-warning)] mt-1">
               {dollars(data.pendingCents)}
             </p>
             <p className="text-xs text-neutral-500 mt-1">
@@ -144,7 +146,7 @@ export default function AdminFinancialsPage() {
               <AlertCircle className="h-3 w-3" />
               Overdue + failed
             </div>
-            <p className="text-2xl font-semibold text-red-600 mt-1">
+            <p className="text-2xl font-semibold text-[color:var(--color-state-error)] mt-1">
               {dollars(data.overdueCents + data.failedCents)}
             </p>
             <p className="text-xs text-neutral-500 mt-1">
@@ -186,7 +188,7 @@ export default function AdminFinancialsPage() {
                       style={{ width: `${(m.cents / maxMonth) * 100}%` }}
                     />
                   </div>
-                  <span className="w-24 text-sm text-neutral-700 text-right tabular-nums">
+                  <span className="w-24 text-sm text-neutral-700 text-right font-tabular">
                     {dollars(m.cents)}
                   </span>
                 </div>
@@ -209,7 +211,7 @@ export default function AdminFinancialsPage() {
                   className="flex items-center justify-between py-1.5 text-sm"
                 >
                   <span className="text-neutral-900 truncate">{s.name}</span>
-                  <span className="text-neutral-700 tabular-nums">
+                  <span className="text-neutral-700 font-tabular">
                     {dollars(s.cents)}
                   </span>
                 </div>
@@ -242,7 +244,7 @@ export default function AdminFinancialsPage() {
                       {new Date(p.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <span className="text-sm font-medium text-neutral-900 tabular-nums">
+                  <span className="text-sm font-medium text-neutral-900 font-tabular">
                     {dollars(p.amount || 0)}
                   </span>
                   <StatusBadge status={p.paymentStatus} />

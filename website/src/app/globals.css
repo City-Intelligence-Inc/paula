@@ -55,6 +55,28 @@
   --color-mathitude-navy: #1e293b;
   --color-mathitude-cream: #fdf6e3;
   --color-mathitude-light: #f0fafa;
+
+  /* Operator portal surfaces — DESIGN.md (2026-05-24).
+     Used by the admin shell + admin pages. Marketing pages stay on white. */
+  --color-surface-paper: #FBF7F0;
+  --color-surface-card: #FFFFFF;
+  --color-border-warm: #E8E3D9;
+  --color-text-primary: #1A1A2E;
+  --color-text-muted: #6B6F76;
+  --color-text-faint: #A8A29E;
+
+  /* Warm semantic palette — never ship generic red-500 / amber-500 / green-500
+     in operator UI. These tokens pair with the cream surface. */
+  --color-state-success: #0F7B6C;
+  --color-state-success-soft: #E0F2F0;
+  --color-state-warning: #B8851A;
+  --color-state-warning-soft: #FBF1DC;
+  --color-state-error: #B0263C;
+  --color-state-error-soft: #FBE6EA;
+  --color-state-info: #7030A0;
+  --color-state-info-soft: #F2E8FA;
+
+  --font-tabular: var(--font-geist);
 }
 
 :root {
@@ -83,7 +105,10 @@
   --chart-3: oklch(0.55 0.2 330);
   --chart-4: oklch(0.65 0.18 260);
   --chart-5: oklch(0.6 0.2 145);
-  --radius: 0.625rem;
+  /* DESIGN.md (2026-05-24): radius set to 0.5rem (8px) so --radius-md ≈ 8px.
+     The previous 0.625rem scaled down to 3.75px via *0.6 which felt too sharp
+     for the warm-operator voice. 8px reads precise but not clinical. */
+  --radius: 0.5rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -230,6 +255,38 @@ body {
     animation-fill-mode: forwards;
   }
 }
+
+/* Operator portal utilities — DESIGN.md (2026-05-24). */
+
+/* Tabular numerals + Geist for financials, payment tables, anything with
+   aligned numbers. Pair with the .font-tabular utility. */
+.font-tabular {
+  font-family: var(--font-geist), 'Avenir Next', 'Avenir', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Admin shell paper surface — applies to .admin-shell to opt operator pages
+   into the warm cream background. Marketing pages don't get this. */
+.admin-shell {
+  background-color: var(--color-surface-paper);
+}
+
+/* Operator body weight bump — DESIGN.md says weight 400 minimum for dense
+   tables. Marketing keeps weight 300. */
+.admin-shell,
+.admin-shell p,
+.admin-shell li,
+.admin-shell td,
+.admin-shell span:not([class*="font-"]) {
+  font-weight: 400;
+}
+
+/* Warm semantic badge helpers — for inline status pills in operator UI. */
+.badge-success { background: var(--color-state-success-soft); color: var(--color-state-success); }
+.badge-warning { background: var(--color-state-warning-soft); color: var(--color-state-warning); }
+.badge-error   { background: var(--color-state-error-soft);   color: var(--color-state-error); }
+.badge-info    { background: var(--color-state-info-soft);    color: var(--color-state-info); }
 
 /* Suppress every Clerk dev-mode visual element */
 .cl-internal-dt53uo,

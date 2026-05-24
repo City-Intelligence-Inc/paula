@@ -143,7 +143,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const sidebar = (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-neutral-200">
+      <div className="px-4 py-5 border-b border-[color:var(--color-border-warm)]">
         <Link href="/" className="flex items-center gap-2">
           <span
             className="text-xl font-bold tracking-tight text-mathitude-purple"
@@ -175,7 +175,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="border-t border-neutral-200 px-4 py-4">
+      <div className="border-t border-[color:var(--color-border-warm)] px-4 py-4">
         <div className="flex items-center gap-3">
           <UserButton />
           <div className="text-sm">
@@ -193,9 +193,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="flex min-h-screen bg-neutral-50">
+    <div className="admin-shell flex min-h-screen">
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-neutral-200 lg:bg-white">
+      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-[color:var(--color-border-warm)] lg:bg-[color:var(--color-surface-card)]">
         {sidebar}
       </aside>
 
