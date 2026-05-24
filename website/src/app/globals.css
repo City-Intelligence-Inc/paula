@@ -56,14 +56,16 @@
   --color-mathitude-cream: #fdf6e3;
   --color-mathitude-light: #f0fafa;
 
-  /* Operator portal surfaces — DESIGN.md (2026-05-24).
-     Used by the admin shell + admin pages. Marketing pages stay on white. */
-  --color-surface-paper: #FBF7F0;
+  /* Operator portal surfaces — DESIGN.md (2026-05-24, updated 2026-05-24
+     evening: cream read as too yellow against the brand purple. Switched
+     to neutral light gray so the data on screen is the only color
+     speaking. Marketing pages stay on white). */
+  --color-surface-paper: #F4F4F5;
   --color-surface-card: #FFFFFF;
-  --color-border-warm: #E8E3D9;
-  --color-text-primary: #1A1A2E;
+  --color-border-warm: #E4E4E7;
+  --color-text-primary: #18181B;
   --color-text-muted: #6B6F76;
-  --color-text-faint: #A8A29E;
+  --color-text-faint: #A1A1AA;
 
   /* Warm semantic palette — never ship generic red-500 / amber-500 / green-500
      in operator UI. These tokens pair with the cream surface. */
@@ -314,9 +316,9 @@ body {
 .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(232, 227, 217, 0.4) 0%,
-    rgba(232, 227, 217, 0.7) 50%,
-    rgba(232, 227, 217, 0.4) 100%
+    rgba(228, 228, 231, 0.4) 0%,
+    rgba(228, 228, 231, 0.7) 50%,
+    rgba(228, 228, 231, 0.4) 100%
   );
   background-size: 800px 100%;
   animation: shimmer 1.6s ease-in-out infinite;
