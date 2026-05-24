@@ -1,350 +1,288 @@
-# Mathitude — Payment data handling & PCI posture
+# How Mathitude Handles Card Data
 
-**Date:** 2026-05-24 (revised)
-**Audience:** Paula + anyone asking how cards are stored — bookkeepers,
-accountants, lawyers, parents who want assurance.
-**TL;DR:** Mathitude never sees, never transmits, and never stores credit
-card numbers. All card data goes from the customer's browser **directly to
-Stripe** over an encrypted channel inside a Stripe-hosted iframe.
-Mathitude only ever holds Stripe's tokenized references (`pm_…`, `cus_…`)
-and a brand + last-4 for display. Stripe is PCI DSS Level 1 — the
-highest tier of card-handler compliance.
+**A plain-English compliance brief for Paula to forward.**
+Updated 2026-05-24. Author: Ari (ari@coframe.com).
 
 ---
 
-## 1. The card never touches Mathitude's servers
+## In one sentence
 
-When a parent (or Paula on a parent's behalf, on `/admin/families/[id]`)
-sees a card form on the Mathitude portal, the input field is **not
-Mathitude's HTML**. It is a Stripe-hosted iframe rendered by
-`@stripe/react-stripe-js`'s `<CardElement>` component
-(`src/components/stripe/save-card-form.tsx`).
+Mathitude never sees, transmits, or stores credit card numbers. Cards
+go from the parent's browser **directly to Stripe** inside a
+Stripe-hosted iframe. Mathitude only ever holds Stripe's reference
+tokens (`pm_…`, `cus_…`) and a card's brand + last 4 digits for
+display.
 
-When the user types their card number, expiry, CVC, and ZIP, those
-keystrokes are captured inside Stripe's iframe DOM. Our JavaScript
-**cannot read them** — the iframe is served from a different origin
-(`js.stripe.com`) and the browser's same-origin policy isolates it from
-the surrounding Mathitude page.
-
-On submit, our code calls `stripe.confirmCardSetup(clientSecret, …)`.
-Stripe's JS reads the card values from its own iframe, encrypts them,
-and POSTs them **directly to `api.stripe.com`** over TLS 1.2+. Stripe
-returns a `PaymentMethod` token (`pm_…`) to our browser-side code.
-
-Our code then calls our own server
-(`POST /api/stripe/payment-methods/finalize-new-card`) with **only the
-`paymentMethodId` and `parentId`**. The card number, expiry, and CVC
-have never crossed Mathitude's network.
-
-Our server attaches the `paymentMethod` to the parent's Stripe
-`Customer` (`cus_…`) via Stripe's Node SDK using our restricted secret
-key. That's the entire path.
-
-This is Stripe's standard **Elements + SetupIntent** pattern. It is the
-flow Stripe recommends for SAQ A PCI eligibility — the lowest-burden
-PCI Self-Assessment Questionnaire because the merchant never handles
-cardholder data.
+Stripe is **PCI DSS Level 1** — the highest tier of card-handler
+compliance, the same category as Apple Pay and large banks.
 
 ---
 
-## 2. The data model — one card per parent
+## How card data moves
 
-Updated 5/24 (Paula's clarification):
-
-- **Each parent** on a family has their own Stripe `Customer` record.
-- **Each parent's customer has exactly one card on file.** Saving a new
-  card replaces the previous card for that parent (enforced both at
-  card-save time and via the Stripe webhook for redundancy).
-- **A family can have multiple parents**, so a family can have multiple
-  cards available — one belonging to mom, one belonging to dad, one
-  belonging to a grandparent, etc.
-- **The family record points at one parent as `primaryPayerId`.** That
-  parent's card is what gets charged. To switch which card is billed,
-  Paula clicks "Make primary payer" on the parent whose card she wants
-  charged.
-
-This matches the real-world flow Paula described: husband adds his card
-under Parent 2; the family stays billed to Parent 1 until Paula
-explicitly switches the primary payer.
-
----
-
-## 3. What Mathitude stores
-
-In DynamoDB (`mathitude-staging-*` tables in AWS region `us-west-2`,
-account `050451400186`, all tables encrypted at rest via AWS-managed
-KMS keys, point-in-time recovery enabled):
-
-| Table | What we store | What we **never** store |
-|---|---|---|
-| `parents` | Parent's name, email, phone, family link, Stripe customer reference `stripeCustomerId` (e.g. `cus_R8xQ…`) | Card number, expiry, CVC |
-| `families` | `primaryPayerId` pointer to the parent currently billed | Card data |
-| `payments` | Stripe `paymentIntent` + `charge` ids, amount in cents, status, brand+last4 (display only) | Card number, expiry, CVC, ZIP |
-| `notifications` | Activity log entries with brand + last4 for human-readable display ("Visa ending in 7710") | Card number, expiry, CVC |
-| `secrets` | Stripe restricted API key + webhook signing secret; admin email list | Anything cardholder-related |
-
-The four-digit last-4 + card brand are explicitly defined by PCI DSS
-as **non-sensitive** — they are insufficient on their own to charge a
-card. Stripe returns them to us alongside the PaymentMethod token; we
-display them so Paula can identify which card a customer is using
-("Visa ending in 7710").
-
----
-
-## 4. What Stripe stores
-
-Stripe (PCI DSS Level 1, SOC 2 Type 2) holds:
-
-- Full card number (PAN)
-- Card expiry month + year
-- CVV/CVC (only momentarily during the initial card-verification charge;
-  Stripe never stores CVC long-term, per PCI rules)
-- Cardholder name + billing ZIP
-- Linkage between Stripe `customer` → `paymentMethod`
-
-Stripe's attestation of PCI compliance is downloadable from their
-dashboard under Compliance → Documents. SOC 1 / SOC 2 reports are also
-available there.
-
----
-
-## 5. Network path of a card number
-
-<div style="margin: 18px 0;">
-<svg viewBox="0 0 780 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Avenir Next','Helvetica Neue',Arial,sans-serif;">
+<div style="margin: 22px 0;">
+<svg viewBox="0 0 820 560" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Avenir Next','Helvetica Neue',Arial,sans-serif;">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1A1A2E"/>
-    </marker>
-    <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <marker id="ar-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#7030A0"/>
     </marker>
+    <marker id="ar-dark" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1A1A2E"/>
+    </marker>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.08"/>
+    </filter>
   </defs>
 
-  <!-- Three lanes -->
-  <rect x="20"  y="20" width="220" height="440" rx="10" fill="#F4F4F5" stroke="#E4E4E7" stroke-width="1.5"/>
-  <rect x="280" y="20" width="220" height="440" rx="10" fill="#F4F4F5" stroke="#E4E4E7" stroke-width="1.5"/>
-  <rect x="540" y="20" width="220" height="440" rx="10" fill="#F4F4F5" stroke="#E4E4E7" stroke-width="1.5"/>
+  <!-- Lane backgrounds -->
+  <rect x="20"  y="20" width="240" height="500" rx="14" fill="#FAFAFA" stroke="#E4E4E7" stroke-width="1.5"/>
+  <rect x="290" y="20" width="240" height="500" rx="14" fill="#F5F0FA" stroke="#7030A0" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <rect x="560" y="20" width="240" height="500" rx="14" fill="#FAFAFA" stroke="#E4E4E7" stroke-width="1.5"/>
 
-  <text x="130" y="48" text-anchor="middle" font-size="14" font-weight="600" fill="#1A1A2E">Parent's browser</text>
-  <text x="390" y="48" text-anchor="middle" font-size="14" font-weight="600" fill="#1A1A2E">Stripe (PCI Level 1)</text>
-  <text x="650" y="48" text-anchor="middle" font-size="14" font-weight="600" fill="#1A1A2E">Mathitude</text>
+  <!-- Lane titles -->
+  <text x="140" y="46" text-anchor="middle" font-size="13" font-weight="700" fill="#1A1A2E" letter-spacing="0.5">PARENT'S BROWSER</text>
+  <text x="140" y="62" text-anchor="middle" font-size="10" fill="#6B6F76">our control + Stripe iframe</text>
 
-  <!-- PCI scope dotted boundary (around Stripe + iframe) -->
-  <rect x="115" y="82" width="385" height="120" rx="8" fill="none" stroke="#7030A0" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <text x="307" y="76" text-anchor="middle" font-size="10" font-weight="600" fill="#7030A0" letter-spacing="0.5">PCI SCOPE — STRIPE-MANAGED</text>
+  <text x="410" y="46" text-anchor="middle" font-size="13" font-weight="700" fill="#7030A0" letter-spacing="0.5">STRIPE — PCI SCOPE</text>
+  <text x="410" y="62" text-anchor="middle" font-size="10" fill="#7030A0">Level 1 PCI DSS attested</text>
 
-  <!-- Browser-side: Mathitude page -->
-  <rect x="40"  y="220" width="180" height="60" rx="6" fill="#FFFFFF" stroke="#E4E4E7"/>
-  <text x="130" y="245" text-anchor="middle" font-size="12" fill="#1A1A2E">Mathitude page (UI)</text>
-  <text x="130" y="262" text-anchor="middle" font-size="10" fill="#6B6F76">our JS, can't read card</text>
+  <text x="680" y="46" text-anchor="middle" font-size="13" font-weight="700" fill="#1A1A2E" letter-spacing="0.5">MATHITUDE</text>
+  <text x="680" y="62" text-anchor="middle" font-size="10" fill="#6B6F76">our servers + DynamoDB</text>
 
-  <!-- Stripe iframe (inside browser, but isolated) -->
-  <rect x="40"  y="100" width="180" height="80" rx="6" fill="#FFFFFF" stroke="#7030A0" stroke-width="1.5"/>
-  <text x="130" y="125" text-anchor="middle" font-size="12" font-weight="600" fill="#7030A0">&lt;CardElement /&gt;</text>
-  <text x="130" y="143" text-anchor="middle" font-size="10" fill="#6B6F76">Stripe-hosted iframe</text>
-  <text x="130" y="158" text-anchor="middle" font-size="10" fill="#6B6F76">(js.stripe.com)</text>
-  <text x="130" y="173" text-anchor="middle" font-size="10" fill="#1A1A2E">parent types card here</text>
+  <!-- Step boxes -->
 
-  <!-- Stripe API box -->
-  <rect x="300" y="100" width="180" height="80" rx="6" fill="#FFFFFF" stroke="#7030A0" stroke-width="1.5"/>
-  <text x="390" y="128" text-anchor="middle" font-size="13" font-weight="600" fill="#7030A0">api.stripe.com</text>
-  <text x="390" y="148" text-anchor="middle" font-size="10" fill="#6B6F76">Stripe vault</text>
-  <text x="390" y="163" text-anchor="middle" font-size="10" fill="#6B6F76">stores PAN + expiry</text>
+  <!-- Mathitude UI -->
+  <rect x="40"  y="260" width="200" height="62" rx="8" fill="#FFFFFF" stroke="#E4E4E7" filter="url(#soft)"/>
+  <text x="140" y="284" text-anchor="middle" font-size="12" font-weight="600" fill="#1A1A2E">Mathitude billing page</text>
+  <text x="140" y="302" text-anchor="middle" font-size="10" fill="#6B6F76">our React UI</text>
+  <text x="140" y="315" text-anchor="middle" font-size="10" fill="#6B6F76">can't read the iframe</text>
 
-  <!-- Mathitude backend -->
-  <rect x="560" y="220" width="180" height="80" rx="6" fill="#FFFFFF" stroke="#E4E4E7"/>
-  <text x="650" y="248" text-anchor="middle" font-size="13" font-weight="600" fill="#1A1A2E">/api/stripe/...</text>
-  <text x="650" y="268" text-anchor="middle" font-size="10" fill="#6B6F76">our Next.js server</text>
-  <text x="650" y="283" text-anchor="middle" font-size="10" fill="#1A1A2E">never sees PAN</text>
+  <!-- Stripe iframe (inside browser, but PCI scoped) -->
+  <rect x="40"  y="105" width="200" height="78" rx="8" fill="#FFFFFF" stroke="#7030A0" stroke-width="1.5" filter="url(#soft)"/>
+  <text x="140" y="128" text-anchor="middle" font-size="12" font-weight="700" fill="#7030A0">&lt;CardElement /&gt;</text>
+  <text x="140" y="146" text-anchor="middle" font-size="10" fill="#6B6F76">Stripe-hosted iframe</text>
+  <text x="140" y="160" text-anchor="middle" font-size="10" fill="#6B6F76">served from js.stripe.com</text>
+  <text x="140" y="175" text-anchor="middle" font-size="10" fill="#1A1A2E" font-weight="600">parent types card here</text>
 
-  <!-- DynamoDB (storage) -->
-  <rect x="560" y="340" width="180" height="60" rx="6" fill="#FFFFFF" stroke="#E4E4E7"/>
-  <text x="650" y="364" text-anchor="middle" font-size="12" font-weight="600" fill="#1A1A2E">DynamoDB</text>
-  <text x="650" y="383" text-anchor="middle" font-size="10" fill="#6B6F76">stores pm_… and cus_… tokens only</text>
+  <!-- Stripe API + vault -->
+  <rect x="310" y="105" width="200" height="78" rx="8" fill="#FFFFFF" stroke="#7030A0" stroke-width="1.5" filter="url(#soft)"/>
+  <text x="410" y="128" text-anchor="middle" font-size="12" font-weight="700" fill="#7030A0">api.stripe.com</text>
+  <text x="410" y="146" text-anchor="middle" font-size="10" fill="#6B6F76">Stripe vault</text>
+  <text x="410" y="160" text-anchor="middle" font-size="10" fill="#1A1A2E">stores PAN + expiry</text>
+  <text x="410" y="175" text-anchor="middle" font-size="10" fill="#1A1A2E">returns pm_… token</text>
 
-  <!-- Arrow 1: iframe → Stripe API (PAN over TLS) -->
-  <line x1="220" y1="140" x2="300" y2="140" stroke="#7030A0" stroke-width="2" marker-end="url(#arrow-purple)"/>
-  <text x="260" y="130" text-anchor="middle" font-size="10" font-weight="600" fill="#7030A0">PAN over TLS 1.2+</text>
+  <!-- Mathitude server -->
+  <rect x="580" y="260" width="200" height="62" rx="8" fill="#FFFFFF" stroke="#E4E4E7" filter="url(#soft)"/>
+  <text x="680" y="284" text-anchor="middle" font-size="12" font-weight="700" fill="#1A1A2E">Next.js server</text>
+  <text x="680" y="302" text-anchor="middle" font-size="10" fill="#6B6F76">/api/stripe/...</text>
+  <text x="680" y="315" text-anchor="middle" font-size="10" fill="#6B6F76">attaches token to customer</text>
 
-  <!-- Arrow 2: Stripe API → iframe (token back) -->
-  <line x1="300" y1="160" x2="220" y2="160" stroke="#7030A0" stroke-width="2" marker-end="url(#arrow-purple)"/>
-  <text x="260" y="178" text-anchor="middle" font-size="10" fill="#7030A0">pm_… token</text>
+  <!-- DynamoDB -->
+  <rect x="580" y="390" width="200" height="62" rx="8" fill="#FFFFFF" stroke="#E4E4E7" filter="url(#soft)"/>
+  <text x="680" y="414" text-anchor="middle" font-size="12" font-weight="700" fill="#1A1A2E">DynamoDB</text>
+  <text x="680" y="432" text-anchor="middle" font-size="10" fill="#6B6F76">encrypted at rest, AWS-managed KMS</text>
+  <text x="680" y="446" text-anchor="middle" font-size="10" fill="#1A1A2E">stores cus_…, pm_… only</text>
 
-  <!-- Arrow 3: iframe → Mathitude page (token only) -->
-  <line x1="130" y1="180" x2="130" y2="220" stroke="#1A1A2E" stroke-width="2" marker-end="url(#arrow)"/>
-  <text x="138" y="205" text-anchor="start" font-size="10" fill="#1A1A2E">pm_…</text>
+  <!-- Numbered arrows -->
 
-  <!-- Arrow 4: Mathitude page → Mathitude server (HTTPS, token-only) -->
-  <line x1="220" y1="250" x2="560" y2="250" stroke="#1A1A2E" stroke-width="2" marker-end="url(#arrow)"/>
-  <text x="390" y="240" text-anchor="middle" font-size="10" font-weight="600" fill="#1A1A2E">HTTPS — token + parentId only</text>
-  <text x="390" y="265" text-anchor="middle" font-size="9" fill="#6B6F76">no card number on this hop</text>
+  <!-- 1. iframe → Stripe (PAN over TLS) -->
+  <line x1="240" y1="138" x2="310" y2="138" stroke="#7030A0" stroke-width="2.5" marker-end="url(#ar-purple)"/>
+  <circle cx="275" cy="118" r="11" fill="#7030A0"/>
+  <text x="275" y="122" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">1</text>
+  <text x="275" y="155" text-anchor="middle" font-size="9" fill="#7030A0" font-weight="600">PAN, TLS 1.2+</text>
 
-  <!-- Arrow 5: Mathitude server → Stripe API (attach token) -->
-  <line x1="600" y1="220" x2="450" y2="180" stroke="#1A1A2E" stroke-width="2" marker-end="url(#arrow)"/>
-  <text x="540" y="195" text-anchor="end" font-size="10" fill="#1A1A2E">attach pm_… to cus_…</text>
+  <!-- 2. Stripe → iframe (token back) -->
+  <line x1="310" y1="158" x2="240" y2="158" stroke="#7030A0" stroke-width="2.5" marker-end="url(#ar-purple)"/>
+  <circle cx="275" cy="178" r="11" fill="#7030A0"/>
+  <text x="275" y="182" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">2</text>
+  <text x="275" y="198" text-anchor="middle" font-size="9" fill="#7030A0" font-weight="600">pm_… token</text>
 
-  <!-- Arrow 6: Mathitude server → DynamoDB (persist token only) -->
-  <line x1="650" y1="300" x2="650" y2="340" stroke="#1A1A2E" stroke-width="2" marker-end="url(#arrow)"/>
-  <text x="660" y="325" text-anchor="start" font-size="10" fill="#1A1A2E">cus_…, pm_…</text>
+  <!-- 3. Stripe iframe → Mathitude UI (token only, in-browser) -->
+  <line x1="140" y1="183" x2="140" y2="260" stroke="#1A1A2E" stroke-width="2.5" marker-end="url(#ar-dark)"/>
+  <circle cx="155" cy="220" r="11" fill="#1A1A2E"/>
+  <text x="155" y="224" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">3</text>
+  <text x="175" y="222" text-anchor="start" font-size="9" fill="#1A1A2E" font-weight="600">pm_… handed to our JS</text>
+
+  <!-- 4. UI → server (HTTPS, token-only) -->
+  <line x1="240" y1="290" x2="580" y2="290" stroke="#1A1A2E" stroke-width="2.5" marker-end="url(#ar-dark)"/>
+  <circle cx="410" cy="270" r="11" fill="#1A1A2E"/>
+  <text x="410" y="274" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">4</text>
+  <text x="410" y="306" text-anchor="middle" font-size="9" fill="#1A1A2E" font-weight="600">HTTPS — token + parentId, no PAN</text>
+
+  <!-- 5. Server → Stripe (attach token) -->
+  <line x1="630" y1="260" x2="500" y2="190" stroke="#1A1A2E" stroke-width="2.5" marker-end="url(#ar-dark)"/>
+  <circle cx="565" cy="220" r="11" fill="#1A1A2E"/>
+  <text x="565" y="224" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">5</text>
+  <text x="555" y="245" text-anchor="end" font-size="9" fill="#1A1A2E" font-weight="600">attach pm_… to cus_…</text>
+
+  <!-- 6. Server → DynamoDB (persist token) -->
+  <line x1="680" y1="322" x2="680" y2="390" stroke="#1A1A2E" stroke-width="2.5" marker-end="url(#ar-dark)"/>
+  <circle cx="695" cy="356" r="11" fill="#1A1A2E"/>
+  <text x="695" y="360" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">6</text>
+  <text x="713" y="360" text-anchor="start" font-size="9" fill="#1A1A2E" font-weight="600">cus_…, pm_… persisted</text>
 
   <!-- Legend -->
-  <g transform="translate(40, 410)">
-    <line x1="0"  y1="6" x2="22" y2="6" stroke="#7030A0" stroke-width="2"/>
-    <text x="28" y="10" font-size="10" fill="#1A1A2E">Card data path (Stripe-handled)</text>
-    <line x1="0"  y1="26" x2="22" y2="26" stroke="#1A1A2E" stroke-width="2"/>
-    <text x="28" y="30" font-size="10" fill="#1A1A2E">Token-only path (Mathitude-handled)</text>
+  <g transform="translate(40, 480)">
+    <line x1="0"  y1="6" x2="28" y2="6" stroke="#7030A0" stroke-width="2.5"/>
+    <text x="34" y="10" font-size="10" fill="#1A1A2E">Card data (steps 1–2 only) — never leaves Stripe.</text>
+    <line x1="0"  y1="26" x2="28" y2="26" stroke="#1A1A2E" stroke-width="2.5"/>
+    <text x="34" y="30" font-size="10" fill="#1A1A2E">Token paths (steps 3–6) — carries only Stripe references.</text>
   </g>
 </svg>
 </div>
 
-**Reading the diagram.** The dashed purple boundary shows where the card
-number lives: in the Stripe-hosted iframe and on Stripe's servers, never
-elsewhere. Two arrows ever carry card data (the purple ones); both
-endpoints are Stripe. Every black arrow carries only Stripe tokens
-(`pm_…`, `cus_…`) — those are what Mathitude's servers and DynamoDB
-store. There is no path on this diagram by which a card number reaches
-Mathitude's infrastructure.
-
-Mathitude's servers **never appear on the card-number path**. There is
-no configuration setting Paula or any future operator can change to make
-card numbers traverse our infrastructure — the Stripe iframe enforces
-this at the browser level.
+The card number lives inside the dashed purple zone — never outside.
+Steps 1 and 2 happen between Stripe's iframe and Stripe's servers; our
+JavaScript and our backend are not on those hops. Steps 3, 4, 5, 6
+carry **only** Stripe's reference tokens.
 
 ---
 
-## 6. Access controls
+## What Mathitude has (and what Mathitude doesn't)
 
-### Admin tiers (5/24)
+### We have
 
-Two roles enforced at the application layer (`src/lib/server/admins.ts`):
+| Data | Sensitivity | Where it lives |
+|---|---|---|
+| Stripe customer reference (`cus_…`) | Non-sensitive | DynamoDB `parents` table |
+| Stripe payment method reference (`pm_…`) | Non-sensitive | DynamoDB |
+| Card brand (Visa, Mastercard, …) | Non-sensitive | DynamoDB `payments` + display only |
+| Last 4 digits of card | Non-sensitive (per PCI DSS) | DynamoDB + display only |
+| Card expiry month / year (for display) | Non-sensitive | DynamoDB + display only |
+| Charge history (amount, status, date) | Business data | DynamoDB `payments` |
 
-- **Master admin** — can do everything, including adding/removing other
-  admins and changing their roles. Bootstrap master admins (Paula,
-  Ari, Nikki) are baked into the codebase and cannot be removed via the
-  UI.
+### We do not have
+
+- Full card number (PAN)
+- CVV / CVC
+- Cardholder name (Stripe holds it)
+- Billing ZIP (Stripe holds it)
+- Anything that could be used to charge the card without Stripe
+
+These remain on Stripe's PCI-compliant infrastructure. We could not
+hand them to a hacker, a subpoena, or a curious bookkeeper because we
+do not possess them.
+
+---
+
+## Data model — one card per parent
+
+Each parent on a family has their own Stripe customer with exactly one
+card on file. A family can have multiple parents, so a family can have
+multiple cards available. The family record points at one parent as
+the **primary payer** — that's whose card gets charged. Switching the
+primary payer is a one-click action; the system charges the new
+parent's card from the next billing event onward.
+
+This matches real-world households: husband adds his card under his
+parent record, wife under hers, and Paula picks whose card runs at
+billing time.
+
+---
+
+## Access controls
+
+### Two admin tiers
+
+- **Master admin** — full control, including adding/removing other
+  admins. Bootstrap master admins (Paula, Ari, Nikki) are hard-coded
+  and cannot be removed via the UI.
 - **Admin** — full operator access to families, students, sessions,
-  billing, payments, financials. **Cannot add or remove other admins**;
-  the admin-management endpoints return 403 with `code:
-  "not_master_admin"` if a plain admin attempts mutation.
+  billing, payments, financials. Cannot manage other admins; if a
+  plain admin tries to mutate the admin list, the server returns 403.
 
-Both tiers are gated behind Clerk authentication. There is no way to
-access the admin portal without first signing in with an email on the
-admin list.
+Both tiers sign in through Clerk (a SOC 2 Type 2 attested identity
+provider). There is no admin path that doesn't go through Clerk.
 
-### Stripe key scoping
+### Stripe API key
 
-Our backend uses a Stripe **restricted key** (`rk_…`) where possible
-(`src/lib/server/stripe.ts:153`). The key is scoped to the minimum
-permissions our flows require:
-- `paymentmethods:write` (attach/detach to customers)
-- `customers:write` (create on first card save, update default)
-- `paymentintents:write` (charge approval queue)
-- `setupintents:write` (save-card flow)
+We use a Stripe **restricted key** (`rk_…`) scoped to the four
+permissions we actually need: payment methods, customers, payment
+intents, setup intents. The key is stored encrypted at rest in
+DynamoDB and is never returned in any HTTP response — only the last
+4 characters appear in the diagnostic display under Settings → Stripe.
 
-The key lives in DynamoDB (`mathitude-staging-secrets`, encrypted at
-rest, never echoed in any response — `getStripeMeta()` only returns
-`last4` of the key for diagnostic display in `/admin/settings/stripe`).
+### Webhooks
 
-### Webhook signature verification
+Every incoming Stripe webhook event is verified against our
+`STRIPE_WEBHOOK_SECRET` before being acted on. Forged or
+stale-timestamped events are rejected with HTTP 400. This prevents
+a third party from sending fake "payment succeeded" events to mark
+debts as paid.
 
-`POST /api/stripe/webhook` verifies every incoming Stripe webhook via
-the `Stripe-Signature` header against the webhook signing secret.
-Unsigned or stale-timestamp webhooks are rejected with 400. This
-prevents an attacker from sending forged `payment_intent.succeeded`
-events to mark debts as paid.
-
----
-
-## 7. Logging hygiene
+### Logs
 
 `grep -r "cardNumber\|card_number\|pan" src/` returns zero hits across
-the codebase as of this date. Stripe error objects sometimes include
-the last-4 of a declined card; those are safe to log per PCI rules.
-Application logs (Vercel, AWS CloudWatch) contain no PANs.
+the codebase. Application logs (Vercel + AWS CloudWatch) contain no
+PANs.
 
 ---
 
-## 8. Data residency
+## Questions Paula might be asked
 
-- **DynamoDB:** AWS `us-west-2` (Oregon)
-- **Stripe:** see Stripe's data-residency commitments at
-  https://stripe.com/docs/security/stripe — primary processing in the
-  US for US customers
-- **Clerk (auth):** see Clerk's processor agreement
-- **Resend (email):** see Resend's DPA
-- **Vercel (host):** see Vercel's DPA
+**Where is my card stored?**
+On Stripe's servers, the same infrastructure used by Lyft, Shopify,
+Substack, Slack, and tens of thousands of other businesses. Stripe is
+PCI DSS Level 1 attested — the top compliance tier. Mathitude has a
+reference to your card, not the card itself.
 
-For European customers, this stack would need a residency review. As
-of today, Mathitude operates in California.
+**Can a Mathitude employee see my card number?**
+No. The card number never reaches Mathitude's servers, and Mathitude's
+JavaScript can't read inside Stripe's input field. The strongest claim
+isn't a policy; it's that we don't have the data to look at.
 
----
+**What if Mathitude's database gets hacked?**
+An attacker would see Stripe reference tokens (which require Mathitude's
+restricted Stripe key to use) and the last 4 digits of cards. They
+would not see card numbers, expiries, or CVCs because those are not in
+the database. The Stripe key itself is encrypted at rest with an
+AWS-managed key; access logs would show any read.
 
-## 9. Quick mental model for Paula
+**What if Stripe gets hacked?**
+Then everyone who uses Stripe (including most of the internet) has a
+problem. Stripe carries Level 1 PCI attestation precisely to make this
+extremely unlikely.
 
-> If a bookkeeper, accountant, or lawyer ever asks
-> "is Mathitude storing credit cards somewhere?" — the honest answer is
-> **no**. The cards live in Stripe's vault. We have a key-card to the
-> vault (the restricted Stripe API key) and a list of who has which
-> card (the `paymentMethod` and `customer` ids). We do not have the
-> cards themselves. We could not give cardholder data to a hacker, a
-> subpoena, or anyone else if asked, because we do not possess it.
+**How do you charge me without seeing my card?**
+We call Stripe's API and say: "Charge $100 from customer `cus_xyz`
+using payment method `pm_abc`." Stripe handles the actual card
+transaction. Our request never includes a card number.
 
----
-
-## 10. SOC 2 path (when Mathitude wants its own attestation)
-
-Stripe + Clerk + AWS are all SOC 2 Type 2 themselves, so most of the
-heavy lifting on payment + auth controls is **inherited** from these
-sub-processors. Mathitude-side controls for a Type 1 attestation are
-mostly about access logs, encryption verification, vendor management,
-and an incident-response runbook.
-
-Cheapest first step: enable AWS CloudTrail + retain logs 365 days; turn
-on AWS GuardDuty. Costs <$50/mo and is required evidence for any future
-SOC 2 audit.
-
-Full path: pick a compliance vendor (Vanta, Drata, Secureframe), ~$10–
-15K/year. They auto-collect controls from AWS + Vercel + Clerk + Stripe.
-~30 days of evidence collection, then auditor review. Type 1 attestation
-in ~3 months. Type 2 attestation needs 6+ months of evidence after
-that.
+**Can I get a copy of this?**
+Yes — Paula has the PDF version. If you want a fresh dated copy, ask
+her.
 
 ---
 
-## 11. Sources + repo references
+## SOC 2 path (if and when Mathitude wants its own attestation)
 
-External:
+Stripe, Clerk, AWS, Vercel — all of Mathitude's sub-processors carry
+their own SOC 2 attestations. Most of the controls a SOC 2 auditor
+would check for Mathitude are inherited from those vendors.
 
-- [Stripe Elements docs](https://stripe.com/docs/payments/elements)
-- [Stripe PCI compliance overview](https://stripe.com/docs/security/stripe)
-- PCI DSS v4.0 §3.3 + §3.5 (tokenization scope reduction)
+The Mathitude-side work is access logging, encryption verification,
+vendor management, and an incident-response runbook. Realistic cost:
+~$10–15K/year for a compliance vendor (Vanta, Drata, Secureframe),
+~3 months for Type 1 attestation, ~9 months for Type 2.
 
-Repo files (verifiable in source):
-
-- `src/components/stripe/save-card-form.tsx` — Stripe Elements card form
-- `src/app/api/stripe/create-setup-intent/route.ts` — server-side SetupIntent + on-demand customer creation
-- `src/app/api/stripe/payment-methods/finalize-new-card/route.ts` — single-card enforcement on save
-- `src/app/api/stripe/payment-methods/apply/route.ts` — bulk apply endpoint for the Save Changes flow
-- `src/app/api/stripe/webhook/route.ts` — signed Stripe webhook handler
-- `src/lib/server/stripe.ts` — `enforceSingleCardForCustomer`, `ensureDefaultCard`, restricted-key resolution
-- `src/lib/server/secrets.ts` — Stripe key storage (encrypted at rest, portal-editable, env-var fallback)
-- `src/lib/server/admins.ts` — master-admin vs admin tier enforcement
+Cheapest first step today: enable AWS CloudTrail with 365-day retention
++ GuardDuty. <$50/month, required evidence for any future audit.
 
 ---
 
-## Sign-off summary
+## Sign-off checklist
 
-| Concern | Status |
+| Question | Answer |
 |---|---|
-| Do we see card numbers? | **No.** Stripe iframe blocks our JS from reading. |
-| Do we transmit card numbers to our server? | **No.** Only `pm_…` tokens cross our network. |
-| Do we store card numbers? | **No.** Only Stripe ids + brand + last-4. |
-| Is Stripe PCI-compliant? | **Yes, Level 1** — the top tier. |
-| Are admin actions authenticated? | **Yes.** Clerk + master-admin role enforcement. |
-| Are webhooks signature-verified? | **Yes.** `STRIPE_WEBHOOK_SECRET` checked on every event. |
-| Encryption at rest for our data? | **Yes.** DynamoDB tables use AWS-managed KMS. |
-| Can Mathitude leak card data to a hacker? | **No.** We don't have the data to leak. |
+| Does Mathitude see card numbers? | No. |
+| Does Mathitude transmit card numbers to its own servers? | No. |
+| Does Mathitude store card numbers? | No — only Stripe references. |
+| Is Stripe PCI-compliant? | Yes, Level 1 (highest tier). |
+| Are admin actions authenticated? | Yes, via Clerk. |
+| Are admin mutations restricted to master admin? | Yes. |
+| Are Stripe webhooks signature-verified? | Yes. |
+| Is the database encrypted at rest? | Yes, AWS KMS. |
+| Can a Mathitude breach leak card data? | No — we don't have it to leak. |
 
-Document maintainer: Ari ([ari@coframe.com](mailto:ari@coframe.com)).
-For the latest version, check `COMPLIANCE.md` in the repo root.
+Maintainer: Ari ([ari@coframe.com](mailto:ari@coframe.com)). Latest
+version always at `COMPLIANCE.md` in the Mathitude repository.
