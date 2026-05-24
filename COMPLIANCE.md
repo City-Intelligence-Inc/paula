@@ -110,19 +110,101 @@ available there.
 
 ## 5. Network path of a card number
 
-```
-[Parent's browser]
-   │   typed into <CardElement> (Stripe iframe, served from js.stripe.com)
-   ▼
-[Stripe iframe DOM] ─── TLS 1.2+ ───► [api.stripe.com (Stripe vault)]
-                                                │ returns pm_… token
-                                                ▼
-                                         [Parent's browser]
-                                                │ confirmCardSetup() resolves
-                                                ▼
-[Parent's browser] ── HTTPS ──► [Mathitude /api/stripe/...]
-   only carrying: pm_… token, parentId, optionally setupIntent id
-```
+<div style="margin: 18px 0;">
+<svg viewBox="0 0 780 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Avenir Next','Helvetica Neue',Arial,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1A1A2E"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7030A0"/>
+    </marker>
+  </defs>
+
+  <!-- Three lanes -->
+  <rect x="20"  y="20" width="220" height="440" rx="10" fill="#F4F4F5" stroke="#E4E4E7" stroke-width="1.5"/>
+  <rect x="280" y="20" width="220" height="440" rx="10" fill="#F4F4F5" stroke="#E4E4E7" stroke-width="1.5"/>
+  <rect x="540" y="20" width="220" height="440" rx="10" fill="#F4F4F5" stroke="#E4E4E7" stroke-width="1.5"/>
+
+  <text x="130" y="48" text-anchor="middle" font-size="14" font-weight="600" fill="#1A1A2E">Parent's browser</text>
+  <text x="390" y="48" text-anchor="middle" font-size="14" font-weight="600" fill="#1A1A2E">Stripe (PCI Level 1)</text>
+  <text x="650" y="48" text-anchor="middle" font-size="14" font-weight="600" fill="#1A1A2E">Mathitude</text>
+
+  <!-- PCI scope dotted boundary (around Stripe + iframe) -->
+  <rect x="115" y="82" width="385" height="120" rx="8" fill="none" stroke="#7030A0" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="307" y="76" text-anchor="middle" font-size="10" font-weight="600" fill="#7030A0" letter-spacing="0.5">PCI SCOPE — STRIPE-MANAGED</text>
+
+  <!-- Browser-side: Mathitude page -->
+  <rect x="40"  y="220" width="180" height="60" rx="6" fill="#FFFFFF" stroke="#E4E4E7"/>
+  <text x="130" y="245" text-anchor="middle" font-size="12" fill="#1A1A2E">Mathitude page (UI)</text>
+  <text x="130" y="262" text-anchor="middle" font-size="10" fill="#6B6F76">our JS, can't read card</text>
+
+  <!-- Stripe iframe (inside browser, but isolated) -->
+  <rect x="40"  y="100" width="180" height="80" rx="6" fill="#FFFFFF" stroke="#7030A0" stroke-width="1.5"/>
+  <text x="130" y="125" text-anchor="middle" font-size="12" font-weight="600" fill="#7030A0">&lt;CardElement /&gt;</text>
+  <text x="130" y="143" text-anchor="middle" font-size="10" fill="#6B6F76">Stripe-hosted iframe</text>
+  <text x="130" y="158" text-anchor="middle" font-size="10" fill="#6B6F76">(js.stripe.com)</text>
+  <text x="130" y="173" text-anchor="middle" font-size="10" fill="#1A1A2E">parent types card here</text>
+
+  <!-- Stripe API box -->
+  <rect x="300" y="100" width="180" height="80" rx="6" fill="#FFFFFF" stroke="#7030A0" stroke-width="1.5"/>
+  <text x="390" y="128" text-anchor="middle" font-size="13" font-weight="600" fill="#7030A0">api.stripe.com</text>
+  <text x="390" y="148" text-anchor="middle" font-size="10" fill="#6B6F76">Stripe vault</text>
+  <text x="390" y="163" text-anchor="middle" font-size="10" fill="#6B6F76">stores PAN + expiry</text>
+
+  <!-- Mathitude backend -->
+  <rect x="560" y="220" width="180" height="80" rx="6" fill="#FFFFFF" stroke="#E4E4E7"/>
+  <text x="650" y="248" text-anchor="middle" font-size="13" font-weight="600" fill="#1A1A2E">/api/stripe/...</text>
+  <text x="650" y="268" text-anchor="middle" font-size="10" fill="#6B6F76">our Next.js server</text>
+  <text x="650" y="283" text-anchor="middle" font-size="10" fill="#1A1A2E">never sees PAN</text>
+
+  <!-- DynamoDB (storage) -->
+  <rect x="560" y="340" width="180" height="60" rx="6" fill="#FFFFFF" stroke="#E4E4E7"/>
+  <text x="650" y="364" text-anchor="middle" font-size="12" font-weight="600" fill="#1A1A2E">DynamoDB</text>
+  <text x="650" y="383" text-anchor="middle" font-size="10" fill="#6B6F76">stores pm_… and cus_… tokens only</text>
+
+  <!-- Arrow 1: iframe → Stripe API (PAN over TLS) -->
+  <line x1="220" y1="140" x2="300" y2="140" stroke="#7030A0" stroke-width="2" marker-end="url(#arrow-purple)"/>
+  <text x="260" y="130" text-anchor="middle" font-size="10" font-weight="600" fill="#7030A0">PAN over TLS 1.2+</text>
+
+  <!-- Arrow 2: Stripe API → iframe (token back) -->
+  <line x1="300" y1="160" x2="220" y2="160" stroke="#7030A0" stroke-width="2" marker-end="url(#arrow-purple)"/>
+  <text x="260" y="178" text-anchor="middle" font-size="10" fill="#7030A0">pm_… token</text>
+
+  <!-- Arrow 3: iframe → Mathitude page (token only) -->
+  <line x1="130" y1="180" x2="130" y2="220" stroke="#1A1A2E" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="138" y="205" text-anchor="start" font-size="10" fill="#1A1A2E">pm_…</text>
+
+  <!-- Arrow 4: Mathitude page → Mathitude server (HTTPS, token-only) -->
+  <line x1="220" y1="250" x2="560" y2="250" stroke="#1A1A2E" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="390" y="240" text-anchor="middle" font-size="10" font-weight="600" fill="#1A1A2E">HTTPS — token + parentId only</text>
+  <text x="390" y="265" text-anchor="middle" font-size="9" fill="#6B6F76">no card number on this hop</text>
+
+  <!-- Arrow 5: Mathitude server → Stripe API (attach token) -->
+  <line x1="600" y1="220" x2="450" y2="180" stroke="#1A1A2E" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="540" y="195" text-anchor="end" font-size="10" fill="#1A1A2E">attach pm_… to cus_…</text>
+
+  <!-- Arrow 6: Mathitude server → DynamoDB (persist token only) -->
+  <line x1="650" y1="300" x2="650" y2="340" stroke="#1A1A2E" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="660" y="325" text-anchor="start" font-size="10" fill="#1A1A2E">cus_…, pm_…</text>
+
+  <!-- Legend -->
+  <g transform="translate(40, 410)">
+    <line x1="0"  y1="6" x2="22" y2="6" stroke="#7030A0" stroke-width="2"/>
+    <text x="28" y="10" font-size="10" fill="#1A1A2E">Card data path (Stripe-handled)</text>
+    <line x1="0"  y1="26" x2="22" y2="26" stroke="#1A1A2E" stroke-width="2"/>
+    <text x="28" y="30" font-size="10" fill="#1A1A2E">Token-only path (Mathitude-handled)</text>
+  </g>
+</svg>
+</div>
+
+**Reading the diagram.** The dashed purple boundary shows where the card
+number lives: in the Stripe-hosted iframe and on Stripe's servers, never
+elsewhere. Two arrows ever carry card data (the purple ones); both
+endpoints are Stripe. Every black arrow carries only Stripe tokens
+(`pm_…`, `cus_…`) — those are what Mathitude's servers and DynamoDB
+store. There is no path on this diagram by which a card number reaches
+Mathitude's infrastructure.
 
 Mathitude's servers **never appear on the card-number path**. There is
 no configuration setting Paula or any future operator can change to make
@@ -232,26 +314,22 @@ that.
 
 ## 11. Sources + repo references
 
-- Stripe Elements documentation: https://stripe.com/docs/payments/elements
-- Stripe PCI compliance overview: https://stripe.com/docs/security/stripe
-- PCI SSC scope guidance for tokenization (cards never on merchant
-  systems): PCI DSS v4.0 §3.3 + §3.5 (tokenization scope reduction)
-- Repo files cited above (verifiable):
-  - `src/components/stripe/save-card-form.tsx` — Stripe Elements card form
-  - `src/app/api/stripe/create-setup-intent/route.ts` — server-side
-    SetupIntent + on-demand customer creation
-  - `src/app/api/stripe/payment-methods/finalize-new-card/route.ts` —
-    single-card enforcement on save
-  - `src/app/api/stripe/payment-methods/apply/route.ts` — bulk
-    apply endpoint for the Save Changes flow
-  - `src/app/api/stripe/webhook/route.ts` — signed Stripe webhook
-    handler
-  - `src/lib/server/stripe.ts` — `enforceSingleCardForCustomer`,
-    `ensureDefaultCard`, restricted-key resolution
-  - `src/lib/server/secrets.ts` — Stripe key storage (encrypted at rest,
-    portal-editable, env-var fallback)
-  - `src/lib/server/admins.ts` — master-admin vs admin tier
-    enforcement
+External:
+
+- [Stripe Elements docs](https://stripe.com/docs/payments/elements)
+- [Stripe PCI compliance overview](https://stripe.com/docs/security/stripe)
+- PCI DSS v4.0 §3.3 + §3.5 (tokenization scope reduction)
+
+Repo files (verifiable in source):
+
+- `src/components/stripe/save-card-form.tsx` — Stripe Elements card form
+- `src/app/api/stripe/create-setup-intent/route.ts` — server-side SetupIntent + on-demand customer creation
+- `src/app/api/stripe/payment-methods/finalize-new-card/route.ts` — single-card enforcement on save
+- `src/app/api/stripe/payment-methods/apply/route.ts` — bulk apply endpoint for the Save Changes flow
+- `src/app/api/stripe/webhook/route.ts` — signed Stripe webhook handler
+- `src/lib/server/stripe.ts` — `enforceSingleCardForCustomer`, `ensureDefaultCard`, restricted-key resolution
+- `src/lib/server/secrets.ts` — Stripe key storage (encrypted at rest, portal-editable, env-var fallback)
+- `src/lib/server/admins.ts` — master-admin vs admin tier enforcement
 
 ---
 
