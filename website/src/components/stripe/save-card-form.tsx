@@ -143,17 +143,18 @@ function CardForm({ parentId }: { parentId?: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="rounded-lg border border-neutral-200 bg-white p-4">
+      <div className="rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-4">
         <CardElement
           options={{
             style: {
               base: {
                 fontSize: "16px",
-                color: "#1e293b",
+                color: "#1A1A2E",
                 fontFamily: "'Avenir Next', 'Avenir', system-ui, sans-serif",
                 "::placeholder": { color: "#94a3b8" },
+                iconColor: "#7030A0",
               },
-              invalid: { color: "#ef4444" },
+              invalid: { color: "#B0263C" },
             },
           }}
         />
@@ -172,7 +173,7 @@ function CardForm({ parentId }: { parentId?: string }) {
       <button
         type="submit"
         disabled={!stripe || loading}
-        className="w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800 disabled:opacity-50"
+        className="w-full rounded-lg bg-[#7030A0] px-4 py-2.5 text-sm font-semibold text-white uppercase tracking-wide transition-colors hover:bg-[#5d288a] disabled:opacity-50"
       >
         {loading ? "Adding…" : "Add Card"}
       </button>
@@ -197,10 +198,18 @@ function NotConfigured() {
 export function SaveCardForm({
   parentId,
   hideHeader = false,
-}: { parentId?: string; hideHeader?: boolean } = {}) {
+  fullWidth = false,
+}: {
+  parentId?: string;
+  hideHeader?: boolean;
+  fullWidth?: boolean;
+} = {}) {
   const { promise, configured } = useStripePromise();
+  // Default: centered max-w-md (parent dashboard). Inside an admin family
+  // detail page the form sits inside a wider card and should fill it.
+  const wrapper = fullWidth ? "w-full" : "mx-auto max-w-md";
   return (
-    <div className="mx-auto max-w-md">
+    <div className={wrapper}>
       {!hideHeader && (
         <div className="mb-4">
           <h2 className="text-lg font-semibold text-neutral-900">

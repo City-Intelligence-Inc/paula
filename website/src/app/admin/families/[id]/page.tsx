@@ -7,7 +7,7 @@ import { client } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Mail, Phone, CreditCard, Plus, UserCheck, Trash2 } from "lucide-react";
+import { ArrowLeft, Mail, Phone, CreditCard, Plus, UserCheck, Trash2, X } from "lucide-react";
 import { PaymentMethodsPanel } from "@/components/stripe/payment-methods-panel";
 import { SaveCardForm } from "@/components/stripe/save-card-form";
 import type { Family, Parent, Student, GuardianRelationship } from "@/lib/types";
@@ -638,36 +638,43 @@ function ParentPaymentBlock({ parent }: { parent: Parent }) {
     <div className="space-y-2 mb-6">
       <div className="flex items-center justify-between">
         <p className="text-xs text-neutral-500">
-          {parent.firstName} {parent.lastName} · {parent.email}
+          {parentDisplayName(parent)} · {parent.email}
         </p>
         <Button
           variant="outline"
           size="sm"
           onClick={() => setAdding((v) => !v)}
+          className="border border-neutral-200 text-neutral-700 hover:bg-neutral-50 rounded-md text-xs"
         >
-          <Plus className="h-3 w-3" />
-          {adding ? "Cancel" : "Add card"}
+          {adding ? (
+            <>
+              <X className="h-3 w-3" />
+              Cancel
+            </>
+          ) : (
+            <>
+              <Plus className="h-3 w-3" />
+              Add card
+            </>
+          )}
         </Button>
       </div>
       {adding && (
-        <Card className="border border-neutral-200 rounded-lg p-4">
+        <Card className="border border-[color:var(--color-border-warm)] rounded-lg p-4 bg-neutral-50 slide-down-in">
           <p className="text-xs text-neutral-500 mb-3">
             Enter the card details on behalf of {parent.firstName}. Stripe
             stores the card; Mathitude never sees the number.
           </p>
-          <SaveCardForm parentId={parent.id} hideHeader />
+          <SaveCardForm parentId={parent.id} hideHeader fullWidth />
         </Card>
       )}
-      {parent.stripeCustomerId ? (
-        <PaymentMethodsPanel parentId={parent.id} />
-      ) : (
-        <Card className="border border-neutral-200 rounded-lg bg-neutral-50">
-          <div className="py-4 px-4 text-sm text-neutral-500">
-            No Stripe customer yet. Click <strong>Add card</strong> to create
-            one + save the first card in a single step.
-          </div>
-        </Card>
-      )}
+      {/* Always render the panel — it does its own loading + empty state.
+          Previously this was gated on parent.stripeCustomerId, which meant
+          newly-saved cards didn't appear until a full page reload because
+          the local parents state didn't yet know about the auto-created
+          Stripe customer. The panel listens to the card-saved event and
+          will re-fetch from Stripe on its own. */}
+      <PaymentMethodsPanel parentId={parent.id} />
     </div>
   );
 }
