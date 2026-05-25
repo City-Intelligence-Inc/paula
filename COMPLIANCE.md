@@ -20,7 +20,7 @@ compliance, the same category as Apple Pay and large banks.
 
 ## How card data moves (zoomed in)
 
-![Card data flow: parent's browser → Stripe (PCI-scoped, dashed purple zone) → Mathitude server + DynamoDB. Six numbered hops. Purple arrows carry the card number and stay inside Stripe. Black arrows carry only Stripe reference tokens.](card-flow.png)
+<img src="card-flow.png" alt="Card data flow: parent's browser → Stripe (PCI-scoped, dashed purple zone) → Mathitude server + DynamoDB. Six numbered hops. Purple arrows carry the card number and stay inside Stripe. Black arrows carry only Stripe reference tokens." style="display:block; width:100%; max-width:100%; height:auto; margin: 16px auto;"/>
 
 ---
 
@@ -30,7 +30,7 @@ A wider view: every data store, every API surface, every external
 service, and which arrow carries what. The card-flow above zooms into
 hops 7–9 of this diagram.
 
-![Mathitude system data flow: four swimlanes (external actors, frontend, backend, DynamoDB) plus an external-services column (Clerk, Stripe with PCI scope, Resend, AWS DynamoDB, Vercel). Fourteen numbered flows with a legend at the bottom.](data-flow.png)
+<img src="data-flow.png" alt="Mathitude system data flow: four swimlanes (external actors, frontend, backend, DynamoDB) plus an external-services column (Clerk, Stripe with PCI scope, Resend, AWS DynamoDB, Vercel). Fourteen numbered flows with a legend at the bottom." style="display:block; width:100%; max-width:100%; height:auto; margin: 16px auto;"/>
 
 The card number lives inside the dashed purple zone — never outside.
 Steps 1 and 2 happen between Stripe's iframe and Stripe's servers; our
