@@ -1,6 +1,7 @@
 import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireRole } from "@/lib/server/ddb";
 import type { SchoolLogin } from "@/lib/types";
+import { sanitizeSchoolLogins } from "@/lib/school-logins";
 
 // "Ghost-student" school portal credentials.
 //
@@ -12,34 +13,6 @@ import type { SchoolLogin } from "@/lib/types";
 // enforced. The row lives in the (at-rest encrypted) students table.
 
 const ADMIN_ROLES = ["master_admin", "admin"] as const;
-
-function sanitize(input: unknown, now: string): SchoolLogin[] {
-  if (!Array.isArray(input)) return [];
-  const out: SchoolLogin[] = [];
-  for (const raw of input) {
-    if (!raw || typeof raw !== "object") continue;
-    const r = raw as Record<string, unknown>;
-    const portal = typeof r.portal === "string" ? r.portal.trim() : "";
-    const username = typeof r.username === "string" ? r.username.trim() : "";
-    const password = typeof r.password === "string" ? r.password : "";
-    // A credential with no portal label AND no username is just an empty row.
-    if (!portal && !username) continue;
-    out.push({
-      id:
-        typeof r.id === "string" && r.id
-          ? r.id
-          : `cred_${out.length}_${now.replace(/[^0-9]/g, "")}`,
-      portal,
-      url: typeof r.url === "string" ? r.url.trim() : undefined,
-      username,
-      password,
-      notes: typeof r.notes === "string" ? r.notes.trim() : undefined,
-      // Server-authoritative timestamp — don't trust client clocks.
-      updatedAt: now,
-    });
-  }
-  return out;
-}
 
 export async function GET(
   _request: Request,
@@ -80,7 +53,7 @@ export async function PUT(
   }
 
   const now = new Date().toISOString();
-  const credentials = sanitize(body.credentials, now);
+  const credentials = sanitizeSchoolLogins(body.credentials, now);
 
   try {
     await ddb().send(

@@ -64,11 +64,11 @@ export default function MathEngagementPage() {
                   or in small groups.
                 </p>
                 <p className="mt-3 text-black leading-relaxed">
-                  About 60% of Mathitude&apos;s tutoring work is enrichment —
-                  helping students explore their curiosity and develop their
-                  superpowers as mathematicians. The remaining 40% is academic
-                  support, strengthening foundational skills and building
-                  confidence.
+                  Mathitude&apos;s tutoring blends enrichment — helping students
+                  explore their curiosity and develop their superpowers as
+                  mathematicians — with academic support that strengthens
+                  foundational skills and builds confidence. The balance flexes
+                  to fit each student.
                 </p>
                 <Link
                   href="/tutoring"
