@@ -237,6 +237,7 @@ export default function AdminBillingPage() {
         <Button
           onClick={approveSelected}
           disabled={charging || selectedRows.length === 0}
+          data-tour="approve-billing"
           className="bg-mathitude-purple text-white hover:bg-mathitude-purple/90"
         >
           <CreditCard className="h-3 w-3" />

@@ -169,6 +169,7 @@ export default function AdminFamiliesPage() {
           </Button>
           <Button
             asChild
+            data-tour="add-family"
             className="bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
           >
             <Link href="/admin/families/new">

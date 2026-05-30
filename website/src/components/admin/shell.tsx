@@ -24,8 +24,16 @@ import {
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { GuidedTour } from "@/components/admin/guided-tour";
 
-const navItems = [
+type NavItem = {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tour?: string;
+};
+
+const navItems: NavItem[] = [
   {
     label: "Weekly Schedule",
     href: "/admin",
@@ -40,11 +48,13 @@ const navItems = [
     label: "Families",
     href: "/admin/families",
     icon: Home,
+    tour: "families",
   },
   {
     label: "Students",
     href: "/admin/students",
     icon: Users,
+    tour: "students",
   },
   {
     label: "Tutors",
@@ -60,6 +70,7 @@ const navItems = [
     label: "Billing queue",
     href: "/admin/billing",
     icon: Inbox,
+    tour: "billing",
   },
   {
     label: "Payments",
@@ -80,16 +91,19 @@ const navItems = [
     label: "Consultations",
     href: "/admin/consultations",
     icon: Mail,
+    tour: "consultations",
   },
   {
     label: "Notifications",
     href: "/admin/notifications",
     icon: Bell,
+    tour: "notifications",
   },
   {
     label: "Calendar",
     href: "/admin/calendar",
     icon: CalendarDays,
+    tour: "calendar",
   },
   {
     label: "Newsletter",
@@ -118,7 +132,7 @@ function NavLink({
   active,
   onClick,
 }: {
-  item: (typeof navItems)[0];
+  item: NavItem;
   active: boolean;
   onClick?: () => void;
 }) {
@@ -128,6 +142,7 @@ function NavLink({
     <Link
       href={item.href}
       onClick={onClick}
+      data-tour={item.tour ? `nav-${item.tour}` : undefined}
       className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
         active
           ? "bg-mathitude-purple/10 text-mathitude-purple"
@@ -237,6 +252,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+
+      {/* First-time guided tour + help launcher (built for Paula) */}
+      <GuidedTour />
     </div>
   );
 }
