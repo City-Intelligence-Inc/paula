@@ -12,7 +12,9 @@ import {
   CreditCard,
   Inbox,
   KeyRound,
+  Sparkles,
 } from "lucide-react";
+import { DemoRunner } from "@/components/admin/demo-runner";
 
 // First-time guided tour for the staff portal, built for Paula.
 //
@@ -255,6 +257,7 @@ export function GuidedTour() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
+  const [demoOpen, setDemoOpen] = useState(false);
   const welcomeChecked = useRef(false);
 
   // First-ever visit → welcome modal (only on the dashboard).
@@ -308,6 +311,17 @@ export function GuidedTour() {
 
   return (
     <>
+      {/* Live demo overlay — 5 animated processes that write to the DB */}
+      {demoOpen && (
+        <div className="fixed inset-0 z-[60] bg-black/40 overflow-y-auto">
+          <div className="min-h-full flex items-start justify-center p-4 sm:p-8">
+            <div className="w-full max-w-3xl rounded-2xl bg-[color:var(--color-surface-card,#fff)] bg-white shadow-2xl border border-neutral-200 p-6 md:p-8">
+              <DemoRunner onClose={() => setDemoOpen(false)} />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* First-visit welcome */}
       {welcomeOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
@@ -363,6 +377,23 @@ export function GuidedTour() {
             </button>
           </div>
           <div className="py-1">
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                setDemoOpen(true);
+              }}
+              className="w-full flex items-start gap-3 px-4 py-2.5 text-left hover:bg-mathitude-purple/5 transition-colors border-b border-neutral-100"
+            >
+              <Sparkles className="h-4 w-4 mt-0.5 text-mathitude-purple shrink-0" />
+              <span>
+                <span className="block text-sm font-medium text-neutral-900">
+                  Run a live demo
+                </span>
+                <span className="block text-xs text-neutral-500">
+                  5 processes, animated — actually writes to the database
+                </span>
+              </span>
+            </button>
             {TOURS.map((tour) => (
               <button
                 key={tour.id}

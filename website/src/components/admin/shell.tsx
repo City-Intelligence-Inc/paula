@@ -21,7 +21,6 @@ import {
   Bell,
   BookOpen,
   DollarSign,
-  Sparkles,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -39,12 +38,6 @@ const navItems: NavItem[] = [
     label: "Weekly Schedule",
     href: "/admin",
     icon: Calendar,
-  },
-  {
-    label: "Guided Demo",
-    href: "/admin/demo",
-    icon: Sparkles,
-    tour: "demo",
   },
   {
     label: "Log session",

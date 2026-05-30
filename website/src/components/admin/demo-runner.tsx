@@ -18,6 +18,7 @@ import {
   Trash2,
   ArrowRight,
   Sparkles,
+  X,
 } from "lucide-react";
 
 // Guided Demo runner — built for demoing the portal to Paula.
@@ -68,7 +69,7 @@ interface DemoState {
   tag: string; // unique suffix so repeated runs don't collide
 }
 
-export default function GuidedDemoPage() {
+export function DemoRunner({ onClose }: { onClose?: () => void }) {
   const fetchApi = useApi();
   const [steps, setSteps] = useState<Record<string, UiStep[]>>({});
   const [running, setRunning] = useState<string | null>(null);
@@ -411,11 +412,22 @@ export default function GuidedDemoPage() {
   return (
     <div className="space-y-6">
       <div>
-        <div className="flex items-center gap-2 text-mathitude-purple">
-          <Sparkles className="h-5 w-5" />
-          <span className="text-xs font-semibold uppercase tracking-wide">
-            Guided demo
-          </span>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-mathitude-purple">
+            <Sparkles className="h-5 w-5" />
+            <span className="text-xs font-semibold uppercase tracking-wide">
+              Guided demo
+            </span>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-neutral-400 hover:text-neutral-700"
+              aria-label="Close demo"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
         <h1
           className="mt-2 text-3xl text-neutral-900"
