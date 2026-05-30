@@ -1,3 +1,20 @@
+// "Ghost-student" school portal credentials. Paula logs into a student's
+// school accounts to track assignments and communications on their behalf.
+// Stored on the student record (DDB encrypted at rest, same posture as the
+// Stripe secrets row) and ONLY ever read/written through the dedicated
+// /api/students/:id/credentials route, which is gated to admins — never
+// returned by the general student GET, so tutors/parents can't see them
+// once RBAC is enforced.
+export interface SchoolLogin {
+  id: string;
+  portal: string; // e.g. "Clever", "Google Classroom", "Big Ideas Math", school SIS
+  url?: string;
+  username: string;
+  password: string;
+  notes?: string;
+  updatedAt: string;
+}
+
 export interface Student {
   id: string;
   firstName: string;
@@ -14,6 +31,7 @@ export interface Student {
   familyId?: string;
   tutorIds?: string[];
   primaryPayerParentId?: string;
+  schoolLogins?: SchoolLogin[];
   createdAt: string;
   updatedAt: string;
 }

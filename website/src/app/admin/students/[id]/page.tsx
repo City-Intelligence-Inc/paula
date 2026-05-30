@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { Student } from "@/lib/types";
+import { SchoolLoginsPanel } from "@/components/admin/school-logins-panel";
 import { GRADE_OPTIONS as gradeOptions, gradeLabel } from "@/lib/grades";
 
 interface SessionNote {
@@ -817,6 +818,9 @@ export default function StudentDetailPage({
           )}
         </div>
       </Card>
+
+      {/* School portal logins (ghost-student access) — admin only */}
+      <SchoolLoginsPanel studentId={student.id} />
     </div>
   );
 }

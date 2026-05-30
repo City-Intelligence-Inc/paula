@@ -15,7 +15,11 @@ export async function GET(
   if (!result.Item) {
     return Response.json({ error: "Student not found" }, { status: 404 });
   }
-  return Response.json({ student: result.Item });
+  // School-portal credentials are admin-only and flow exclusively through
+  // /api/students/:id/credentials — never expose them on the general GET.
+  const { schoolLogins: _omit, ...student } = result.Item;
+  void _omit;
+  return Response.json({ student });
 }
 
 const editableFields = [
