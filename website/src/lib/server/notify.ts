@@ -4,29 +4,23 @@
 // Environment:
 //   RESEND_API_KEY            — Resend API key (re_…)
 //   ADMIN_NOTIFICATION_EMAIL  — comma-separated list of admin recipients.
-//                               Defaults to phamilton@mathitude.com and
-//                               ari@coframe.com so that every notification
-//                               reaches Paula AND Ari without needing the
-//                               env var configured.
+//                               Required to send notifications; if unset, the
+//                               notification email is skipped (no hardcoded
+//                               fallback so the repo carries no personal
+//                               addresses). Set it per environment.
 //
 // Best-effort throughout: returns { ok, error } and never throws so callers
 // can layer it under user-facing flows without blocking the UX path.
 
 const RESEND_FROM = "Mathitude Notifications <onboarding@resend.dev>";
 
-export const DEFAULT_ADMIN_RECIPIENTS = [
-  "phamilton@mathitude.com",
-  "ari@coframe.com",
-];
-
 export function adminRecipients(): string[] {
   const raw = process.env.ADMIN_NOTIFICATION_EMAIL;
-  if (!raw) return DEFAULT_ADMIN_RECIPIENTS;
-  const list = raw
+  if (!raw) return [];
+  return raw
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
-  return list.length > 0 ? list : DEFAULT_ADMIN_RECIPIENTS;
 }
 
 export interface NotifyAttachment {
@@ -56,6 +50,10 @@ export async function sendAdminNotification(
     : typeof input.to === "string"
       ? [input.to]
       : adminRecipients();
+
+  if (to.length === 0) {
+    return { ok: false, error: "No admin recipients configured (set ADMIN_NOTIFICATION_EMAIL)" };
+  }
 
   try {
     const res = await fetch("https://api.resend.com/emails", {

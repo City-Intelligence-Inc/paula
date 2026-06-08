@@ -9,18 +9,8 @@ import {
   UserButton,
   ClerkLoaded,
   useAuth,
-  useUser,
 } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-
-// Bootstrap admin set — instant decision before the /api/me/is-admin fetch
-// resolves. Newly-added admins via /admin/admins won't appear in this set
-// but the async fetch below picks them up.
-const BOOTSTRAP_ADMIN_EMAILS = new Set([
-  "phamilton@mathitude.com",
-  "ari@coframe.com",
-  "nljq16@stanford.edu",
-]);
 
 const navLinks = [
   { label: "Tutoring & Groups", href: "/tutoring" },
@@ -106,7 +96,6 @@ export function Navbar() {
 
 function AuthButtons({ mobile }: { mobile?: boolean }) {
   const { isSignedIn } = useAuth();
-  const { user } = useUser();
   const [dbAdmin, setDbAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -129,8 +118,10 @@ function AuthButtons({ mobile }: { mobile?: boolean }) {
   }, [isSignedIn]);
 
   if (isSignedIn) {
-    const email = user?.primaryEmailAddress?.emailAddress?.toLowerCase() || "";
-    const isAdmin = dbAdmin ?? BOOTSTRAP_ADMIN_EMAILS.has(email);
+    // Admin status is decided authoritatively by /api/me/is-admin (server-side,
+    // against the env-configured bootstrap list + DB). Default to non-admin
+    // until it resolves — no admin emails in the client bundle.
+    const isAdmin = dbAdmin === true;
     return (
       <div className={mobile ? "mt-2 px-3 flex items-center gap-3" : "ml-3 flex items-center gap-3"}>
         {isAdmin ? (

@@ -1,15 +1,16 @@
 import { GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables } from "@/lib/server/ddb";
 
-// Bootstrap master admins. These are baked-in master admins who can manage
-// the admin list. They can never be removed or demoted via the UI. Keep in
-// sync with src/app/dashboard/layout.tsx and src/components/sections/
-// navbar.tsx.
-export const BOOTSTRAP_ADMIN_EMAILS = [
-  "phamilton@mathitude.com",
-  "ari@coframe.com",
-  "nljq16@stanford.edu",
-] as const;
+// Bootstrap master admins — sourced from the BOOTSTRAP_ADMIN_EMAILS env var
+// (comma-separated). These are master admins who can manage the admin list
+// and can never be removed or demoted via the UI. Not hardcoded, so the repo
+// carries no personal email addresses; set the value per environment.
+export const BOOTSTRAP_ADMIN_EMAILS: readonly string[] = (
+  process.env.BOOTSTRAP_ADMIN_EMAILS || ""
+)
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
 
 const ADMIN_EMAILS_KEY = "admin-emails";
 const CACHE_TTL_MS = 30_000;
