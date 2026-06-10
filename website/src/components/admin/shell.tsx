@@ -21,6 +21,7 @@ import {
   Bell,
   BookOpen,
   DollarSign,
+  Stethoscope,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -76,6 +77,11 @@ const navItems: NavItem[] = [
     label: "Payments",
     href: "/admin/payments",
     icon: CreditCard,
+  },
+  {
+    label: "Billing Diagnostics",
+    href: "/admin/billing-diagnostics",
+    icon: Stethoscope,
   },
   {
     label: "Financials",
