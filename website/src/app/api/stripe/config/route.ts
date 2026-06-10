@@ -9,6 +9,10 @@ export async function GET() {
   return Response.json({
     publishableKey: meta.publishableKey,
     mode: meta.mode,
-    configured: meta.hasSecretKey && !!meta.publishableKey,
+    // A cross-mode key pair must not be treated as configured — loading
+    // Stripe with a publishable key that doesn't match the server's secret
+    // key produces the cryptic "No such setupintent" failure on save.
+    configured: meta.hasSecretKey && !!meta.publishableKey && !meta.modeMismatch,
+    modeMismatch: meta.modeMismatch,
   });
 }

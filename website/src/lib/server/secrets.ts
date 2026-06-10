@@ -27,6 +27,12 @@ export interface StripeMeta {
   publishableKey: string;
   hasSecretKey: boolean;
   hasWebhookSecret: boolean;
+  // True when the secret key and publishable key are from different Stripe
+  // modes (e.g. sk_live_… paired with pk_test_…). This is the #1 cause of
+  // "card won't save" — confirmCardSetup() in the browser uses the
+  // publishable key while the SetupIntent is created server-side with the
+  // secret key, so a cross-mode pair fails with "No such setupintent".
+  modeMismatch: boolean;
   updatedAt: string;
   updatedBy: string;
   source: "portal" | "env" | "none";
@@ -41,6 +47,28 @@ let cache: { value: StripeSecrets | null; expires: number } | null = null;
 // retries, which is confusing to debug.
 function clean(v: string | undefined | null): string {
   return (v || "").trim();
+}
+
+// Derive the Stripe mode from any key (secret sk_/rk_ or publishable pk_).
+// All Stripe keys embed the mode as a "_live_" / "_test_" segment.
+function keyMode(k: string | undefined | null): "live" | "test" | null {
+  const v = clean(k);
+  if (!v) return null;
+  if (v.includes("_live_")) return "live";
+  if (v.includes("_test_")) return "test";
+  return null;
+}
+
+// A secret/publishable pair is mismatched only when BOTH modes are known and
+// they differ. Unknown modes (e.g. a publishable key still empty) are treated
+// as "not mismatched" — the missing-key state is handled separately.
+function isModeMismatch(
+  secretKey: string | undefined | null,
+  publishableKey: string | undefined | null,
+): boolean {
+  const s = keyMode(secretKey);
+  const p = keyMode(publishableKey);
+  return !!s && !!p && s !== p;
 }
 
 function fromEnv(): StripeSecrets | null {
@@ -102,12 +130,14 @@ export async function getStripeMeta(): Promise<StripeMeta> {
 
   if (source === "portal" && row) {
     const sk = clean(row.secretKey as string);
+    const pk = clean(row.publishableKey as string);
     return {
       mode: sk.startsWith("sk_live_") ? "live" : "test",
       last4: sk.slice(-4),
-      publishableKey: clean(row.publishableKey as string),
+      publishableKey: pk,
       hasSecretKey: true,
       hasWebhookSecret: !!clean(row.webhookSecret as string),
+      modeMismatch: isModeMismatch(sk, pk),
       updatedAt: (row.updatedAt as string) || "",
       updatedBy: (row.updatedBy as string) || "unknown",
       source: "portal",
@@ -115,12 +145,14 @@ export async function getStripeMeta(): Promise<StripeMeta> {
   }
   if (source === "env") {
     const sk = clean(process.env.STRIPE_SECRET_KEY);
+    const pk = clean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
     return {
       mode: sk.startsWith("sk_live_") ? "live" : "test",
       last4: sk.slice(-4),
-      publishableKey: clean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY),
+      publishableKey: pk,
       hasSecretKey: true,
       hasWebhookSecret: !!clean(process.env.STRIPE_WEBHOOK_SECRET),
+      modeMismatch: isModeMismatch(sk, pk),
       updatedAt: "",
       updatedBy: "env",
       source: "env",
@@ -132,6 +164,7 @@ export async function getStripeMeta(): Promise<StripeMeta> {
     publishableKey: "",
     hasSecretKey: false,
     hasWebhookSecret: false,
+    modeMismatch: false,
     updatedAt: "",
     updatedBy: "",
     source: "none",
@@ -161,6 +194,20 @@ export async function setStripeSecrets(input: {
   ) {
     throw new Error(
       "Secret key must start with sk_test_, sk_live_, or rk_ (restricted key).",
+    );
+  }
+
+  // Reject cross-mode key pairs. A live secret key with a test publishable
+  // key (or vice versa) passes the individual format checks but silently
+  // breaks card saving: the browser confirms the card against one Stripe
+  // account while the SetupIntent was created against the other, so
+  // confirmCardSetup() fails with "No such setupintent". Catch it here
+  // instead of at first-card-save time.
+  if (isModeMismatch(secretKey, publishableKey)) {
+    throw new Error(
+      `Stripe key mode mismatch: the secret key is ${keyMode(secretKey)} but the ` +
+        `publishable key is ${keyMode(publishableKey)}. Both keys must be from the ` +
+        `same Stripe mode (both test, or both live) or cards will not save.`,
     );
   }
 

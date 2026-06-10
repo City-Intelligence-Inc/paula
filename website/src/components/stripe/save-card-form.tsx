@@ -16,12 +16,21 @@ import { loadStripe, type Stripe as StripeJS } from "@stripe/stripe-js";
 function useStripePromise() {
   const [promise, setPromise] = useState<Promise<StripeJS | null> | null>(null);
   const [configured, setConfigured] = useState<boolean | null>(null);
+  const [modeMismatch, setModeMismatch] = useState(false);
   useEffect(() => {
     let cancelled = false;
     fetch("/api/stripe/config")
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
+        if (data.modeMismatch) {
+          // Live/test key pair mismatch — cards can't be saved until an
+          // admin fixes the keys in Settings → Stripe. Don't load Stripe
+          // with a publishable key that won't match the server's secret.
+          setModeMismatch(true);
+          setConfigured(false);
+          return;
+        }
         if (data.publishableKey && !data.publishableKey.includes("placeholder")) {
           setPromise(loadStripe(data.publishableKey));
           setConfigured(true);
@@ -43,7 +52,7 @@ function useStripePromise() {
       cancelled = true;
     };
   }, []);
-  return { promise, configured };
+  return { promise, configured, modeMismatch };
 }
 
 function CardForm({ parentId }: { parentId?: string }) {
@@ -181,7 +190,21 @@ function CardForm({ parentId }: { parentId?: string }) {
   );
 }
 
-function NotConfigured() {
+function NotConfigured({ modeMismatch = false }: { modeMismatch?: boolean }) {
+  if (modeMismatch) {
+    return (
+      <div className="rounded-lg border border-amber-300 bg-amber-50 p-6 text-center">
+        <p className="text-sm font-medium text-amber-800">
+          Card saving is temporarily unavailable.
+        </p>
+        <p className="mt-2 text-xs text-amber-700">
+          The Stripe publishable and secret keys are from different modes
+          (one test, one live). An admin can fix this in Settings → Stripe by
+          re-entering both keys from the same Stripe mode.
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-6 text-center">
       <p className="text-sm text-neutral-600">
@@ -204,7 +227,7 @@ export function SaveCardForm({
   hideHeader?: boolean;
   fullWidth?: boolean;
 } = {}) {
-  const { promise, configured } = useStripePromise();
+  const { promise, configured, modeMismatch } = useStripePromise();
   // Default: centered max-w-md (parent dashboard). Inside an admin family
   // detail page the form sits inside a wider card and should fill it.
   const wrapper = fullWidth ? "w-full" : "mx-auto max-w-md";
@@ -226,7 +249,7 @@ export function SaveCardForm({
           <CardForm parentId={parentId} />
         </Elements>
       ) : configured === false ? (
-        <NotConfigured />
+        <NotConfigured modeMismatch={modeMismatch} />
       ) : (
         <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-6 text-center text-sm text-neutral-500">
           Loading…
