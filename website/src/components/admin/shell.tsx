@@ -106,6 +106,11 @@ const navItems: NavItem[] = [
     tour: "calendar",
   },
   {
+    label: "Academic Calendar",
+    href: "/admin/academic-calendar",
+    icon: CalendarDays,
+  },
+  {
     label: "Newsletter",
     href: "/admin/newsletter",
     icon: Mail,

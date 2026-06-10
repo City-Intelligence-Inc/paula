@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 const navLinks = [
   { label: "Tutoring & Groups", href: "/tutoring" },
   { label: "Free Resources", href: "/free-resources" },
+  { label: "Calendar", href: "/calendar" },
   { label: "Events & News", href: "/events" },
   { label: "Shop Books", href: "/shop" },
 ];
