@@ -8,6 +8,7 @@ import {
   Users,
   Calendar,
   CalendarDays,
+  CalendarClock,
   CreditCard,
   Mail,
   Upload,
@@ -110,6 +111,11 @@ const navItems: NavItem[] = [
     href: "/admin/calendar",
     icon: CalendarDays,
     tour: "calendar",
+  },
+  {
+    label: "Makeups",
+    href: "/admin/makeups",
+    icon: CalendarClock,
   },
   {
     label: "Academic Calendar",

@@ -75,6 +75,16 @@ export interface Session {
   rate?: number; // dollars (legacy) or cents (when amountCents is set)
   amountCents?: number; // canonical charge total
   payers?: SessionPayerSplit[]; // null/empty = single primary payer fallback
+
+  // Cancellation + makeup tracking (30-day-notice policy — see lib/makeup.ts).
+  cancelledAt?: string; // ISO timestamp the cancellation was recorded
+  cancelledBy?: string; // admin email, or "parent"
+  cancellationReason?: string;
+  noticeDays?: number; // whole days of advance notice at cancellation
+  makeupEligible?: boolean; // noticeDays >= MAKEUP_NOTICE_DAYS
+  makeupStatus?: "available" | "scheduled" | "not-eligible";
+  makeupSessionDateTime?: string; // on the cancelled session: the scheduled makeup's dateTime
+  makeupOfDateTime?: string; // on the makeup session: the original cancelled session's dateTime
 }
 
 export interface Payment {

@@ -1,6 +1,6 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 let _ddb: DynamoDBDocumentClient | null = null;
 
@@ -56,13 +56,61 @@ export async function requireUser() {
   }
 }
 
-// Admin gate.
-// TEMPORARY (2026-05-09): every signed-in user is treated as admin so the
-// Mathitude team can use the portal before role assignments exist. Tighten
-// to role=admin / ADMIN_CLERK_USER_IDS allowlist before exposing the
-// platform to parents or external tutors.
+// Resolve the signed-in user's primary email (lowercased), or "" if none.
+// Shared by requireAdmin and the /admin layout gate.
+export async function currentUserEmail(): Promise<string> {
+  try {
+    const u = await currentUser();
+    if (!u) return "";
+    const primary = u.emailAddresses?.find(
+      (e) => e.id === u.primaryEmailAddressId,
+    )?.emailAddress;
+    return (primary || u.emailAddresses?.[0]?.emailAddress || "").toLowerCase();
+  } catch (err) {
+    console.warn("[currentUserEmail] failed:", err);
+    return "";
+  }
+}
+
+// Admin gate. Requires a signed-in user whose email is in the admin list
+// (bootstrap env BOOTSTRAP_ADMIN_EMAILS + DynamoDB-managed additional admins).
+// Bootstrap admins resolve from env alone, so they stay in even if DynamoDB
+// is unavailable. Non-admins get a 403.
+//
+// History: until 2026-06 this was a passthrough to requireUser() so the
+// Mathitude team could use the portal before the admin list existed. Now that
+// BOOTSTRAP_ADMIN_EMAILS is populated, it enforces real admin access — add new
+// staff via Settings → Admins (or the env var) rather than relying on any
+// signed-in account.
 export async function requireAdmin() {
-  return requireUser();
+  const base = await requireUser();
+  if (base.response) return base; // not signed in → 401 from requireUser
+
+  const email = await currentUserEmail();
+  try {
+    // Late import to avoid a module cycle (admins.ts imports ddb()).
+    const { isAdminEmail } = await import("@/lib/server/admins");
+    if (email && (await isAdminEmail(email))) {
+      return base;
+    }
+  } catch (err) {
+    console.error("[requireAdmin] admin check failed:", err);
+    return {
+      userId: base.userId,
+      response: Response.json(
+        { error: "Admin check failed" },
+        { status: 500 },
+      ) as Response | null,
+    };
+  }
+
+  return {
+    userId: base.userId,
+    response: Response.json(
+      { error: "Forbidden — admin access required" },
+      { status: 403 },
+    ) as Response | null,
+  };
 }
 
 // ---------------------------------------------------------
