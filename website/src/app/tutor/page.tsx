@@ -52,7 +52,7 @@ function SevenDaySchedule() {
   const total = days.reduce((n, d) => n + d.sessions.length, 0);
 
   return (
-    <Card className="border border-neutral-200 rounded-lg overflow-hidden mb-8">
+    <Card data-guide="tutor-schedule" className="border border-neutral-200 rounded-lg overflow-hidden mb-8">
       <div className="p-4 border-b border-neutral-200 flex items-center gap-2">
         <CalendarClock className="h-5 w-5 text-[#7030A0]" />
         <h2 className="text-lg font-semibold text-neutral-900">
@@ -214,7 +214,7 @@ export default function TutorPortalPage() {
           </Card>
         ) : (
           <>
-            <div className="mb-4 flex items-baseline justify-between">
+            <div data-guide="tutor-students" className="mb-4 flex items-baseline justify-between">
               <h2 className="text-lg font-semibold text-neutral-900">
                 Your Students
               </h2>

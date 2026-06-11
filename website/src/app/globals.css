@@ -391,6 +391,77 @@ a.button-press:active {
 .badge-error   { background: var(--color-state-error-soft);   color: var(--color-state-error); }
 .badge-info    { background: var(--color-state-info-soft);    color: var(--color-state-info); }
 
+/* ---------------------------------------------------------------
+   Interactive guide (driver.js) — product-wide spotlight tour.
+   The overlay dims the whole page; the active element sits in a
+   rounded "stage" cutout so the button to press pops out. The
+   popover is brand-styled (purple, frosted). See site-guide.tsx
+   and admin/guided-tour.tsx.
+---------------------------------------------------------------- */
+.driver-popover.mathitude-tour {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(112, 48, 160, 0.18);
+  border-radius: 14px;
+  box-shadow: 0 20px 48px rgba(17, 12, 24, 0.28);
+  max-width: 320px;
+  padding: 18px 18px 14px;
+}
+.driver-popover.mathitude-tour .driver-popover-title {
+  font-family: var(--font-original-surfer), system-ui, sans-serif;
+  color: #7030A0;
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.driver-popover.mathitude-tour .driver-popover-description {
+  color: #1f1b24;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.driver-popover.mathitude-tour .driver-popover-progress-text {
+  color: #6b6f76;
+  font-size: 12px;
+}
+.driver-popover.mathitude-tour .driver-popover-navigation-buttons button {
+  background: #7030A0;
+  color: #fff;
+  border: none;
+  border-radius: 9999px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  text-shadow: none;
+  transition: background 0.15s ease;
+}
+.driver-popover.mathitude-tour .driver-popover-navigation-buttons button:hover {
+  background: #5d288a;
+}
+.driver-popover.mathitude-tour .driver-popover-prev-btn {
+  background: transparent !important;
+  color: #6b6f76 !important;
+}
+.driver-popover.mathitude-tour .driver-popover-prev-btn:hover {
+  color: #1f1b24 !important;
+}
+.driver-popover.mathitude-tour .driver-popover-close-btn {
+  color: #9a949b;
+  font-size: 18px;
+}
+/* Smooth the spotlight transition between steps. */
+.driver-overlay,
+.driver-active-element {
+  transition: all 0.35s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .driver-overlay,
+  .driver-active-element {
+    transition: none;
+  }
+}
+
 /* Suppress every Clerk dev-mode visual element */
 .cl-internal-dt53uo,
 .cl-internal-1jp5gc9,

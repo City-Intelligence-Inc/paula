@@ -135,7 +135,7 @@ export function DashboardShell({
             return to the admin portal.
           </p>
         )}
-        <nav className="space-y-1">
+        <nav data-guide="dash-nav" className="space-y-1">
           {navItems.map((item) => (
             <NavLink
               key={item.href}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Original_Surfer, Nunito_Sans, Geist } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
+import { SiteGuide } from "@/components/site-guide";
 
 const originalSurfer = Original_Surfer({
   variable: "--font-original-surfer",
@@ -44,6 +45,7 @@ export default function RootLayout({
       >
         <body className="min-h-screen flex flex-col font-sans antialiased">
           {children}
+          <SiteGuide />
         </body>
       </html>
     </ClerkProvider>

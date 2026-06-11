@@ -38,6 +38,7 @@ export function Hero() {
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               <Link
                 href="/contact"
+                data-guide="consult"
                 className="inline-flex items-center justify-center bg-[#7030A0] text-white hover:bg-[#5d288a] rounded-full px-8 py-3.5 text-sm font-medium uppercase tracking-wide transition-colors min-w-[200px] min-h-[48px] shadow-sm hover:shadow-md"
               >
                 Request a Consultation
