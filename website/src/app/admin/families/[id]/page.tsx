@@ -53,8 +53,30 @@ export default function FamilyDetailPage({
     Record<string, { firstName: string; lastName: string }>
   >({});
   const [savingPayer, setSavingPayer] = useState<string | null>(null);
+  const [inviting, setInviting] = useState<string | null>(null);
+  const [inviteMsg, setInviteMsg] = useState<{ parentId: string; text: string; ok: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  async function inviteCaregiver(parentId: string) {
+    setInviting(parentId);
+    setInviteMsg(null);
+    try {
+      const res = await fetchApi(`/api/families/${id}/parents/invite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parentId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      setInviteMsg({
+        parentId,
+        ok: res.ok,
+        text: res.ok ? "Invite sent" : data.error || "Could not send invite",
+      });
+    } finally {
+      setInviting(null);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -199,45 +221,95 @@ export default function FamilyDetailPage({
               const rel = parent.relationship || "parent";
               const isProtected = PROTECTED_RELATIONSHIPS.has(rel);
               const isPrimaryPayer = family.primaryPayerId === parent.id;
+              const hasAccount = !!parent.clerkUserId;
+              const initials = `${(parent.firstName || "?")[0] || ""}${
+                (parent.lastName || "")[0] || ""
+              }`.toUpperCase();
+              // Visual differentiation (3/ Sara): primary payer gets a purple
+              // accent + avatar; other caregivers stay neutral so they're easy
+              // to tell apart at a glance.
+              const accent = isPrimaryPayer
+                ? "border-l-4 border-l-[#7030A0]"
+                : "border-l-4 border-l-neutral-200";
               return (
                 <Card
                   key={parent.id}
-                  className="py-0 border border-neutral-200 rounded-lg"
+                  className={`py-0 border border-neutral-200 rounded-lg ${accent}`}
                 >
                   <div className="flex items-center gap-4 p-4">
+                    <div
+                      className={`shrink-0 h-10 w-10 rounded-full flex items-center justify-center text-sm font-semibold ${
+                        isPrimaryPayer
+                          ? "bg-[#F2E8FA] text-[#7030A0]"
+                          : "bg-neutral-100 text-neutral-600"
+                      }`}
+                    >
+                      {initials || "?"}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium text-neutral-900 truncate">
+                        <p className="font-semibold text-neutral-900 truncate">
                           {parent.firstName} {parent.lastName}
                         </p>
                         <Badge className="bg-neutral-100 text-neutral-700 border-neutral-200">
                           {relationshipLabel(rel)}
                         </Badge>
                         {isPrimaryPayer && (
-                          <Badge className="bg-neutral-900/5 text-neutral-900 border-neutral-200">
+                          <Badge className="bg-[#F2E8FA] text-[#7030A0] border-[#7030A0]/20">
                             Primary payer
                           </Badge>
                         )}
+                        {/* Account status (3/ Sara). */}
+                        <Badge
+                          className={
+                            hasAccount
+                              ? "bg-[#E0F2F0] text-[#0F7B6C] border-[#0F7B6C]/20"
+                              : "bg-amber-50 text-amber-700 border-amber-200"
+                          }
+                        >
+                          {hasAccount ? "Has account" : "No account"}
+                        </Badge>
                       </div>
-                      <div className="flex items-center gap-3 mt-0.5 text-xs text-neutral-500 flex-wrap">
+                      <div className="flex items-center gap-3 mt-1 text-sm text-neutral-600 flex-wrap">
                         {parent.email && (
                           <span className="flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
+                            <Mail className="h-3.5 w-3.5 text-neutral-400" />
                             {parent.email}
                           </span>
                         )}
                         {parent.phone && (
                           <span className="flex items-center gap-1">
-                            <Phone className="h-3 w-3" />
+                            <Phone className="h-3.5 w-3.5 text-neutral-400" />
                             {parent.phone}
                           </span>
                         )}
+                        <span className="text-xs text-neutral-400">
+                          {parent.stripeCustomerId ? "Card on file ✓" : "no card"}
+                        </span>
                       </div>
+                      {inviteMsg?.parentId === parent.id && (
+                        <p
+                          className={`mt-1 text-xs ${
+                            inviteMsg.ok ? "text-[#0F7B6C]" : "text-red-600"
+                          }`}
+                        >
+                          {inviteMsg.text}
+                        </p>
+                      )}
                     </div>
-                    <div className="flex items-center gap-3 shrink-0 flex-wrap">
-                      <span className="text-xs text-neutral-400">
-                        {parent.stripeCustomerId ? "Stripe ✓" : "no Stripe"}
-                      </span>
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                      {!hasAccount && parent.email && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={inviting === parent.id}
+                          onClick={() => inviteCaregiver(parent.id)}
+                          className="border border-[#7030A0]/30 text-[#7030A0] hover:bg-[#F2E8FA] rounded-md text-xs whitespace-nowrap"
+                        >
+                          {inviting === parent.id ? "Sending…" : "Invite"}
+                        </Button>
+                      )}
                       {!isPrimaryPayer && (
                         <Button
                           type="button"

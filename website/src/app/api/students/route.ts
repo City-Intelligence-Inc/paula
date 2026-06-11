@@ -1,7 +1,29 @@
 import { ScanCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import type { ScanCommandInput } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
+import { resolveActor, forbidden } from "@/lib/server/access";
 import { notifyAction } from "@/lib/server/notify";
+
+// Find an existing family by a caregiver's email so a new student with the
+// same parent email JOINS that family instead of splintering into a new one
+// (Sara: "they still 'splinter' into two families"). Returns the familyId of
+// the matching parent, or null.
+async function findFamilyByParentEmail(email: string): Promise<string | null> {
+  const e = email.trim().toLowerCase();
+  if (!e) return null;
+  try {
+    const r = await ddb().send(
+      new ScanCommand({ TableName: Tables.parents, ProjectionExpression: "familyId, email" }),
+    );
+    const match = (r.Items || []).find(
+      (p) => typeof p.email === "string" && p.email.trim().toLowerCase() === e,
+    );
+    return (match?.familyId as string | undefined) || null;
+  } catch (err) {
+    console.warn("[findFamilyByParentEmail] failed:", err);
+    return null;
+  }
+}
 
 export async function GET(request: Request) {
   const auth = await requireUser();
@@ -47,8 +69,10 @@ function slugify(s: string): string {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireUser();
-  if (auth.response) return auth.response;
+  // Creating students is admin-only.
+  const { actor, response } = await resolveActor();
+  if (response) return response;
+  if (!actor!.isAdmin) return forbidden("Admin access required.");
 
   let body: NewStudentBody;
   try {
@@ -69,12 +93,19 @@ export async function POST(request: Request) {
     slugify(`${body.firstName}_${body.lastName}`) || `s_${Date.now()}`;
   const suffix = Math.random().toString(36).slice(2, 6);
   const studentId = `stu_${baseSlug}_${suffix}`;
-  // Sibling flow: when familyId is provided, attach to existing family and
-  // skip the family+parent autocreate. The family's saved card and parents
-  // are reused — no need for parents to enter payment info twice.
-  const useExistingFamily = !!body.familyId?.trim();
+  // Resolve the family this student joins:
+  //   1. Explicit familyId (sibling flow from a family profile).
+  //   2. Otherwise, dedup by the caregiver's email — if a parent already has
+  //      that email, join their family (don't splinter).
+  //   3. Otherwise, create a fresh family + parent.
+  let resolvedFamilyId = body.familyId?.trim() || "";
+  if (!resolvedFamilyId && body.parentEmail?.trim()) {
+    const existing = await findFamilyByParentEmail(body.parentEmail);
+    if (existing) resolvedFamilyId = existing;
+  }
+  const useExistingFamily = !!resolvedFamilyId;
   const familyId = useExistingFamily
-    ? (body.familyId as string).trim()
+    ? resolvedFamilyId
     : `fam_${baseSlug}_${suffix}`;
   const parentId = useExistingFamily ? "" : `par_${baseSlug}_${suffix}`;
 
