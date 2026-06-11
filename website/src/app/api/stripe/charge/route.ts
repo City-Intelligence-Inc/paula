@@ -1,5 +1,6 @@
 import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { ddb, Tables, requireUser } from "@/lib/server/ddb";
+import { ddb, Tables } from "@/lib/server/ddb";
+import { resolveActor, forbidden } from "@/lib/server/access";
 import {
   buildChargeFields,
   getStripe,
@@ -14,8 +15,10 @@ interface Body {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireUser();
-  if (auth.response) return auth.response;
+  // Charging is admin-only — tutors must never trigger or see charges.
+  const { actor, response } = await resolveActor();
+  if (response) return response;
+  if (!actor!.isAdmin) return forbidden("Admin access required.");
 
   let body: Body;
   try {
@@ -101,7 +104,10 @@ export async function POST(request: Request) {
 
   if (!stripeCustomerId) {
     return Response.json(
-      { error: "No Stripe customer on file. Save a card first." },
+      {
+        error:
+          "No Stripe customer on file. Add a card under this family's primary payer (Family profile → payment method) before charging.",
+      },
       { status: 400 },
     );
   }

@@ -69,8 +69,21 @@ export async function POST(request: Request) {
       await stripe.paymentMethods.detach(pmId);
       detached.push(pmId);
     } catch (err) {
+      // Detach must be idempotent. If the card is already not attached to a
+      // customer, the goal ("this card is gone") is already met — treat it as
+      // success instead of a hard 400. This was Sara's first-save error:
+      // "The payment method you provided is not attached to a customer so
+      // detachment is impossible." Only genuine failures abort.
       const message =
         err instanceof Error ? err.message : "Failed to remove card";
+      const code =
+        (err as { code?: string })?.code === "resource_missing";
+      const alreadyGone =
+        code ||
+        /not attached|no such payment method|already been detached/i.test(message);
+      if (alreadyGone) {
+        continue;
+      }
       return Response.json(
         { error: `Could not remove card ${pmId}: ${message}`, code: "detach_failed" },
         { status: 400 },

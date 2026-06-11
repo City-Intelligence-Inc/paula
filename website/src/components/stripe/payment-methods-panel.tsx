@@ -287,7 +287,7 @@ export function PaymentMethodsPanel({ parentId }: { parentId?: string } = {}) {
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs text-neutral-500">
                   {hasCards
-                    ? "Adding a card replaces the existing one for this parent. To keep two cards on file, add the second card under a different parent on this family."
+                    ? "Each parent keeps one card on file. Adding a new card replaces the current one and becomes the card we charge. To bill a different card, switch the family's primary payer to the parent whose card you want used."
                     : "Enter the card details. Stripe stores the card; Mathitude never sees the number."}
                 </p>
                 <Button

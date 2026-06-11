@@ -1,5 +1,7 @@
 import { QueryCommand, ScanCommand, BatchGetCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
+import { expandSessionToChargeRows } from "@/lib/billing";
+import type { Session } from "@/lib/types";
 
 // GET /api/billing/queue?days=14&limit=200
 //
@@ -57,9 +59,14 @@ export async function GET(request: Request) {
     truncated = !!r.LastEvaluatedKey;
   }
 
-  const studentIds = Array.from(
-    new Set(sessionItems.map((s) => s.studentId as string).filter(Boolean)),
-  );
+  // Collect every referenced student id — primary AND group attendees — so we
+  // can resolve names + families for split/shared charges.
+  const idSet = new Set<string>();
+  for (const s of sessionItems) {
+    if (s.studentId) idSet.add(s.studentId as string);
+    for (const sid of ((s.students as string[] | undefined) || [])) idSet.add(sid);
+  }
+  const studentIds = Array.from(idSet).filter(Boolean);
 
   const students: Record<string, Record<string, unknown>> = {};
   if (studentIds.length > 0) {
@@ -79,28 +86,46 @@ export async function GET(request: Request) {
     }
   }
 
-  const queue = sessionItems.map((s) => {
-    const student = students[s.studentId as string];
-    const studentName = student
-      ? `${student.firstName} ${student.lastName}`
-      : (s.studentId as string);
-    const studentRate = (student?.rate as number | undefined) ?? 0;
-    const sessionRateCents = (s.rate as number | undefined) ?? null;
-    const fallbackCents = Math.round(studentRate * 100);
-    const amountCents = sessionRateCents ?? fallbackCents;
-    return {
-      studentId: s.studentId as string,
-      dateTime: s.dateTime as string,
-      date: s.date as string,
-      duration: (s.duration as number | undefined) ?? 60,
-      type: (s.type as string | undefined) ?? "individual",
-      tutorId: (s.tutorId as string | undefined) ?? null,
-      offering: (s.offering as string | undefined) ?? "private-tutoring",
-      notes: (s.notes as string | undefined) ?? "",
-      studentName,
-      amountCents,
-      hasFamilyOnFile: !!student?.familyId,
-    };
+  // Expand every session into the concrete charge rows it produces. A plain
+  // 1:1 session yields one row; a group/shared session yields one per
+  // attendee's family; an explicit payer split yields one per payer. Partial
+  // hours are prorated. See lib/billing.ts (unit-tested).
+  const queue = sessionItems.flatMap((s) => {
+    const primary = students[s.studentId as string];
+    const studentRateDollars = (primary?.rate as number | undefined) ?? 0;
+    const rows = expandSessionToChargeRows(s as unknown as Session, studentRateDollars);
+    return rows.map((row) => {
+      // Who is shown/charged: the group attendee if present, else primary.
+      const payStudent = row.chargeStudentId
+        ? students[row.chargeStudentId]
+        : primary;
+      const studentName = payStudent
+        ? `${payStudent.firstName} ${payStudent.lastName}`
+        : row.payerCounterpartyName || (row.chargeStudentId || (s.studentId as string));
+      // Is there a billable target on file? Counterparty payers bill offline.
+      const hasFamilyOnFile = row.payerCounterpartyName
+        ? false
+        : !!(payStudent?.familyId || row.payerFamilyId || row.payerParentId);
+      return {
+        studentId: s.studentId as string,
+        chargeStudentId: row.chargeStudentId ?? null,
+        dateTime: s.dateTime as string,
+        date: s.date as string,
+        duration: (s.duration as number | undefined) ?? 60,
+        type: (s.type as string | undefined) ?? "individual",
+        tutorId: (s.tutorId as string | undefined) ?? null,
+        offering: (s.offering as string | undefined) ?? "private-tutoring",
+        notes: (s.notes as string | undefined) ?? "",
+        studentName,
+        amountCents: row.amountCents,
+        splitIndex: row.splitIndex,
+        splitLabel: row.splitLabel ?? null,
+        payerFamilyId: row.payerFamilyId ?? null,
+        payerParentId: row.payerParentId ?? null,
+        payerCounterpartyName: row.payerCounterpartyName ?? null,
+        hasFamilyOnFile,
+      };
+    });
   });
 
   const totalCents = queue.reduce((sum, q) => sum + q.amountCents, 0);

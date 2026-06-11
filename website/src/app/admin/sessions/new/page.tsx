@@ -474,6 +474,13 @@ export default function NewSessionPage() {
                 placeholder="0.00"
                 className="mt-1 w-full border border-neutral-200 rounded-md px-3 py-2 text-sm"
               />
+              <span className="block text-xs text-neutral-400 mt-1">
+                Leave blank to bill automatically from the student&apos;s rate
+                prorated by duration (e.g. a 45-min session bills ¾ of the
+                hourly rate). For a shared/group session this total is split
+                evenly across the attending students; with a payer split below
+                it&apos;s divided by the percentages.
+              </span>
             </label>
 
             <div className="space-y-2">

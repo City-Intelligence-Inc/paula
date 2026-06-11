@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 
 interface QueueRow {
   studentId: string;
+  chargeStudentId?: string | null;
   dateTime: string;
   date: string;
   duration: number;
@@ -30,11 +31,18 @@ interface QueueRow {
   studentName: string;
   amountCents: number;
   hasFamilyOnFile: boolean;
+  splitIndex?: number;
+  splitLabel?: string | null;
+  payerFamilyId?: string | null;
+  payerParentId?: string | null;
+  payerCounterpartyName?: string | null;
 }
 
 interface ApproveResult {
   studentId: string;
   dateTime: string;
+  splitIndex?: number;
+  splitLabel?: string | null;
   ok: boolean;
   status?: string;
   error?: string;
@@ -67,7 +75,7 @@ export default function AdminBillingPage() {
   const [days, setDays] = useState(14);
   const [truncated, setTruncated] = useState(false);
 
-  const rowKey = (r: QueueRow) => `${r.studentId}#${r.dateTime}`;
+  const rowKey = (r: QueueRow) => `${r.studentId}#${r.dateTime}#${r.splitIndex ?? 0}`;
 
   async function loadQueue(d: number = days) {
     setLoading(true);
@@ -131,6 +139,12 @@ export default function AdminBillingPage() {
             studentId: r.studentId,
             dateTime: r.dateTime,
             amountCents: r.amountCents,
+            chargeStudentId: r.chargeStudentId,
+            payerFamilyId: r.payerFamilyId,
+            payerParentId: r.payerParentId,
+            payerCounterpartyName: r.payerCounterpartyName,
+            splitIndex: r.splitIndex,
+            splitLabel: r.splitLabel,
           })),
         }),
       });
@@ -274,7 +288,7 @@ export default function AdminBillingPage() {
           <CardContent className="space-y-2">
             {results.map((r) => (
               <div
-                key={`${r.studentId}#${r.dateTime}`}
+                key={`${r.studentId}#${r.dateTime}#${r.splitIndex ?? 0}`}
                 className="flex items-center gap-3 text-sm"
               >
                 {r.ok ? (
@@ -284,6 +298,7 @@ export default function AdminBillingPage() {
                 )}
                 <span className="text-neutral-900 font-medium">
                   {r.studentId}
+                  {r.splitLabel ? ` · ${r.splitLabel}` : ""}
                 </span>
                 <span className="text-neutral-500 text-xs">
                   {formatDate(r.dateTime)}
@@ -364,6 +379,11 @@ export default function AdminBillingPage() {
                   <div>
                     <p className="font-medium text-neutral-900 text-sm">
                       {r.studentName}
+                      {r.splitLabel && (
+                        <span className="ml-2 inline-flex items-center rounded-full bg-[#F2E8FA] text-[#7030A0] px-2 py-0.5 text-[10px] font-medium align-middle">
+                          {r.splitLabel}
+                        </span>
+                      )}
                     </p>
                     {r.notes && (
                       <p className="text-xs text-neutral-400 truncate max-w-md">
