@@ -5,6 +5,19 @@ import Link from "next/link";
 import { useApi } from "@/hooks/use-api";
 import { BookOpen, ExternalLink, ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { GRADE_OPTIONS, gradeLabel, gradeRank } from "@/lib/grades";
+
+// A resource matches a chosen grade when the grade falls inside its
+// [gradeMin, gradeMax] band. Resources with no band are "all grades" and
+// always match.
+function matchesGrade(r: { gradeMin?: string; gradeMax?: string }, grade: string): boolean {
+  if (!grade) return true;
+  if (!r.gradeMin && !r.gradeMax) return true;
+  const want = gradeRank(grade);
+  const lo = r.gradeMin ? gradeRank(r.gradeMin) : -Infinity;
+  const hi = r.gradeMax ? gradeRank(r.gradeMax) : Infinity;
+  return want >= lo && want <= hi;
+}
 
 interface Resource {
   id: string;
@@ -43,6 +56,7 @@ export default function TutorResourcesPage() {
   const fetchApi = useApi();
   const [items, setItems] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
+  const [gradeFilter, setGradeFilter] = useState("");
 
   useEffect(() => {
     fetchApi("/api/resources")
@@ -54,8 +68,9 @@ export default function TutorResourcesPage() {
       .catch(() => setLoading(false));
   }, [fetchApi]);
 
+  const filteredItems = items.filter((r) => matchesGrade(r, gradeFilter));
   const grouped: Record<string, Resource[]> = {};
-  for (const r of items) {
+  for (const r of filteredItems) {
     const k = r.category || "tools";
     if (!grouped[k]) grouped[k] = [];
     grouped[k].push(r);
@@ -85,6 +100,31 @@ export default function TutorResourcesPage() {
           activity references — curated by Paula. Read-only.
         </p>
 
+        <div className="mt-5 flex items-center gap-2">
+          <label className="text-sm text-neutral-600">Filter by grade</label>
+          <select
+            value={gradeFilter}
+            onChange={(e) => setGradeFilter(e.target.value)}
+            className="rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900"
+          >
+            <option value="">All grades</option>
+            {GRADE_OPTIONS.map((g) => (
+              <option key={g} value={g}>
+                {gradeLabel(g)}
+              </option>
+            ))}
+          </select>
+          {gradeFilter && (
+            <button
+              type="button"
+              onClick={() => setGradeFilter("")}
+              className="text-xs text-[#7030A0] hover:text-[#5d288a]"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
         <div className="mt-8 space-y-8">
           {loading ? (
             <div className="flex items-center justify-center py-20">
@@ -95,6 +135,13 @@ export default function TutorResourcesPage() {
               <div className="p-10 text-center text-sm text-neutral-500">
                 No resources have been added yet. Ask Paula to add them at
                 /admin/resources.
+              </div>
+            </Card>
+          ) : filteredItems.length === 0 ? (
+            <Card className="border border-neutral-200 rounded-lg overflow-hidden">
+              <div className="p-10 text-center text-sm text-neutral-500">
+                No resources for {gradeLabel(gradeFilter)}. Try a different grade
+                or clear the filter.
               </div>
             </Card>
           ) : (

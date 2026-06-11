@@ -38,6 +38,10 @@ export interface Student {
   tutorAccess?: TutorAccess[];
   primaryPayerParentId?: string;
   schoolLogins?: SchoolLogin[];
+  // Shared whiteboard room (5/9 Paula — replace the Miro fee). A persistent
+  // per-student room URL; generating it also auto-posts the link into the
+  // student's notes so it shows up in the session log.
+  whiteboardUrl?: string;
   // Class-capacity support (5/17 Paula — capped group classes). When set, the
   // student row represents a class roster slot; enrollmentCount/capacity track
   // how many seats are filled.

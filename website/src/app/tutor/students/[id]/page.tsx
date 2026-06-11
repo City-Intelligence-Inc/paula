@@ -3,7 +3,7 @@
 import { useEffect, useState, use as usePromise } from "react";
 import Link from "next/link";
 import { useApi } from "@/hooks/use-api";
-import { ArrowLeft, FileText, CalendarClock, Plus } from "lucide-react";
+import { ArrowLeft, FileText, CalendarClock, Plus, PenLine } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { gradeLabel } from "@/lib/grades";
 
@@ -48,6 +48,28 @@ export default function TutorStudentDetailPage({
   const [forbidden, setForbidden] = useState(false);
   const [newNote, setNewNote] = useState("");
   const [savingNote, setSavingNote] = useState(false);
+  const [whiteboardUrl, setWhiteboardUrl] = useState<string | null>(null);
+  const [whiteboardLoading, setWhiteboardLoading] = useState(false);
+
+  async function openWhiteboard() {
+    setWhiteboardLoading(true);
+    try {
+      const res = await fetchApi(`/api/students/${id}/whiteboard`, { method: "POST" });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.whiteboardUrl) {
+        setWhiteboardUrl(json.whiteboardUrl);
+        window.open(json.whiteboardUrl, "_blank", "noopener");
+        if (json.created) {
+          // The board link was just auto-posted into notes — reflect it.
+          const nRes = await fetchApi(`/api/students/${id}/notes`);
+          const nJson = await nRes.json().catch(() => ({}));
+          setNotes(nJson.notes || []);
+        }
+      }
+    } finally {
+      setWhiteboardLoading(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -132,14 +154,26 @@ export default function TutorStudentDetailPage({
           </Card>
         ) : (
           <>
-            <div className="mb-8">
-              <h1 className="text-3xl font-semibold text-neutral-900 tracking-tight">
-                {student.firstName} {student.lastName}
-              </h1>
-              <p className="text-sm text-neutral-500 mt-1">
-                {gradeLabel(student.grade)}
-                {student.sessionType ? ` · ${student.sessionType}` : ""}
-              </p>
+            <div className="mb-8 flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-semibold text-neutral-900 tracking-tight">
+                  {student.firstName} {student.lastName}
+                </h1>
+                <p className="text-sm text-neutral-500 mt-1">
+                  {gradeLabel(student.grade)}
+                  {student.sessionType ? ` · ${student.sessionType}` : ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={openWhiteboard}
+                disabled={whiteboardLoading}
+                className="inline-flex items-center gap-1.5 rounded-md border border-[#7030A0]/30 text-[#7030A0] hover:bg-[#F2E8FA] disabled:opacity-50 px-3 py-2 text-sm font-medium shrink-0"
+                title="Open the shared whiteboard for this student"
+              >
+                <PenLine className="h-4 w-4" />
+                {whiteboardLoading ? "Opening…" : whiteboardUrl ? "Whiteboard" : "Whiteboard"}
+              </button>
             </div>
 
             {/* Notes */}

@@ -3,10 +3,109 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useApi } from "@/hooks/use-api";
-import { UserCheck, Mail, Phone, BookOpen } from "lucide-react";
+import { UserCheck, Mail, Phone, BookOpen, CalendarClock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { gradeLabel } from "@/lib/grades";
+
+interface ScheduleSession {
+  studentId: string;
+  studentName: string;
+  dateTime: string;
+  time?: string;
+  duration?: number;
+  type?: string;
+  status?: string;
+  notes?: string;
+}
+interface ScheduleDay {
+  date: string;
+  sessions: ScheduleSession[];
+}
+
+function dayLabel(date: string): string {
+  // date is YYYY-MM-DD; render as e.g. "Mon Jun 16". Parse as local date.
+  const [y, m, d] = date.split("-").map(Number);
+  const dt = new Date(y, (m || 1) - 1, d || 1);
+  return dt.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function SevenDaySchedule() {
+  const fetchApi = useApi();
+  const [days, setDays] = useState<ScheduleDay[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchApi("/api/tutor/schedule?days=7")
+      .then((r) => r.json())
+      .then((j) => {
+        setDays(j.days || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [fetchApi]);
+
+  const total = days.reduce((n, d) => n + d.sessions.length, 0);
+
+  return (
+    <Card className="border border-neutral-200 rounded-lg overflow-hidden mb-8">
+      <div className="p-4 border-b border-neutral-200 flex items-center gap-2">
+        <CalendarClock className="h-5 w-5 text-[#7030A0]" />
+        <h2 className="text-lg font-semibold text-neutral-900">
+          Next 7 days
+        </h2>
+        {!loading && (
+          <span className="ml-auto text-xs text-neutral-500">
+            {total} session{total === 1 ? "" : "s"}
+          </span>
+        )}
+      </div>
+      {loading ? (
+        <div className="p-6 text-sm text-neutral-400">Loading schedule…</div>
+      ) : total === 0 ? (
+        <div className="p-6 text-sm text-neutral-400">
+          No sessions scheduled in the next 7 days.
+        </div>
+      ) : (
+        <div className="divide-y divide-neutral-100">
+          {days
+            .filter((d) => d.sessions.length > 0)
+            .map((d) => (
+              <div key={d.date} className="p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500 mb-2">
+                  {dayLabel(d.date)}
+                </p>
+                <div className="space-y-1.5">
+                  {d.sessions.map((s) => (
+                    <Link
+                      key={`${s.studentId}#${s.dateTime}`}
+                      href={`/tutor/students/${s.studentId}`}
+                      className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-neutral-50 transition-colors"
+                    >
+                      <span className="text-sm font-mono text-neutral-500 w-14 shrink-0">
+                        {s.time || "--:--"}
+                      </span>
+                      <span className="text-sm font-medium text-neutral-900 flex-1 truncate">
+                        {s.studentName}
+                      </span>
+                      <span className="text-xs text-neutral-400 shrink-0">
+                        {s.type}
+                        {s.duration ? ` · ${s.duration}m` : ""}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
+    </Card>
+  );
+}
 
 interface Tutor {
   id: string;
@@ -84,6 +183,8 @@ export default function TutorPortalPage() {
             </Link>
           </div>
         </div>
+
+        {tutor && <SevenDaySchedule />}
 
         {loading ? (
           <div className="flex items-center justify-center py-20">

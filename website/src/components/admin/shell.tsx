@@ -24,6 +24,7 @@ import {
   BookOpen,
   DollarSign,
   Stethoscope,
+  Package,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -68,6 +69,11 @@ const navItems: NavItem[] = [
     label: "Resources",
     href: "/admin/resources",
     icon: BookOpen,
+  },
+  {
+    label: "Equipment",
+    href: "/admin/equipment",
+    icon: Package,
   },
   {
     label: "Billing queue",
