@@ -10,11 +10,11 @@ export function InfoBar() {
               Visit
             </p>
             <p className="text-base text-black font-medium">
-              770 Menlove Suite 200A
+              770 Menlo Ave, Suite 200A
             </p>
             <p className="text-base text-black">Menlo Park, California</p>
-            <p className="mt-1 text-sm text-[#8b8589]">
-              In-person sessions, plus virtual anywhere in the US.
+            <p className="mt-1 text-sm text-[#6b6f76]">
+              In downtown Menlo Park with virtual options.
             </p>
           </div>
 

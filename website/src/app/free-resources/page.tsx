@@ -1,7 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Navbar } from "@/components/sections/navbar";
 import { Footer } from "@/components/sections/footer";
 
+// 6/8 Sara: each resource gets a preview image. Thumbnails are pulled from
+// the existing puzzle / balloon / activity art so the page reads visually.
 const interactives = [
   {
     title: "Pascal's Triangle Explorer",
@@ -9,6 +12,7 @@ const interactives = [
       "An interactive tool for discovering the surprising patterns hidden inside Pascal's Triangle — from Fibonacci numbers to binomial coefficients and fractal geometry.",
     href: "/pascals-triangle",
     cta: "Explore now",
+    image: "/brand/pascals-paxton.png",
   },
   {
     title: "Swamp Puzzles",
@@ -16,6 +20,7 @@ const interactives = [
       "Swamp puzzles: beautiful but dangerous. Mathitude's signature strategic puzzles, designed to build logical thinking and perseverance. A favorite at math festivals and Mathitude tutoring sessions for all ages. Preview and download Levels 1, 2, and 3.",
     href: "/swamp-puzzles",
     cta: "Open Swamp Puzzles",
+    image: "/swamp-puzzles/cover-level-1.jpg",
   },
   {
     title: "Sierpinski Balloons & Balloon Tetra Hats",
@@ -23,6 +28,7 @@ const interactives = [
       "Twist balloons into a Sierpinski tetrahedron, then wear your mathematical creation home. A playful hands-on activity that turns fractals into party favorites.",
     href: "/balloons",
     cta: "See balloon activities",
+    image: "/balloons/balloon-tetrahedron.jpg",
   },
   {
     title: "All Puzzles & Activities",
@@ -30,6 +36,7 @@ const interactives = [
       "Browse Mathitude's full library of puzzles, hands-on activities, and printable challenges — organized by theme and grade level.",
     href: "/puzzles-and-activities",
     cta: "Browse the full library",
+    image: "/photos/bucky_paxton3.jpg",
   },
   {
     title: "Academic Calendar 2026–2027",
@@ -37,6 +44,7 @@ const interactives = [
       "Our full academic year at a glance — term dates, holiday closures, and the summer schedule. Browse by month or week, or download the printable PDF.",
     href: "/calendar",
     cta: "Open the calendar",
+    image: "/photos/bucky_evan1.jpg",
   },
 ];
 
@@ -82,19 +90,36 @@ export default function FreeResourcesPage() {
 
             <div className="mt-8 space-y-0 divide-y divide-neutral-200">
               {interactives.map((item) => (
-                <div key={item.title} className="py-10 first:pt-0">
-                  <h3 className="text-xl font-semibold text-black">
-                    {item.title}
-                  </h3>
-                  <p className="mt-3 text-black leading-relaxed">
-                    {item.description}
-                  </p>
+                <div
+                  key={item.title}
+                  className="py-10 first:pt-0 grid sm:grid-cols-[200px_1fr] gap-6 items-start"
+                >
                   <Link
                     href={item.href}
-                    className="mt-4 inline-flex text-sm font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors"
+                    className="relative block aspect-[4/3] w-full rounded-xl overflow-hidden bg-neutral-100 ring-1 ring-neutral-200 hover-lift"
                   >
-                    {item.cta} &rarr;
+                    <Image
+                      src={item.image}
+                      alt={`${item.title} preview`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, 200px"
+                    />
                   </Link>
+                  <div>
+                    <h3 className="text-xl font-semibold text-black">
+                      {item.title}
+                    </h3>
+                    <p className="mt-3 text-black leading-relaxed">
+                      {item.description}
+                    </p>
+                    <Link
+                      href={item.href}
+                      className="mt-4 inline-flex text-sm font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors"
+                    >
+                      {item.cta} &rarr;
+                    </Link>
+                  </div>
                 </div>
               ))}
             </div>

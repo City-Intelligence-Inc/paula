@@ -12,13 +12,13 @@ import {
   Newspaper,
   LayoutDashboard,
   Menu,
-  X,
   ShieldCheck,
   ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { roleMeta } from "@/lib/roles";
 
 const navItems = [
   {
@@ -97,14 +97,21 @@ export function DashboardShell({
 
   const sidebar = (
     <div className="flex flex-col h-full">
-      {/* Logo */}
+      {/* Logo — parent view carries no role accent rail (1/ Sara: none for
+          parents); the neutral chip just labels the current view. */}
       <div className="px-4 py-5 border-b border-neutral-200">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold tracking-tight text-mathitude-purple" style={{ fontFamily: "var(--font-original-surfer)" }}>
             Mathitude
           </span>
         </Link>
-        <p className="mt-1 text-xs text-neutral-400">Client Portal</p>
+        <div className="mt-2">
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${roleMeta("parent").chip}`}
+          >
+            Client Portal
+          </span>
+        </div>
       </div>
 
       {/* Nav */}
@@ -165,20 +172,29 @@ export function DashboardShell({
         {sidebar}
       </aside>
 
-      {/* Mobile sidebar */}
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetTrigger>
-          <span className="lg:hidden fixed top-3 left-3 z-50 inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 hover:bg-neutral-100 transition-colors">
-            <Menu className="h-5 w-5" />
-          </span>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
-          {sidebar}
-        </SheetContent>
-      </Sheet>
-
       {/* Main content */}
       <main className="flex-1 overflow-auto">
+        {/* Mobile top bar — a real header instead of a floating button so the
+            hamburger never overlaps page content (4/ Sara). */}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <header className="lg:hidden sticky top-0 z-40 flex items-center gap-2 h-14 px-3 border-b border-neutral-200 bg-white">
+            <SheetTrigger>
+              <span className="inline-flex items-center justify-center rounded-md h-9 w-9 hover:bg-neutral-100 transition-colors">
+                <Menu className="h-5 w-5" />
+              </span>
+            </SheetTrigger>
+            <span
+              className="text-lg font-bold tracking-tight text-mathitude-purple"
+              style={{ fontFamily: "var(--font-original-surfer)" }}
+            >
+              Mathitude
+            </span>
+          </header>
+          <SheetContent side="left" className="w-64 p-0">
+            {sidebar}
+          </SheetContent>
+        </Sheet>
+
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {children}
         </div>

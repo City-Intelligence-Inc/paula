@@ -76,9 +76,9 @@ export function Footer() {
                 Mathitude
               </span>
             </Link>
-            <p className="mt-5 text-white/60 leading-relaxed max-w-sm">
-              K-12 math enrichment and tutoring from Mathitude. In Menlo Park
-              and anywhere a student wants to learn.
+            <p className="mt-5 text-white/85 leading-relaxed max-w-sm">
+              K-12 math enrichment and tutoring from Mathitude. In downtown
+              Menlo Park with virtual options.
             </p>
             <div className="mt-8 flex gap-3">
               {socialLinks.map((social) => (
@@ -99,7 +99,7 @@ export function Footer() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
             {columns.map((col) => (
               <div key={col.title}>
-                <p className="text-xs font-semibold tracking-[0.18em] text-white/40 uppercase mb-4">
+                <p className="text-xs font-semibold tracking-[0.18em] text-white/60 uppercase mb-4">
                   {col.title}
                 </p>
                 <ul className="space-y-3">
@@ -107,7 +107,7 @@ export function Footer() {
                     <li key={link.href}>
                       <Link
                         href={link.href}
-                        className="text-sm text-white/80 hover:text-white transition-colors"
+                        className="text-sm font-medium text-white/90 hover:text-white transition-colors"
                       >
                         {link.label}
                       </Link>
@@ -119,7 +119,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/40">
+        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/60">
           <p>&copy; {new Date().getFullYear()} Mathitude LLC. All rights reserved.</p>
           <p>Made with care in Menlo Park, California.</p>
         </div>

@@ -11,6 +11,7 @@ import {
   useAuth,
 } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
+import { roleMeta } from "@/lib/roles";
 
 const navLinks = [
   { label: "Tutoring & Groups", href: "/tutoring" },
@@ -97,21 +98,21 @@ export function Navbar() {
 
 function AuthButtons({ mobile }: { mobile?: boolean }) {
   const { isSignedIn } = useAuth();
-  const [dbAdmin, setDbAdmin] = useState<boolean | null>(null);
+  const [me, setMe] = useState<{ isAdmin: boolean; role: string } | null>(null);
 
   useEffect(() => {
     if (!isSignedIn) {
-      setDbAdmin(null);
+      setMe(null);
       return;
     }
     let cancelled = false;
     fetch("/api/me/is-admin")
       .then((r) => r.json())
       .then((j) => {
-        if (!cancelled) setDbAdmin(!!j.isAdmin);
+        if (!cancelled) setMe({ isAdmin: !!j.isAdmin, role: j.role || "parent" });
       })
       .catch(() => {
-        if (!cancelled) setDbAdmin(null);
+        if (!cancelled) setMe(null);
       });
     return () => {
       cancelled = true;
@@ -119,44 +120,61 @@ function AuthButtons({ mobile }: { mobile?: boolean }) {
   }, [isSignedIn]);
 
   if (isSignedIn) {
-    // Admin status is decided authoritatively by /api/me/is-admin (server-side,
-    // against the env-configured bootstrap list + DB). Default to non-admin
-    // until it resolves — no admin emails in the client bundle.
-    const isAdmin = dbAdmin === true;
+    // Role is decided authoritatively by /api/me/is-admin (server-side). The
+    // small role chip replaces the old undifferentiated "Admin" badge
+    // (1/ Sara). Default to a neutral parent view until it resolves.
+    const isAdmin = me?.isAdmin === true;
+    const meta = roleMeta(me?.role);
     return (
-      <div className={mobile ? "mt-2 px-3 flex items-center gap-3" : "ml-3 flex items-center gap-3"}>
-        {isAdmin ? (
-          <Link
-            href="/admin"
-            className="inline-flex items-center h-9 px-3 rounded-md bg-[#7030A0] text-white text-sm font-medium uppercase tracking-wide hover:bg-[#5d2884] transition-colors"
-          >
-            Admin
-          </Link>
-        ) : (
-          <Link
-            href="/dashboard"
-            className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors"
-          >
-            Dashboard
-          </Link>
-        )}
+      <div className={mobile ? "mt-2 px-3 flex items-center gap-2.5" : "ml-3 flex items-center gap-2.5"}>
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${meta.chip}`}
+        >
+          {meta.label}
+        </span>
+        <Link
+          href={isAdmin ? "/admin" : "/dashboard"}
+          className="text-sm font-medium text-neutral-700 hover:text-[#7030A0] transition-colors"
+        >
+          {isAdmin ? "Admin" : "Dashboard"}
+        </Link>
         <UserButton />
       </div>
     );
   }
 
+  // Signed out: offer both Log In and a Sign up / request-an-account link.
+  // (3/ Sara: the /sign-up page existed but wasn't linked anywhere.)
   return (
-    <SignInButton>
-      <Button
-        size="sm"
+    <div
+      className={
+        mobile
+          ? "mt-2 px-1 flex flex-col gap-2"
+          : "ml-2 flex items-center gap-2"
+      }
+    >
+      <SignInButton>
+        <Button
+          size="sm"
+          className={
+            mobile
+              ? "w-full h-11 bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
+              : "h-11 bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
+          }
+        >
+          Log In
+        </Button>
+      </SignInButton>
+      <Link
+        href="/sign-up"
         className={
           mobile
-            ? "mt-2 w-full h-11 bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
-            : "ml-2 h-11 bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
+            ? "w-full h-11 inline-flex items-center justify-center rounded-md border border-[#7030A0] text-[#7030A0] text-sm font-medium uppercase tracking-wide hover:bg-[#F2E8FA] transition-colors"
+            : "h-11 px-4 inline-flex items-center justify-center rounded-md border border-[#7030A0] text-[#7030A0] text-sm font-medium uppercase tracking-wide hover:bg-[#F2E8FA] transition-colors whitespace-nowrap"
         }
       >
-        Log In
-      </Button>
-    </SignInButton>
+        Sign Up
+      </Link>
+    </div>
   );
 }

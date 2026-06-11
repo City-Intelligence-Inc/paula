@@ -47,8 +47,8 @@ export function Reviews() {
               <span className="font-semibold text-black">
                 {featured.name}
               </span>
-              <span aria-hidden="true" className="h-px w-6 bg-[#8b8589]/40" />
-              <span className="text-[#8b8589]">{featured.role}</span>
+              <span aria-hidden="true" className="h-px w-6 bg-[#6b6f76]/40" />
+              <span className="text-[#6b6f76]">{featured.role}</span>
             </figcaption>
           </blockquote>
         </figure>
@@ -65,8 +65,8 @@ export function Reviews() {
                 <span className="font-semibold text-black">
                   {review.name}
                 </span>
-                <span aria-hidden="true" className="h-px w-6 bg-[#8b8589]/40" />
-                <span className="text-[#8b8589]">{review.role}</span>
+                <span aria-hidden="true" className="h-px w-6 bg-[#6b6f76]/40" />
+                <span className="text-[#6b6f76]">{review.role}</span>
               </figcaption>
             </figure>
           ))}

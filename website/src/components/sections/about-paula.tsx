@@ -3,8 +3,11 @@ import Image from "next/image";
 const credentials = [
   { label: "M.A.", detail: "Applied Economics" },
   { label: "B.A.", detail: "Math & Economics, double major" },
-  { label: "10+ yrs", detail: "tutoring Pre-K through college" },
-  { label: "Certified", detail: "Mindfulness Mentor" },
+  { label: "13+ yrs", detail: "tutoring Pre-K through college" },
+  {
+    label: "Certified Mindfulness Mentor",
+    detail: "Course led by Tara Brach, Jack Kornfield, et al.",
+  },
 ];
 
 export function AboutPaula() {
@@ -17,7 +20,7 @@ export function AboutPaula() {
             Meet Paula
           </p>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-black tracking-tight leading-[1.05]">
-            Twelve years of teaching math as attitude, not arithmetic.
+            Over a dozen years of teaching math as attitude, not arithmetic.
           </h2>
         </div>
 
@@ -34,7 +37,7 @@ export function AboutPaula() {
                 priority
               />
             </div>
-            <p className="mt-4 text-sm text-[#8b8589] italic">
+            <p className="mt-4 text-sm text-[#6b6f76] italic">
               Paula Hamilton, founder &amp; lead tutor
             </p>
           </div>
@@ -74,7 +77,7 @@ export function AboutPaula() {
                   <dt className="text-sm font-semibold text-black">
                     {c.label}
                   </dt>
-                  <dd className="mt-0.5 text-sm text-[#8b8589]">
+                  <dd className="mt-0.5 text-sm text-[#6b6f76]">
                     {c.detail}
                   </dd>
                 </div>

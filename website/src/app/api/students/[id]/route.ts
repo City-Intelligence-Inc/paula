@@ -1,12 +1,20 @@
 import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { ddb, Tables, requireUser } from "@/lib/server/ddb";
+import { ddb, Tables } from "@/lib/server/ddb";
+import {
+  resolveActor,
+  forbidden,
+  tutorScopeForStudent,
+  stripPricingFromStudent,
+} from "@/lib/server/access";
+import type { Student } from "@/lib/types";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const auth = await requireUser();
-  if (auth.response) return auth.response;
+  const { actor, response } = await resolveActor();
+  if (response) return response;
+  const a = actor!;
 
   const { id } = await params;
   const result = await ddb().send(
@@ -19,7 +27,21 @@ export async function GET(
   // /api/students/:id/credentials — never expose them on the general GET.
   const { schoolLogins: _omit, ...student } = result.Item;
   void _omit;
-  return Response.json({ student });
+
+  // Authorization: admins see everything. Tutors only see students they're
+  // assigned to, and never the pricing/billing fields. Parents don't use
+  // this endpoint.
+  if (a.isAdmin) {
+    return Response.json({ student });
+  }
+  if (a.role === "tutor" && a.tutor) {
+    const scope = tutorScopeForStudent(student as Pick<Student, "tutorIds" | "tutorAccess">, a.tutor.id);
+    if (scope === "none") {
+      return forbidden("You are not assigned to this student.");
+    }
+    return Response.json({ student: stripPricingFromStudent(student) });
+  }
+  return forbidden();
 }
 
 const editableFields = [
@@ -33,6 +55,8 @@ const editableFields = [
   "sessionType",
   "rate",
   "tutorIds",
+  "tutorAccess",
+  "classCapacity",
   "primaryPayerParentId",
 ] as const;
 
@@ -42,8 +66,10 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const auth = await requireUser();
-  if (auth.response) return auth.response;
+  // Editing a student record (rate, tutor assignments, status…) is admin-only.
+  const { actor, response } = await resolveActor();
+  if (response) return response;
+  if (!actor!.isAdmin) return forbidden("Admin access required.");
   const { id } = await params;
 
   let body: Record<string, unknown>;

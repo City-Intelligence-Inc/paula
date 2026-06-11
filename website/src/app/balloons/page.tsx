@@ -98,7 +98,7 @@ export default function BalloonsPage() {
                 className="w-full h-auto"
                 priority
               />
-              <div className="mt-3 grid grid-cols-5 gap-2 text-xs md:text-sm text-[#8b8589] text-center font-medium">
+              <div className="mt-3 grid grid-cols-5 gap-2 text-xs md:text-sm text-[#6b6f76] text-center font-medium">
                 <span>Level 0</span>
                 <span>Level 1</span>
                 <span>Level 2</span>

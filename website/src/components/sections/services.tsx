@@ -1,54 +1,46 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
-const offerings = [
+// 6/10 + 6/8 Sara: private tutoring is the core offer, so it leads with an
+// enlarged image. The remaining offerings sit in a flatter list below — and
+// only the offerings with a real "learn more" page get a More… link, so a
+// new client isn't given six competing things to click. A single CTA closes
+// the section.
+const featured = {
+  title: "Private tutoring",
+  description:
+    "One-on-one math tutoring in downtown Menlo Park or virtually — Pre-K through college. Warmth and rigor in every session, built around your student.",
+  learnMoreHref: "/tutoring/private",
+  image: "/photos/bucky_oliver1.jpg",
+};
+
+const more = [
   {
-    number: "01",
-    title: "Private tutoring",
-    description:
-      "One-on-one math tutoring in Menlo Park or virtually — Pre-K through college. Warmth and rigor in every session.",
-    learnMoreHref: "/tutoring/private",
-    contactHref: "/contact?offering=private-tutoring",
-  },
-  {
-    number: "02",
     title: "Small group engagement",
     description:
-      "Siblings, neighborhood friends, or a homeschool co-op gathered for a focused week of hands-on math.",
+      "Siblings, neighborhood friends, or a homeschool co-op gathered for a focused 8–12 week run of hands-on math.",
     learnMoreHref: "/tutoring/camps",
-    contactHref: "/contact?offering=small-group",
   },
   {
-    number: "03",
     title: "Parent advisories",
     description:
       "Individual or group conversations for parents thinking through a placement, a struggle, or an enthusiastic learner.",
-    learnMoreHref: "/contact?offering=parent-advisories",
-    contactHref: "/contact?offering=parent-advisories",
   },
   {
-    number: "04",
     title: "Speaking engagements",
     description:
       "Talks for parent groups, schools, and conferences on math attitude, growth mindset, and what actually works.",
-    learnMoreHref: "/contact?offering=speaking",
-    contactHref: "/contact?offering=speaking",
   },
   {
-    number: "05",
     title: "School STEM workshops",
     description:
       "Hands-on math workshops brought directly to your school, designed with classroom teachers around your curriculum.",
-    learnMoreHref: "/contact?offering=school-stem",
-    contactHref: "/contact?offering=school-stem",
   },
   {
-    number: "06",
     title: "Math festival advisories",
     description:
       "Help planning, programming, and running a math festival — drawing on years with the Julia Robinson Mathematics Festival.",
-    learnMoreHref: "/contact?offering=math-festival",
-    contactHref: "/contact?offering=math-festival",
   },
 ];
 
@@ -56,55 +48,84 @@ export function Services() {
   return (
     <section className="bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
-        <div className="mb-16 sm:mb-20 max-w-3xl">
+        <div className="mb-12 sm:mb-16 max-w-3xl">
           <p className="text-xs font-medium tracking-[0.22em] text-[#7030A0] uppercase mb-5">
             How we work
           </p>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-black tracking-tight leading-[1.05]">
-            Six ways to bring Mathitude to your student, family, or school.
+            Bring expert math engagement to your student, family, or school.
           </h2>
-          <p className="mt-6 text-lg sm:text-xl text-black leading-relaxed">
-            Every situation is different. Mathitude meets students, parents, and
-            schools where they are, then crafts an approach that fits.
-          </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-x-12 gap-y-0 md:gap-y-2 divide-y md:divide-y-0 divide-neutral-200">
-          {offerings.map((offering, idx) => (
-            <div
-              key={offering.title}
-              className={`grid grid-cols-[56px_1fr] sm:grid-cols-[72px_1fr] gap-x-5 py-8 sm:py-10 ${
-                idx >= 2 ? "md:border-t md:border-neutral-200 md:pt-12" : ""
-              }`}
+        {/* Featured — private tutoring, enlarged with image */}
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+          <div className="relative aspect-[5/4] rounded-2xl overflow-hidden bg-neutral-100 order-last lg:order-first">
+            <Image
+              src={featured.image}
+              alt="A Mathitude private tutoring session"
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+          </div>
+          <div>
+            <p className="text-xs font-medium tracking-[0.22em] text-[#7030A0] uppercase mb-4">
+              Our core offer
+            </p>
+            <h3 className="text-3xl sm:text-4xl font-semibold text-black tracking-tight">
+              {featured.title}
+            </h3>
+            <p className="mt-5 text-lg text-black leading-relaxed">
+              {featured.description}{" "}
+              <Link
+                href={featured.learnMoreHref}
+                className="text-[#7030A0] hover:text-[#5d288a] font-medium whitespace-nowrap"
+              >
+                More&hellip;
+              </Link>
+            </p>
+            <Link
+              href="/contact?offering=private-tutoring"
+              className="mt-7 inline-flex items-center justify-center bg-[#7030A0] text-white hover:bg-[#5d288a] rounded-full px-8 py-3.5 text-sm font-medium uppercase tracking-wide transition-colors min-h-[48px] shadow-sm hover:shadow-md"
             >
-              <span className="text-3xl sm:text-4xl text-[#7030A0]/35 leading-none select-none font-semibold tabular-nums pt-1">
-                {offering.number}
-              </span>
-              <div>
-                <h3 className="text-xl sm:text-2xl font-semibold text-black tracking-tight">
+              Request a Consultation
+            </Link>
+          </div>
+        </div>
+
+        {/* More ways to work with Mathitude */}
+        <div className="mt-20 sm:mt-24">
+          <h3 className="text-2xl sm:text-3xl font-semibold text-black tracking-tight mb-8">
+            More ways to work with Mathitude
+          </h3>
+          <div className="grid md:grid-cols-2 gap-x-12 gap-y-0 divide-y divide-neutral-200 md:divide-y-0">
+            {more.map((offering, idx) => (
+              <div
+                key={offering.title}
+                className={`py-7 sm:py-8 ${
+                  idx >= 2 ? "md:border-t md:border-neutral-200 md:pt-10" : ""
+                }`}
+              >
+                <h4 className="text-xl font-semibold text-black tracking-tight">
                   {offering.title}
-                </h3>
-                <p className="mt-3 text-base text-black leading-relaxed">
+                </h4>
+                <p className="mt-2.5 text-base text-black leading-relaxed">
                   {offering.description}
+                  {offering.learnMoreHref ? (
+                    <>
+                      {" "}
+                      <Link
+                        href={offering.learnMoreHref}
+                        className="text-[#7030A0] hover:text-[#5d288a] font-medium whitespace-nowrap"
+                      >
+                        More&hellip;
+                      </Link>
+                    </>
+                  ) : null}
                 </p>
-                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5">
-                  <Link
-                    href={offering.contactHref}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors min-h-[44px]"
-                  >
-                    Request a consultation
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                  <Link
-                    href={offering.learnMoreHref}
-                    className="inline-flex items-center text-sm text-[#8b8589] hover:text-black transition-colors min-h-[44px]"
-                  >
-                    Learn more
-                  </Link>
-                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <div className="mt-16 sm:mt-20 flex flex-col sm:flex-row items-center gap-6 border-t border-neutral-200 pt-12">
@@ -112,7 +133,7 @@ export function Services() {
             <p className="text-lg sm:text-xl text-black leading-relaxed">
               Not sure which fits? Mathitude will help you figure it out.
             </p>
-            <p className="mt-1 text-sm text-[#8b8589]">
+            <p className="mt-1 text-sm text-[#6b6f76]">
               No commitment. Just a conversation about what you&apos;re hoping
               for.
             </p>
@@ -122,6 +143,7 @@ export function Services() {
             className="inline-flex items-center justify-center rounded-full bg-[#7030A0] text-white hover:bg-[#5d288a] font-medium uppercase tracking-wide text-base px-9 py-4 transition-colors shadow-sm hover:shadow-md whitespace-nowrap"
           >
             Request a Free Consultation
+            <ArrowRight className="w-4 h-4 ml-2" />
           </Link>
         </div>
       </div>

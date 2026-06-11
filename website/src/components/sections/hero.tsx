@@ -20,17 +20,17 @@ export function Hero() {
               K-12 math enrichment, tutoring, and engagement books that foster big mathematical thinking through fun, collaborative learning.
             </p>
 
-            <div className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-2 text-sm text-[#8b8589]">
+            <div className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-2 text-sm text-[#6b6f76]">
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#8b8589]/50" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#6b6f76]/50" />
                 Pre-K to College
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#8b8589]/50" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#6b6f76]/50" />
                 Menlo Park &amp; Virtual
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#8b8589]/50" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#6b6f76]/50" />
                 Since 2013
               </span>
             </div>
@@ -51,22 +51,19 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Right — photo collage + video tile.
-              The first tile is a video slot (5/17 spec). It tries a local
-              mp4 first (drop /videos/bucky-ball-hero.mp4 in for the
-              cleanest playback); if that's absent the Google Drive
-              preview iframe takes over so the video shows immediately.
-              Drive's UI chrome is hidden via overflow + scale so the
-              tile reads as part of the collage. */}
+          {/* Right — photo collage. (6/8 Sara: video removed from the
+              homepage — replaced with a still from the same bucky-ball
+              build so the collage stays warm and on-brand.) */}
           <div className="relative">
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100">
-                <iframe
-                  src="https://drive.google.com/file/d/1XboYelosnui2NnyAkeyLFg-VEvcfICxp/preview?autoplay=1&mute=1&loop=1"
-                  className="absolute -inset-8 w-[calc(100%+4rem)] h-[calc(100%+4rem)] pointer-events-none"
-                  allow="autoplay"
-                  title="Mathitude students building bucky balls"
-                  loading="lazy"
+                <Image
+                  src="/photos/bucky_avni1.jpg"
+                  alt="Student building a bucky ball in a hands-on math activity"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 50vw, 25vw"
+                  priority
                 />
               </div>
               <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-neutral-100">

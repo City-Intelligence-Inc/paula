@@ -128,7 +128,7 @@ export default function TutorPortalPage() {
                   className="border border-neutral-200 rounded-lg overflow-hidden"
                 >
                   <Link
-                    href={`/admin/students/${s.id}`}
+                    href={`/tutor/students/${s.id}`}
                     className="block p-4 hover:bg-neutral-50 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-3">

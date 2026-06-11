@@ -30,10 +30,27 @@ export interface Student {
   stripeCustomerId?: string;
   familyId?: string;
   tutorIds?: string[];
+  // Per-tutor view scope (conditional viewing — 5/17 Paula). A private tutor
+  // sees the full history ("full"); a class/group instructor is "limited" and
+  // only sees this student's group sessions + their own notes, never the
+  // private 1:1 record — unless an admin flips them to "full". Assigned tutors
+  // with no entry default to "full".
+  tutorAccess?: TutorAccess[];
   primaryPayerParentId?: string;
   schoolLogins?: SchoolLogin[];
+  // Class-capacity support (5/17 Paula — capped group classes). When set, the
+  // student row represents a class roster slot; enrollmentCount/capacity track
+  // how many seats are filled.
+  classCapacity?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export type TutorScope = "full" | "limited";
+
+export interface TutorAccess {
+  tutorId: string;
+  scope: TutorScope;
 }
 
 export type SessionOffering =

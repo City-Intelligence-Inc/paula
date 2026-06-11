@@ -51,10 +51,9 @@ export default function GroupCampsPage() {
                   Small group classes run 8 to 12 weeks — long enough to build
                   real momentum, short enough to keep things focused. Each
                   cohort has a beginning, middle, and end, with room for ideas
-                  to develop and connect over the arc of the term. School
-                  breaks are reserved for development sprints and conference
-                  attendance, so cohorts are scheduled around the academic
-                  calendar rather than during summer or holiday camps.
+                  to develop and connect over the arc of the term. Cohorts are
+                  scheduled around the academic calendar for continuity and
+                  focus.
                 </p>
               </div>
 
@@ -140,7 +139,7 @@ export default function GroupCampsPage() {
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white leading-snug tracking-tight">
                 Ready to gather a group?
               </h2>
-              <p className="mt-4 text-white/60 max-w-xl mx-auto leading-relaxed">
+              <p className="mt-4 text-white/80 max-w-xl mx-auto leading-relaxed">
                 Tell Mathitude about your group and the dates you have in mind.
               </p>
               <div className="mt-10">

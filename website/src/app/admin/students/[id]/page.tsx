@@ -206,6 +206,28 @@ export default function StudentDetailPage({
     }
   }
 
+  // Conditional viewing (5/17 Paula): "full" = private tutor sees everything;
+  // "limited" = class instructor sees only group sessions + their own notes.
+  async function setTutorScope(tutorId: string, scope: "full" | "limited") {
+    if (!student) return;
+    const next = (student.tutorAccess || []).filter((a) => a.tutorId !== tutorId);
+    next.push({ tutorId, scope });
+    setSavingTutors(true);
+    try {
+      const res = await fetchApi(`/api/students/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tutorAccess: next }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setStudent(json.student);
+      }
+    } finally {
+      setSavingTutors(false);
+    }
+  }
+
   async function handleSaveEdit(e: React.FormEvent) {
     e.preventDefault();
     if (!student) return;
@@ -642,6 +664,66 @@ export default function StudentDetailPage({
                   </button>
                 );
               })}
+            </div>
+          )}
+
+          {/* Per-tutor access scope — only meaningful for assigned tutors. */}
+          {(student.tutorIds || []).length > 0 && (
+            <div className="mt-5 border-t border-neutral-200 pt-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-neutral-500 mb-3">
+                Access scope
+              </p>
+              <div className="space-y-2">
+                {allTutors
+                  .filter((t) => (student.tutorIds || []).includes(t.id))
+                  .map((t) => {
+                    const scope =
+                      (student.tutorAccess || []).find((a) => a.tutorId === t.id)
+                        ?.scope ?? "full";
+                    return (
+                      <div
+                        key={t.id}
+                        className="flex items-center justify-between gap-3 text-sm"
+                      >
+                        <span className="text-neutral-700">
+                          {t.firstName} {t.lastName}
+                        </span>
+                        <div className="inline-flex rounded-md border border-neutral-200 overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={() => setTutorScope(t.id, "full")}
+                            disabled={savingTutors}
+                            className={`px-3 py-1 text-xs font-medium transition-colors disabled:opacity-50 ${
+                              scope === "full"
+                                ? "bg-[#0F7B6C] text-white"
+                                : "bg-white text-neutral-600 hover:bg-neutral-50"
+                            }`}
+                            title="Private tutor — sees full history"
+                          >
+                            Full
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTutorScope(t.id, "limited")}
+                            disabled={savingTutors}
+                            className={`px-3 py-1 text-xs font-medium border-l border-neutral-200 transition-colors disabled:opacity-50 ${
+                              scope === "limited"
+                                ? "bg-[#B8851A] text-white"
+                                : "bg-white text-neutral-600 hover:bg-neutral-50"
+                            }`}
+                            title="Class instructor — group sessions + own notes only"
+                          >
+                            Class only
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+              <p className="mt-2 text-xs text-neutral-400">
+                Full = private tutor sees everything. Class only = class
+                instructor sees group sessions and their own notes.
+              </p>
             </div>
           )}
         </div>

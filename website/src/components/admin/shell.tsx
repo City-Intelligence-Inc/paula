@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { UserButton, useAuth } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import { UserButton } from "@clerk/nextjs";
+import { roleMeta } from "@/lib/roles";
 import {
   Users,
   Calendar,
@@ -179,14 +180,33 @@ function NavLink({
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [role, setRole] = useState<string>("admin");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/me/is-admin")
+      .then((r) => r.json())
+      .then((j) => {
+        if (!cancelled && j?.role) setRole(j.role);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const meta = roleMeta(role);
 
   const isActive = (href: string) =>
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 
   const sidebar = (
     <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="px-4 py-5 border-b border-[color:var(--color-border-warm)]">
+      {/* Logo — top rail colored by role (purple master / blue staff). */}
+      <div
+        className="px-4 py-5 border-b border-[color:var(--color-border-warm)] border-t-4"
+        style={{ borderTopColor: meta.accent || "transparent" }}
+      >
         <Link href="/" className="flex items-center gap-2">
           <span
             className="text-xl font-bold tracking-tight text-mathitude-purple"
@@ -195,11 +215,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             Mathitude
           </span>
         </Link>
-        <div className="mt-1 flex items-center gap-1.5">
-          <ShieldCheck className="h-3 w-3 text-mathitude-purple" />
-          <p className="text-xs font-medium text-mathitude-purple">
-            Staff Portal
-          </p>
+        <div className="mt-2">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${meta.chip}`}
+          >
+            <ShieldCheck className="h-3 w-3" />
+            {meta.label}
+          </span>
         </div>
       </div>
 
@@ -228,7 +250,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-3">
           <UserButton />
           <div className="text-sm">
-            <p className="font-medium text-neutral-900">Admin Account</p>
+            <p className="font-medium text-neutral-900">{meta.label}</p>
             <Link
               href="/"
               className="text-xs text-neutral-500 hover:text-neutral-900"
@@ -248,20 +270,38 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         {sidebar}
       </aside>
 
-      {/* Mobile sidebar */}
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetTrigger>
-          <span className="lg:hidden fixed top-3 left-3 z-50 inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 hover:bg-neutral-100 transition-colors">
-            <Menu className="h-5 w-5" />
-          </span>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
-          {sidebar}
-        </SheetContent>
-      </Sheet>
-
       {/* Main content */}
       <main className="flex-1 overflow-auto">
+        {/* Mobile top bar — a real header instead of a floating button so the
+            hamburger never overlaps page content (4/ Sara). The role accent
+            rail repeats here on mobile where the sidebar is hidden. */}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <header
+            className="lg:hidden sticky top-0 z-40 flex items-center gap-2 h-14 px-3 border-b border-[color:var(--color-border-warm)] bg-[color:var(--color-surface-card)] border-t-4"
+            style={{ borderTopColor: meta.accent || "transparent" }}
+          >
+            <SheetTrigger>
+              <span className="inline-flex items-center justify-center rounded-md h-9 w-9 hover:bg-neutral-100 transition-colors">
+                <Menu className="h-5 w-5" />
+              </span>
+            </SheetTrigger>
+            <span
+              className="text-lg font-bold tracking-tight text-mathitude-purple"
+              style={{ fontFamily: "var(--font-original-surfer)" }}
+            >
+              Mathitude
+            </span>
+            <span
+              className={`ml-auto inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${meta.chip}`}
+            >
+              {meta.label}
+            </span>
+          </header>
+          <SheetContent side="left" className="w-64 p-0">
+            {sidebar}
+          </SheetContent>
+        </Sheet>
+
         <div
           key={pathname}
           className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 admin-page-enter"

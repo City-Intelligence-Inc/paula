@@ -1,23 +1,22 @@
-import { currentUser } from "@clerk/nextjs/server";
-import { isAdminEmail } from "@/lib/server/admins";
+import { resolveActor } from "@/lib/server/access";
 
-// GET /api/me/is-admin → { isAdmin, email }
-// Lightweight endpoint the navbar uses to decide whether to show the "Admin"
-// shortcut for the signed-in user. Falls back to false on any error.
+// GET /api/me/is-admin → { isAdmin, isMaster, role, email }
+// The navbar + shells use this to decide what to show for the signed-in user
+// and which role accent/badge to render. Falls back to non-admin on error.
 export async function GET() {
   try {
-    const u = await currentUser();
-    if (!u) return Response.json({ isAdmin: false, email: null });
-    const primary = u.emailAddresses?.find(
-      (e) => e.id === u.primaryEmailAddressId,
-    )?.emailAddress;
-    const email = (primary || u.emailAddresses?.[0]?.emailAddress || "")
-      .toLowerCase();
-    if (!email) return Response.json({ isAdmin: false, email: null });
-    const isAdmin = await isAdminEmail(email);
-    return Response.json({ isAdmin, email });
+    const { actor, response } = await resolveActor();
+    if (response || !actor) {
+      return Response.json({ isAdmin: false, isMaster: false, role: "parent", email: null });
+    }
+    return Response.json({
+      isAdmin: actor.isAdmin,
+      isMaster: actor.isMaster,
+      role: actor.role,
+      email: actor.email || null,
+    });
   } catch (err) {
     console.warn("[GET /api/me/is-admin] failed:", err);
-    return Response.json({ isAdmin: false, email: null });
+    return Response.json({ isAdmin: false, isMaster: false, role: "parent", email: null });
   }
 }
