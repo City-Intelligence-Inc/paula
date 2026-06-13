@@ -35,7 +35,7 @@ const interactives = [
     description:
       "Browse Mathitude's full library of puzzles, hands-on activities, and printable challenges — organized by theme and grade level.",
     href: "/puzzles-and-activities",
-    cta: "Browse the full library",
+    cta: "Browse library",
     image: "/photos/bucky_paxton3.jpg",
   },
   {
@@ -43,7 +43,7 @@ const interactives = [
     description:
       "Our full academic year at a glance — term dates, holiday closures, and the summer schedule. Browse by month or week, or download the printable PDF.",
     href: "/calendar",
-    cta: "Open the calendar",
+    cta: "Open calendar",
     image: "/photos/bucky_evan1.jpg",
   },
 ];
@@ -107,18 +107,17 @@ export default function FreeResourcesPage() {
                     />
                   </Link>
                   <div>
-                    <h3 className="text-xl font-semibold text-black">
-                      {item.title}
+                    <h3 className="text-xl font-semibold">
+                      <Link
+                        href={item.href}
+                        className="text-[#7030A0] hover:text-[#5d288a] transition-colors"
+                      >
+                        {item.title}
+                      </Link>
                     </h3>
                     <p className="mt-3 text-black leading-relaxed">
                       {item.description}
                     </p>
-                    <Link
-                      href={item.href}
-                      className="mt-4 inline-flex text-sm font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors"
-                    >
-                      {item.cta} &rarr;
-                    </Link>
                   </div>
                 </div>
               ))}
@@ -147,7 +146,7 @@ export default function FreeResourcesPage() {
                     rel="noopener noreferrer"
                     className="mt-4 inline-flex text-sm font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors"
                   >
-                    {item.cta} &rarr;
+                    {item.cta}
                   </a>
                 </div>
               ))}
