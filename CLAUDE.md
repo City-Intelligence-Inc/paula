@@ -34,3 +34,14 @@ npx vercel --prod --yes
 ```
 
 If something blocks (pre-commit hook, failing build, merge conflict, Vercel build error) figure it out — fix the underlying issue and retry. Push + CLI-deploy is the default, not the exception. Never report a change as "shipped" until the CLI deploy has returned `● Ready` and the canonical alias serves the new commit.
+
+## Working style (learned 2026-06-13 with Paula & Sarah)
+
+Goal: idea → shipped in one shot. Fewer round-trips ("hiccups per minute"). These are settled, not suggestions.
+
+- **Generalize, don't one-off.** When Paula points at one instance of a pattern (a lavender panel, a redundant CTA, a verbose label, a punctuation nit), grep the whole codebase for every instance and fix them in one commit. Do not wait to be shown each page.
+- **Grasp the goal, not the literal edit.** For visual hierarchy / sizing feedback, reason about the relationship between elements and propose the whole hierarchy at once rather than nudging one element per round.
+- **Less is more.** One CTA per section; headers are the links (no header + redundant "Learn more"); cut articles and arrows from link text; cut happy-talk. Applies to docs too — keep additions lean.
+- **Visual preferences live in `website/DESIGN.md`** ("Marketing copy + visual rules"). Read it before touching marketing copy, color, or type. Highlights: no lavender (warm taupe `#EFEBE5`), hero = black text with brand word + key noun in `#7030A0`, no auto-popping tours.
+- **Deploy then verify, don't ask.** Code edit → commit → push → `npx vercel --prod --yes` → confirm the canonical alias serves it. Batch related edits into one deploy when they arrive together.
+- **Surface decisions, act on the obvious.** Only stop to ask when the choice is genuinely Paula's (taste, scope, external sends). Otherwise pick the sensible default and say what you did.

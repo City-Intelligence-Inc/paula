@@ -212,3 +212,18 @@ Naming them so future contributors know they're intentional.
 | 2026-05-24 | Geist + tabular-nums for financials | Operator dashboard scannability. |
 | 2026-05-24 | Cranberry error `#B0263C` over red-500 | Warm-palette failure state. |
 | 2026-05-24 | Original Surfer reserved to brand mark only | Operator pages must not slow down with display type. |
+| 2026-06-13 | No lavender tints on marketing — warm taupe `#EFEBE5` instead | Pale purple (`#7030A0`/5, `#F2E8FA`) read "too girly"; taupe matches the warm-neutral system. |
+| 2026-06-13 | Marketing CTAs: imperative, no articles, no arrows | "Open calendar" not "Open the calendar →". Less is more (Paula). |
+
+---
+
+## Marketing copy + visual rules (learned 2026-06-13 with Paula & Sarah)
+
+Apply these by default on public pages. They came from a live working session; they are settled preferences, not suggestions.
+
+- **Less is more.** One CTA per section. Make the card/section header the link instead of a header + redundant "Learn more" prompt. Cut articles and arrows from link text.
+- **No lavender.** Tinted panels use warm taupe `#EFEBE5` with `ring-black/[0.06]`, never a purple tint.
+- **Hero headlines:** black text, only the brand word + the key noun in `#7030A0`. No comma/period if the punctuation sits next to the colored words. Brand-script (Original Surfer) for brand-y titles.
+- **No auto-popping tours/modals.** Help is opt-in (the `?` floater), never auto-launched.
+- **About Paula opener:** "Meet Paula" is the dominant Original Surfer title; the descriptive line is a smaller subordinate subtitle.
+- **Process — generalize, don't one-off.** When Paula points at one instance of a pattern (a lavender panel, a redundant CTA, a verbose label), grep for every instance across the codebase and fix them in one commit. Don't wait to be shown each one.
