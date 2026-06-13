@@ -24,22 +24,22 @@ export default function EventsPage() {
         <section className="bg-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 md:pb-28">
             <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
-              Upcoming Events
+              Recent Events
             </h2>
 
             <div className="mt-8 space-y-0 divide-y divide-neutral-200">
               <div className="py-8 first:pt-0">
                 <p className="text-sm font-medium text-[#7030A0]">
-                  May 2026
+                  January 2025
                 </p>
                 <h3 className="mt-1 text-lg font-medium text-black">
-                  Bay Area Math Festival
+                  Menlo Park Math Festival
                 </h3>
                 <p className="mt-2 text-black leading-relaxed">
-                  Join The Mathitude team at the Bay Area Math
-                  Festival for a day of hands-on mathematical exploration.
-                  Expect swamp puzzles, Pascal&apos;s Triangle activities, and
-                  collaborative problem-solving for all ages.
+                  The Mathitude team joined the Menlo Park Math Festival for a
+                  morning of hands-on mathematical exploration — swamp puzzles,
+                  Pascal&apos;s Triangle activities, and collaborative
+                  problem-solving for all ages.
                 </p>
               </div>
 
@@ -51,9 +51,9 @@ export default function EventsPage() {
                   Nueva School STEM Fair
                 </h3>
                 <p className="mt-2 text-black leading-relaxed">
-                  Mathitude will be presenting at the Nueva School STEM Fair,
-                  showcasing engaging math activities and enrichment resources
-                  for elementary and middle-grade students.
+                  Mathitude presented at the Nueva School STEM Fair, showcasing
+                  engaging math activities and enrichment resources for
+                  elementary and middle-grade students.
                 </p>
               </div>
             </div>
