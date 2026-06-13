@@ -39,7 +39,7 @@ export function Newsletter() {
             <p className="text-xs font-medium tracking-[0.22em] text-[#7030A0] uppercase mb-5">
               Stay close
             </p>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-black tracking-tight leading-[1.05]">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-black tracking-tight leading-[1.05]">
               A short letter, a few times a year.
             </h2>
             <p className="mt-5 text-base sm:text-lg text-black leading-relaxed">
