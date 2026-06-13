@@ -40,17 +40,6 @@ const interactives = [
   },
 ];
 
-// Large home-print PDF packets, hosted externally.
-const printables = [
-  {
-    title: "Cardioid Swamp — Home-Print Packet",
-    description:
-      "The home-printable version of the Cardioid Swamp pamphlet Paula and Sara put together — a full puzzle & activity packet you can run off on any home printer.",
-    href: "https://websitepuzzles.s3.us-west-1.amazonaws.com/PAMPHLET_CARDIOID_SWAMP_2026_v2.1_HOMEPRINT_PACKET.pdf",
-    cta: "Download packet (PDF)",
-  },
-];
-
 export default function FreeResourcesPage() {
   return (
     <>
@@ -111,35 +100,6 @@ export default function FreeResourcesPage() {
                       {item.description}
                     </p>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Printable packets */}
-        <section className="bg-neutral-50 border-t border-neutral-200">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-24">
-            <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
-              Printable Packets
-            </h2>
-            <div className="mt-8 space-y-0 divide-y divide-neutral-200">
-              {printables.map((item) => (
-                <div key={item.title} className="py-10 first:pt-0">
-                  <h3 className="text-xl font-semibold text-black">
-                    {item.title}
-                  </h3>
-                  <p className="mt-3 text-black leading-relaxed">
-                    {item.description}
-                  </p>
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 inline-flex text-sm font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors"
-                  >
-                    {item.cta}
-                  </a>
                 </div>
               ))}
             </div>
