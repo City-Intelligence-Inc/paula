@@ -49,7 +49,10 @@ export function Services() {
     <section className="bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
         <div className="mb-12 sm:mb-16 max-w-3xl">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-black tracking-tight leading-[1.05]">
+          <h2
+            className="text-4xl sm:text-5xl md:text-6xl text-[#7030A0] leading-[1.05]"
+            style={{ fontFamily: "var(--font-original-surfer)" }}
+          >
             How we work
           </h2>
           <p className="mt-5 text-xl sm:text-2xl text-[#3f3346] leading-snug font-light tracking-tight">
@@ -101,22 +104,20 @@ export function Services() {
                   idx >= 2 ? "md:border-t md:border-neutral-200 md:pt-10" : ""
                 }`}
               >
-                <h4 className="text-xl font-semibold text-black tracking-tight">
-                  {offering.title}
+                <h4 className="text-xl font-semibold tracking-tight">
+                  {offering.learnMoreHref ? (
+                    <Link
+                      href={offering.learnMoreHref}
+                      className="text-[#7030A0] hover:text-[#5d288a] transition-colors"
+                    >
+                      {offering.title}
+                    </Link>
+                  ) : (
+                    <span className="text-black">{offering.title}</span>
+                  )}
                 </h4>
                 <p className="mt-2.5 text-base text-black leading-relaxed">
                   {offering.description}
-                  {offering.learnMoreHref ? (
-                    <>
-                      {" "}
-                      <Link
-                        href={offering.learnMoreHref}
-                        className="text-[#7030A0] hover:text-[#5d288a] font-medium whitespace-nowrap"
-                      >
-                        More&hellip;
-                      </Link>
-                    </>
-                  ) : null}
                 </p>
               </div>
             ))}

@@ -120,22 +120,20 @@ export default function TutoringHubPage() {
             <div className="space-y-0 divide-y divide-neutral-200">
               {moreOfferings.map((o) => (
                 <div key={o.title} className="py-8 first:pt-2">
-                  <h3 className="text-xl md:text-2xl font-semibold text-black tracking-tight">
-                    {o.title}
+                  <h3 className="text-xl md:text-2xl font-semibold tracking-tight">
+                    {o.href ? (
+                      <Link
+                        href={o.href}
+                        className="text-[#7030A0] hover:text-[#5d288a] transition-colors"
+                      >
+                        {o.title}
+                      </Link>
+                    ) : (
+                      <span className="text-black">{o.title}</span>
+                    )}
                   </h3>
                   <p className="mt-3 text-black leading-relaxed text-base">
                     {o.description}
-                    {o.href ? (
-                      <>
-                        {" "}
-                        <Link
-                          href={o.href}
-                          className="font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors whitespace-nowrap"
-                        >
-                          More&hellip;
-                        </Link>
-                      </>
-                    ) : null}
                   </p>
                 </div>
               ))}

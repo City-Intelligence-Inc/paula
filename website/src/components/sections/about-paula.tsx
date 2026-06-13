@@ -12,8 +12,8 @@ export function AboutPaula() {
           >
             Meet Paula
           </p>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-black tracking-tight leading-[1.2]">
-            Over a dozen years of teaching math as attitude, not arithmetic.
+          <h2 className="text-xl sm:text-2xl font-semibold text-black tracking-tight leading-[1.3] text-balance">
+            Over 13 years of teaching math as attitude, not arithmetic.
           </h2>
         </div>
 
