@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { driver, type DriveStep } from "driver.js";
 import "driver.js/dist/driver.css";
@@ -178,10 +178,6 @@ export function SiteGuide() {
   const pathname = usePathname();
   const area = areaFor(pathname);
   const driverRef = useRef<DriverInstance | null>(null);
-  const autoChecked = useRef<string>("");
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => setReady(true), []);
 
   const run = useCallback((a: Area) => {
     // Destroy any running instance first so re-launch is clean.
@@ -208,18 +204,8 @@ export function SiteGuide() {
     d.drive();
   }, []);
 
-  // First visit per area → auto-start once.
-  useEffect(() => {
-    if (!ready || !area) return;
-    if (autoChecked.current === area) return;
-    autoChecked.current = area;
-    const key = `mathitude_guide_${area}_v1`;
-    if (typeof window !== "undefined" && !localStorage.getItem(key)) {
-      localStorage.setItem(key, "1");
-      const t = setTimeout(() => run(area), 900);
-      return () => clearTimeout(t);
-    }
-  }, [ready, area, run]);
+  // The tour no longer auto-starts on first visit — it's opt-in only via the
+  // "?" floater below, so nothing pops up over the page unprompted.
 
   useEffect(() => () => driverRef.current?.destroy(), []);
 
