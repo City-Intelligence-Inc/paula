@@ -10,10 +10,11 @@ export function Hero() {
           {/* Left — copy */}
           <div className="text-center lg:text-left">
             <h1
-              className="text-6xl md:text-7xl lg:text-8xl text-[#7030A0] leading-[1.02]"
+              className="text-6xl md:text-7xl lg:text-8xl text-black leading-[1.02]"
               style={{ fontFamily: "var(--font-original-surfer)", letterSpacing: "-0.02em", textWrap: "balance" }}
             >
-              At Mathitude, it&apos;s all about the attitude.
+              At <span className="text-[#7030A0]">Mathitude</span>, it&apos;s all about the{" "}
+              <span className="text-[#7030A0]">attitude</span>.
             </h1>
 
             <p className="mt-8 text-xl md:text-2xl text-black max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">

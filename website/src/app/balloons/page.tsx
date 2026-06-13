@@ -61,7 +61,7 @@ export default function BalloonsPage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center text-sm font-medium text-[#7030A0] hover:text-[#5d288a] transition-colors"
               >
-                Download the instructions here &rarr;
+                Download instructions &rarr;
               </a>
             </p>
           </div>
