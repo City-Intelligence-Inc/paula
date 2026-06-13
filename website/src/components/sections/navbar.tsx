@@ -33,10 +33,10 @@ export function Navbar() {
             <Image
               src="/brand/logo.png"
               alt="Mathitude"
-              width={44}
-              height={44}
+              width={56}
+              height={56}
               priority
-              className="w-9 h-9 sm:w-11 sm:h-11 object-contain transition-transform duration-300 group-hover:rotate-[-8deg]"
+              className="w-11 h-11 sm:w-14 sm:h-14 object-contain transition-transform duration-300 group-hover:rotate-[-8deg]"
             />
             <span className="text-2xl sm:text-3xl font-bold tracking-tight text-[#7030A0]" style={{ fontFamily: "var(--font-original-surfer)" }}>
               Mathitude

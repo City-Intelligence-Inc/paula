@@ -349,7 +349,7 @@ export default function ContactPage() {
                     </p>
                     <p className="text-sm text-neutral-500">Menlo Park, CA</p>
                     <p className="text-xs text-neutral-400 mt-0.5">
-                      Professional building, one block from Trader Joe&apos;s
+                      One block from Trader Joe&apos;s
                     </p>
                   </div>
                 </div>
