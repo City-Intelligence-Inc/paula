@@ -81,9 +81,6 @@ export default function TutoringHubPage() {
                 />
               </div>
               <div>
-                <p className="text-xs font-medium tracking-[0.22em] text-[#7030A0] uppercase mb-4">
-                  Our core offer
-                </p>
                 <h2 className="text-3xl sm:text-4xl font-semibold text-black tracking-tight">
                   {featured.title}
                 </h2>
