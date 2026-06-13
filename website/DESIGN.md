@@ -217,7 +217,7 @@ Naming them so future contributors know they're intentional.
 
 ---
 
-## Marketing copy + visual rules (learned 2026-06-13 with Paula & Sarah)
+## Marketing copy + visual rules (learned 2026-06-13 with Paula & Sara)
 
 Apply these by default on public pages. They came from a live working session; they are settled preferences, not suggestions.
 

@@ -35,7 +35,7 @@ npx vercel --prod --yes
 
 If something blocks (pre-commit hook, failing build, merge conflict, Vercel build error) figure it out — fix the underlying issue and retry. Push + CLI-deploy is the default, not the exception. Never report a change as "shipped" until the CLI deploy has returned `● Ready` and the canonical alias serves the new commit.
 
-## Working style (learned 2026-06-13 with Paula & Sarah)
+## Working style (learned 2026-06-13 with Paula & Sara)
 
 Goal: idea → shipped in one shot. Fewer round-trips ("hiccups per minute"). These are settled, not suggestions.
 
