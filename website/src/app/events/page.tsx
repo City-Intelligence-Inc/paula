@@ -1,6 +1,42 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Navbar } from "@/components/sections/navbar";
 import { Footer } from "@/components/sections/footer";
+
+// Events as a portfolio/showcase (6/13 Paula): photo-forward, no dates — these
+// are events Mathitude has done, not a schedule. Cards link to an on-site page
+// when there is one; the rest are showcase tiles (blog-post links can be added
+// later). "Paula speaking to the crowd" photos to be swapped in from the team.
+const events = [
+  {
+    title: "Sierpinski Balloon Tetrahedra",
+    blurb:
+      "Towering Level-4 Sierpinski balloon builds that students climb inside — a Mathitude festival favorite, run many times across the Bay Area.",
+    image: "/balloons/balloon-tetrahedron.jpg",
+    href: "/balloons",
+  },
+  {
+    title: "Menlo Park Math Festival",
+    blurb:
+      "A morning of hands-on mathematical exploration — swamp puzzles, Pascal's Triangle activities, and collaborative problem-solving for all ages.",
+    image: "/photos/bucky_raife_cara3.jpg",
+    href: null,
+  },
+  {
+    title: "Swamp Puzzles at festivals",
+    blurb:
+      "Mathitude's signature strategic puzzles — beautiful but dangerous — building logic and perseverance with students of every age.",
+    image: "/swamp-puzzles/cover-level-1.jpg",
+    href: "/swamp-puzzles",
+  },
+  {
+    title: "Nueva School STEM Fair",
+    blurb:
+      "Engaging math activities and enrichment resources brought to elementary and middle-grade students.",
+    image: "/photos/bucky_paxton3.jpg",
+    href: null,
+  },
+];
 
 export default function EventsPage() {
   return (
@@ -20,42 +56,57 @@ export default function EventsPage() {
           </div>
         </section>
 
-        {/* Upcoming events */}
+        {/* Events showcase / portfolio — photo-forward, no dates */}
         <section className="bg-white">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 md:pb-28">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 md:pb-28">
             <h2 className="text-2xl md:text-3xl font-semibold text-black tracking-tight">
-              Recent Events
+              Where Mathitude shows up
             </h2>
+            <p className="mt-3 text-black/70 leading-relaxed max-w-2xl">
+              Festivals, schools, and community events where Paula brings
+              hands-on math to life.
+            </p>
 
-            <div className="mt-8 space-y-0 divide-y divide-neutral-200">
-              <div className="py-8 first:pt-0">
-                <p className="text-sm font-medium text-[#7030A0]">
-                  January 2025
-                </p>
-                <h3 className="mt-1 text-lg font-medium text-black">
-                  Menlo Park Math Festival
-                </h3>
-                <p className="mt-2 text-black leading-relaxed">
-                  The Mathitude team joined the Menlo Park Math Festival for a
-                  morning of hands-on mathematical exploration — swamp puzzles,
-                  Pascal&apos;s Triangle activities, and collaborative
-                  problem-solving for all ages.
-                </p>
-              </div>
-
-              <div className="py-8">
-                <p className="text-sm font-medium text-[#7030A0]">
-                  May 2026
-                </p>
-                <h3 className="mt-1 text-lg font-medium text-black">
-                  Nueva School STEM Fair
-                </h3>
-                <p className="mt-2 text-black leading-relaxed">
-                  Mathitude presented at the Nueva School STEM Fair, showcasing
-                  engaging math activities and enrichment resources for
-                  elementary and middle-grade students.
-                </p>
-              </div>
+            <div className="mt-10 grid sm:grid-cols-2 gap-x-8 gap-y-12">
+              {events.map((e) => {
+                const photo = (
+                  <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-neutral-100 ring-1 ring-neutral-200">
+                    <Image
+                      src={e.image}
+                      alt={e.title}
+                      fill
+                      sizes="(max-width: 640px) 100vw, 460px"
+                      className="object-cover"
+                    />
+                  </div>
+                );
+                return (
+                  <div key={e.title}>
+                    {e.href ? (
+                      <Link href={e.href} className="block hover-lift">
+                        {photo}
+                      </Link>
+                    ) : (
+                      photo
+                    )}
+                    <h3 className="mt-4 text-lg font-semibold tracking-tight">
+                      {e.href ? (
+                        <Link
+                          href={e.href}
+                          className="text-[#7030A0] hover:text-[#5d288a] transition-colors"
+                        >
+                          {e.title}
+                        </Link>
+                      ) : (
+                        <span className="text-black">{e.title}</span>
+                      )}
+                    </h3>
+                    <p className="mt-1.5 text-black/70 leading-relaxed">
+                      {e.blurb}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>

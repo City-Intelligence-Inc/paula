@@ -69,7 +69,7 @@ export default function ShopPage() {
               className="text-5xl md:text-6xl lg:text-7xl text-[#7030A0] tracking-tight text-center leading-[1.05]"
               style={{ fontFamily: "var(--font-original-surfer)" }}
             >
-              Shop Books
+              Enrichment Books
             </h1>
             <p className="mt-6 text-lg md:text-xl text-black leading-relaxed text-center max-w-2xl mx-auto">
               Mathitude&apos;s signature math engagement workbooks — deep math
@@ -114,11 +114,8 @@ export default function ShopPage() {
                           className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                         />
                       </div>
-                      <p className="mt-3 text-sm font-medium text-black leading-snug">
+                      <p className="mt-3 text-sm font-medium text-[#7030A0] group-hover:text-[#5d288a] transition-colors leading-snug">
                         {book.title}
-                      </p>
-                      <p className="mt-1 text-xs text-[#7030A0] group-hover:text-[#5d288a] transition-colors">
-                        Order on Amazon &rarr;
                       </p>
                     </a>
                   ))}

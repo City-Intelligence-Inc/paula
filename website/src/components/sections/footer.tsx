@@ -45,7 +45,7 @@ const columns = [
       { label: "Free Resources", href: "/free-resources" },
       { label: "Swamp Puzzles", href: "/swamp-puzzles" },
       { label: "Pascal's Triangle", href: "/pascals-triangle" },
-      { label: "Shop Books", href: "/shop" },
+      { label: "Enrichment Books", href: "/shop" },
     ],
   },
   {

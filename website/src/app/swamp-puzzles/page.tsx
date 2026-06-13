@@ -192,7 +192,7 @@ export default function SwampPuzzlesPage() {
                   href="/shop"
                   className="inline-flex items-center justify-center rounded-md bg-white text-black hover:bg-neutral-100 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
                 >
-                  Shop Books
+                  Enrichment Books
                 </Link>
                 <Link
                   href="/contact"

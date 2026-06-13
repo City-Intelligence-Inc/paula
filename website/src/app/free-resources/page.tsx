@@ -38,14 +38,6 @@ const interactives = [
     cta: "Browse library",
     image: "/photos/bucky_paxton3.jpg",
   },
-  {
-    title: "Academic Calendar 2026–2027",
-    description:
-      "Our full academic year at a glance — term dates, holiday closures, and the summer schedule. Browse by month or week, or download the printable PDF.",
-    href: "/calendar",
-    cta: "Open calendar",
-    image: "/photos/bucky_evan1.jpg",
-  },
 ];
 
 // Large home-print PDF packets, hosted externally.
@@ -170,7 +162,7 @@ export default function FreeResourcesPage() {
                   href="/shop"
                   className="inline-flex items-center justify-center rounded-md bg-white text-neutral-900 hover:bg-neutral-100 font-medium text-sm px-8 py-3.5 min-w-[180px] transition-colors"
                 >
-                  Shop Books
+                  Enrichment Books
                 </Link>
                 <Link
                   href="/contact"

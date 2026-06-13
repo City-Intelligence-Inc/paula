@@ -18,7 +18,7 @@ const navLinks = [
   { label: "Free Resources", href: "/free-resources" },
   { label: "Calendar", href: "/calendar" },
   { label: "Events & News", href: "/events" },
-  { label: "Shop Books", href: "/shop" },
+  { label: "Enrichment Books", href: "/shop" },
 ];
 
 export function Navbar() {
