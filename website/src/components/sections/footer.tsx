@@ -36,7 +36,6 @@ const columns = [
     links: [
       { label: "Private tutoring", href: "/tutoring/private" },
       { label: "Small group engagement", href: "/tutoring/camps" },
-      { label: "All offerings", href: "/tutoring" },
       { label: "Events & News", href: "/events" },
     ],
   },

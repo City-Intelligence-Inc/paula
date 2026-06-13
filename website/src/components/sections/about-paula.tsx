@@ -9,7 +9,10 @@ export function AboutPaula() {
           <p className="text-sm sm:text-base font-semibold tracking-[0.18em] text-[#7030A0] uppercase mb-5">
             Meet Paula
           </p>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-black tracking-tight leading-[1.05]">
+          <h2
+            className="text-4xl sm:text-5xl md:text-6xl text-black leading-[1.1]"
+            style={{ fontFamily: "var(--font-original-surfer)" }}
+          >
             Over a dozen years of teaching math as attitude, not arithmetic.
           </h2>
         </div>
