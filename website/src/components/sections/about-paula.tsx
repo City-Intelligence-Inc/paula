@@ -1,15 +1,5 @@
 import Image from "next/image";
 
-const credentials = [
-  { label: "M.A.", detail: "Applied Economics" },
-  { label: "B.A.", detail: "Math & Economics, double major" },
-  { label: "13+ yrs", detail: "tutoring Pre-K through college" },
-  {
-    label: "Certified Mindfulness Mentor",
-    detail: "Course led by Tara Brach, Jack Kornfield, et al.",
-  },
-];
-
 export function AboutPaula() {
   return (
     <section className="bg-white">
@@ -26,7 +16,7 @@ export function AboutPaula() {
 
         {/* Photo + bio */}
         <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-10 lg:gap-16 items-start">
-          <div className="relative">
+          <div className="relative max-w-[340px]">
             <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100 rounded-lg">
               <Image
                 src="/paula.avif"
@@ -70,19 +60,6 @@ export function AboutPaula() {
                 elementary and middle school students round out the practice.
               </p>
             </div>
-
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 pt-8 border-t border-neutral-200">
-              {credentials.map((c) => (
-                <div key={c.label}>
-                  <dt className="text-sm font-semibold text-black">
-                    {c.label}
-                  </dt>
-                  <dd className="mt-0.5 text-sm text-[#6b6f76]">
-                    {c.detail}
-                  </dd>
-                </div>
-              ))}
-            </dl>
           </div>
         </div>
       </div>

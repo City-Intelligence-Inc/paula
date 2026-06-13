@@ -49,12 +49,12 @@ export function Services() {
     <section className="bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
         <div className="mb-12 sm:mb-16 max-w-3xl">
-          <p className="text-xs font-medium tracking-[0.22em] text-[#7030A0] uppercase mb-5">
-            How we work
-          </p>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-black tracking-tight leading-[1.05]">
-            Bring expert math engagement to your student, family, or school.
+            How we work
           </h2>
+          <p className="mt-5 text-xl sm:text-2xl text-[#3f3346] leading-snug font-light tracking-tight">
+            Bring expert math engagement to your student, family, or school.
+          </p>
         </div>
 
         {/* Featured — private tutoring, enlarged with image */}
