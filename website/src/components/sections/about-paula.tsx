@@ -7,12 +7,12 @@ export function AboutPaula() {
         {/* Section opener */}
         <div className="max-w-3xl mb-16 sm:mb-20">
           <p
-            className="text-2xl sm:text-3xl text-[#7030A0] mb-3"
+            className="text-4xl sm:text-5xl md:text-6xl text-[#7030A0] mb-4 leading-[1.05]"
             style={{ fontFamily: "var(--font-original-surfer)" }}
           >
             Meet Paula
           </p>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-black tracking-tight leading-[1.05]">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-black tracking-tight leading-[1.2]">
             Over a dozen years of teaching math as attitude, not arithmetic.
           </h2>
         </div>
