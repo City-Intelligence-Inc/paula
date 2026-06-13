@@ -76,19 +76,14 @@ export function Services() {
               {featured.title}
             </h3>
             <p className="mt-5 text-lg text-black leading-relaxed">
-              {featured.description}{" "}
-              <Link
-                href={featured.learnMoreHref}
-                className="text-[#7030A0] hover:text-[#5d288a] font-medium whitespace-nowrap"
-              >
-                More&hellip;
-              </Link>
+              {featured.description}
             </p>
             <Link
-              href="/contact?offering=private-tutoring"
-              className="mt-7 inline-flex items-center justify-center bg-[#7030A0] text-white hover:bg-[#5d288a] rounded-full px-8 py-3.5 text-sm font-medium uppercase tracking-wide transition-colors min-h-[48px] shadow-sm hover:shadow-md"
+              href={featured.learnMoreHref}
+              className="mt-7 inline-flex items-center justify-center bg-[#7030A0] text-white hover:bg-[#5d288a] rounded-full px-9 py-4 text-base font-medium uppercase tracking-wide transition-colors min-h-[52px] shadow-sm hover:shadow-md"
             >
-              Request a Consultation
+              Learn More
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
           </div>
         </div>

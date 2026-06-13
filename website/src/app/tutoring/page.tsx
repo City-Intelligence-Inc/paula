@@ -37,7 +37,7 @@ const moreOfferings = [
   {
     title: "School STEM workshops",
     description:
-      "Hands-on math workshops brought directly to your school. Mathitude works with classroom teachers to design sessions that fit your students and curriculum.",
+      "Mathitude brings an array of hands-on math engagement experiences directly to your school — designed to excite your students.",
   },
   {
     title: "Math festival advisories",
@@ -69,7 +69,7 @@ export default function TutoringHubPage() {
         {/* Featured — private tutoring, highlighted with image */}
         <section className="bg-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 md:pb-24">
-            <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center rounded-3xl bg-[#F2E8FA]/60 ring-1 ring-[#7030A0]/10 p-6 sm:p-10">
+            <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center rounded-3xl bg-[#EFEBE5] ring-1 ring-black/[0.06] p-6 sm:p-10">
               <div className="relative aspect-[5/4] rounded-2xl overflow-hidden bg-neutral-100">
                 <Image
                   src={featured.image}
