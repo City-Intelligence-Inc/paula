@@ -125,6 +125,7 @@ export function Hero() {
             <div
               key={photo.src}
               data-reveal="scale"
+              data-hero-photo
               data-delay={photo.delay}
               data-tilt
               className={`relative aspect-[3/4] rounded-xl overflow-hidden bg-neutral-100 ${photo.offset} ${photo.rotate} shadow-md`}

@@ -29,6 +29,13 @@ export function ScrollAnimations() {
     document.querySelectorAll("[data-reveal]").forEach((el) => revealObs.observe(el));
     cleanups.push(() => revealObs.disconnect());
 
+    // ── 2b. Hero photos: auto-reveal without observer ──
+    // Photos sit below the initial fold, so the observer never fires on load.
+    // Add .revealed immediately — CSS transition-delay on [data-delay] handles stagger.
+    document.querySelectorAll<HTMLElement>("[data-hero-photo]").forEach((el) => {
+      el.classList.add("revealed");
+    });
+
     // ── 3. Magnetic hover ──
     document.querySelectorAll<HTMLElement>("[data-magnetic]").forEach((el) => {
       const move = (e: MouseEvent) => {
