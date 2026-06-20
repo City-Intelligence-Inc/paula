@@ -3,83 +3,101 @@
 import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
 
-const messages = [
-  { from: "parent", text: "Hi! We'd love to get our daughter started with tutoring 🙏" },
-  { from: "paula", text: "Hi Sarah! I'd love to help. What grade is she in?" },
-  { from: "parent", text: "She's in 5th grade — really struggling with fractions lately" },
-  { from: "paula", text: "Fractions are tricky but totally conquerable! Let's set up a free intro session so I can get a sense of where she is 🧮" },
-  { from: "parent", text: "That would be amazing, thank you so much!" },
-  { from: "paula", text: "Of course! I'll send over some times — looking forward to meeting her 🌟" },
+const emails = [
+  {
+    initials: "SM",
+    color: "#4285F4",
+    sender: "Sarah M.",
+    subject: "Tutoring inquiry for Emma",
+    preview: "Thank you so much for your response! We're very excited to get started with the program.",
+    time: "9:14 AM",
+    unread: true,
+  },
+  {
+    initials: "JK",
+    color: "#34A853",
+    sender: "Jennifer K.",
+    subject: "5th grade math help",
+    preview: "Hi Paula, is there availability for weekly sessions this fall? Our son is really eager.",
+    time: "Yesterday",
+    unread: false,
+  },
+  {
+    initials: "MT",
+    color: "#EA4335",
+    sender: "Michael T.",
+    subject: "Session this Thursday",
+    preview: "Quick note — we'll need to reschedule Thursday. Would Friday at the same time work?",
+    time: "Mon",
+    unread: false,
+  },
 ];
 
-function PhoneMockup() {
+function GmailPhoneMockup() {
   return (
     <div className="relative mx-auto w-[260px]">
-      {/* Phone shell */}
       <div className="relative bg-[#1c1c1e] rounded-[44px] p-3 shadow-2xl ring-1 ring-white/10">
-        {/* Screen */}
         <div className="bg-white rounded-[36px] overflow-hidden" style={{ height: "520px" }}>
           {/* Dynamic island */}
-          <div className="flex justify-center pt-3 pb-1">
+          <div className="flex justify-center pt-3 pb-2">
             <div className="w-24 h-6 bg-[#1c1c1e] rounded-full" />
           </div>
 
-          {/* iMessage header */}
-          <div className="border-b border-neutral-100 px-4 py-2 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7030A0] to-[#9b59b6] flex items-center justify-center text-white text-xs font-semibold">
-              P
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-neutral-900 truncate">Mathitude</p>
-              <p className="text-[10px] text-green-500 font-medium">Active now</p>
-            </div>
-            <div className="flex gap-3">
-              <svg className="w-4 h-4 text-[#007AFF]" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+          {/* Gmail header */}
+          <div className="px-3 pb-2">
+            <div className="flex items-center gap-2 bg-[#f1f3f4] rounded-full px-3 py-2">
+              <svg className="w-3.5 h-3.5 text-[#5f6368]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
-              <svg className="w-4 h-4 text-[#007AFF]" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
-              </svg>
+              <span className="flex-1 text-[11px] text-[#5f6368] font-medium">Search in mail</span>
+              <div className="w-6 h-6 rounded-full bg-[#7030A0] flex items-center justify-center text-white text-[8px] font-bold">P</div>
             </div>
           </div>
 
-          {/* Messages */}
-          <div className="px-3 py-3 space-y-2 overflow-hidden" style={{ maxHeight: "400px" }}>
-            <p className="text-[9px] text-neutral-400 text-center font-medium mb-3">Today 9:14 AM</p>
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex ${msg.from === "parent" ? "justify-end" : "justify-start"}`}
-              >
+          {/* Primary tab */}
+          <div className="px-4 pb-1 border-b border-[#e0e0e0]">
+            <span className="text-[10px] font-semibold text-[#1a73e8] border-b-2 border-[#1a73e8] pb-1.5 inline-block">Primary</span>
+          </div>
+
+          {/* Email list */}
+          <div className="divide-y divide-[#f1f3f4]">
+            {emails.map((email, i) => (
+              <div key={i} className={`flex items-start gap-2.5 px-3 py-2.5 ${email.unread ? "bg-white" : "bg-white"}`}>
                 <div
-                  className={`max-w-[78%] px-3 py-1.5 rounded-2xl text-[11px] leading-[1.4] ${
-                    msg.from === "parent"
-                      ? "bg-[#007AFF] text-white rounded-br-md"
-                      : "bg-[#e9e9eb] text-[#1c1c1e] rounded-bl-md"
-                  }`}
+                  className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white text-[11px] font-semibold mt-0.5"
+                  style={{ background: email.color }}
                 >
-                  {msg.text}
+                  {email.initials}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-[11px] truncate ${email.unread ? "font-bold text-[#202124]" : "font-medium text-[#444746]"}`}>
+                      {email.sender}
+                    </span>
+                    <span className={`text-[9px] flex-shrink-0 ml-1 ${email.unread ? "font-semibold text-[#1a73e8]" : "text-[#5f6368]"}`}>
+                      {email.time}
+                    </span>
+                  </div>
+                  <p className={`text-[10px] truncate ${email.unread ? "font-semibold text-[#202124]" : "text-[#444746]"}`}>
+                    {email.subject}
+                  </p>
+                  <p className="text-[10px] text-[#5f6368] truncate">{email.preview}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Input bar */}
-          <div className="absolute bottom-4 left-3 right-3">
-            <div className="bg-[#f2f2f7] rounded-full px-4 py-2 flex items-center gap-2">
-              <span className="text-[11px] text-neutral-400 flex-1">iMessage</span>
-              <div className="w-5 h-5 rounded-full bg-[#007AFF] flex items-center justify-center">
-                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                </svg>
-              </div>
+          {/* Compose FAB */}
+          <div className="absolute bottom-8 right-5">
+            <div className="bg-[#c2e7ff] rounded-2xl px-3 py-2 flex items-center gap-1.5 shadow">
+              <svg className="w-3 h-3 text-[#001d35]" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+              </svg>
+              <span className="text-[10px] font-medium text-[#001d35]">Compose</span>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Reflection */}
-      <div className="absolute -bottom-6 left-6 right-6 h-12 bg-gradient-to-b from-white/20 to-transparent blur-xl rounded-full" />
     </div>
   );
 }
@@ -89,7 +107,6 @@ export default function SignInPage() {
     <div className="h-screen flex overflow-hidden">
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-[52%] bg-[#7030A0] flex-col justify-between p-14 xl:p-20 relative overflow-hidden">
-        {/* Subtle gradient overlay */}
         <div
           className="absolute inset-0 opacity-30"
           style={{
@@ -98,18 +115,8 @@ export default function SignInPage() {
           }}
         />
 
-        {/* Logo */}
-        <Link href="/" className="relative z-10">
-          <span
-            className="text-2xl text-white"
-            style={{ fontFamily: "var(--font-original-surfer)" }}
-          >
-            Mathitude
-          </span>
-        </Link>
-
         {/* Center — headline + phone */}
-        <div className="relative z-10 flex flex-col items-start gap-10">
+        <div className="relative z-10 flex flex-col items-start gap-10 mt-auto mb-auto">
           <div className="space-y-4 max-w-xs">
             <h1
               className="text-3xl xl:text-4xl text-white leading-snug"
@@ -122,8 +129,7 @@ export default function SignInPage() {
               Mathitude — all in one place.
             </p>
           </div>
-
-          <PhoneMockup />
+          <GmailPhoneMockup />
         </div>
 
         {/* Footer */}
@@ -194,7 +200,6 @@ export default function SignInPage() {
               },
             }}
           />
-
         </div>
       </div>
     </div>
