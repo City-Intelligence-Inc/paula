@@ -93,6 +93,7 @@ export default function StudentDetailPage({
   const [editParentName, setEditParentName] = useState("");
   const [editParentEmail, setEditParentEmail] = useState("");
   const [editParentPhone, setEditParentPhone] = useState("");
+  const [editStudentEmail, setEditStudentEmail] = useState("");
   const [editSessionType, setEditSessionType] = useState<"individual" | "group">("individual");
   const [editRate, setEditRate] = useState("");
 
@@ -140,6 +141,7 @@ export default function StudentDetailPage({
     setEditParentName(s.parentName);
     setEditParentEmail(s.parentEmail);
     setEditParentPhone(s.parentPhone);
+    setEditStudentEmail(s.studentEmail || "");
     setEditSessionType(s.sessionType);
     setEditRate(String(s.rate || ""));
   }
@@ -246,6 +248,7 @@ export default function StudentDetailPage({
           parentName: editParentName,
           parentEmail: editParentEmail,
           parentPhone: editParentPhone,
+          studentEmail: editStudentEmail.trim() || undefined,
           sessionType: editSessionType,
           rate: parseFloat(editRate) || 0,
         }),
@@ -395,6 +398,26 @@ export default function StudentDetailPage({
                   </span>
                 </div>
               </div>
+
+              {/* Student email */}
+              <div className="mt-4">
+                <h3 className="text-sm font-semibold text-neutral-900 tracking-tight mb-1">
+                  Student Email
+                </h3>
+                {student.studentEmail ? (
+                  <span className="flex items-center gap-1.5 text-sm text-neutral-500">
+                    <Mail className="h-3.5 w-3.5 text-[#7030A0]" />
+                    {student.studentEmail}
+                    <span className="ml-1 inline-flex items-center rounded-full bg-[#7030A0]/10 px-2 py-0.5 text-xs font-medium text-[#7030A0]">
+                      Session notes sent here
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-sm text-neutral-400 italic">
+                    No student email — notes go to parent only. Add via Edit.
+                  </span>
+                )}
+              </div>
             </>
           ) : (
             /* Edit Form */
@@ -536,6 +559,22 @@ export default function StudentDetailPage({
                     className={inputClass}
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Student Email <span className="font-normal text-neutral-400">(optional — leave blank for young students)</span>
+                </label>
+                <input
+                  type="email"
+                  value={editStudentEmail}
+                  onChange={(e) => setEditStudentEmail(e.target.value)}
+                  placeholder="student@example.com"
+                  className={inputClass}
+                />
+                <p className="mt-1 text-xs text-neutral-400">
+                  When set, session notes are emailed here in addition to the parent.
+                </p>
               </div>
 
               <div className="max-w-[200px]">

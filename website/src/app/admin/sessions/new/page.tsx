@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/use-api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Mail, AlertCircle } from "lucide-react";
 
 interface StudentRow {
   id: string;
@@ -14,6 +14,8 @@ interface StudentRow {
   lastName?: string;
   familyId?: string;
   rate?: number;
+  studentEmail?: string;
+  parentEmail?: string;
 }
 
 interface FamilyRow {
@@ -117,6 +119,12 @@ export default function NewSessionPage() {
   const [payers, setPayers] = useState<PayerRow[]>([
     { kind: "family", familyId: "", pct: "100" },
   ]);
+
+  // Inline student email — lets Paula add/update a student's email mid-session
+  // without leaving this page. Saved to the student record on submit.
+  const [inlineStudentEmail, setInlineStudentEmail] = useState("");
+  const [showEmailPrompt, setShowEmailPrompt] = useState(false);
+  const [savingEmail, setSavingEmail] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -318,10 +326,8 @@ export default function NewSessionPage() {
                   onChange={(e) => {
                     const newId = e.target.value;
                     setStudentId(newId);
-                    // Smart default: auto-fill Total charge with the
-                    // student's default rate (in dollars). Skip if the
-                    // user already typed an amount — they may be intent-
-                    // ionally overriding for this session.
+                    setShowEmailPrompt(false);
+                    setInlineStudentEmail("");
                     if (newId && !amount.trim()) {
                       const picked = students.find((s) => s.id === newId);
                       if (picked?.rate && picked.rate > 0) {
@@ -341,11 +347,87 @@ export default function NewSessionPage() {
                 {studentId &&
                   (() => {
                     const picked = students.find((s) => s.id === studentId);
-                    return picked?.rate ? (
-                      <span className="block text-xs text-neutral-500 mt-1">
-                        Default rate: ${picked.rate.toLocaleString()} — auto-filled below, override if needed.
-                      </span>
-                    ) : null;
+                    return (
+                      <>
+                        {picked?.rate ? (
+                          <span className="block text-xs text-neutral-500 mt-1">
+                            Default rate: ${picked.rate.toLocaleString()} — auto-filled below, override if needed.
+                          </span>
+                        ) : null}
+                        {picked && !picked.studentEmail && (
+                          <div className="mt-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2">
+                            <div className="flex items-start gap-2">
+                              <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs text-amber-800 font-medium">No student email — notes go to parent only</p>
+                                {!showEmailPrompt ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowEmailPrompt(true)}
+                                    className="mt-0.5 text-xs text-amber-700 underline hover:no-underline"
+                                  >
+                                    Add student email now
+                                  </button>
+                                ) : (
+                                  <div className="mt-2 flex items-center gap-2">
+                                    <input
+                                      type="email"
+                                      value={inlineStudentEmail}
+                                      onChange={(e) => setInlineStudentEmail(e.target.value)}
+                                      placeholder="student@example.com"
+                                      className="flex-1 min-w-0 border border-amber-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-amber-400"
+                                    />
+                                    <button
+                                      type="button"
+                                      disabled={savingEmail || !inlineStudentEmail.trim()}
+                                      onClick={async () => {
+                                        setSavingEmail(true);
+                                        try {
+                                          const r = await fetchApi(`/api/students/${studentId}`, {
+                                            method: "PUT",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({ studentEmail: inlineStudentEmail.trim() }),
+                                          });
+                                          if (r.ok) {
+                                            setStudents((prev) =>
+                                              prev.map((s) =>
+                                                s.id === studentId
+                                                  ? { ...s, studentEmail: inlineStudentEmail.trim() }
+                                                  : s,
+                                              ),
+                                            );
+                                            setShowEmailPrompt(false);
+                                          }
+                                        } finally {
+                                          setSavingEmail(false);
+                                        }
+                                      }}
+                                      className="inline-flex items-center gap-1 rounded bg-amber-600 text-white text-xs px-2 py-1 hover:bg-amber-700 disabled:opacity-50"
+                                    >
+                                      <Mail className="h-3 w-3" />
+                                      {savingEmail ? "Saving…" : "Save"}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowEmailPrompt(false)}
+                                      className="text-xs text-neutral-400 hover:text-neutral-600"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {picked?.studentEmail && (
+                          <div className="mt-2 flex items-center gap-1.5 text-xs text-[#7030A0]">
+                            <Mail className="h-3 w-3" />
+                            Notes will also go to {picked.studentEmail}
+                          </div>
+                        )}
+                      </>
+                    );
                   })()}
               </label>
             ) : (

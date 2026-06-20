@@ -58,6 +58,7 @@ const editableFields = [
   "tutorAccess",
   "classCapacity",
   "primaryPayerParentId",
+  "studentEmail",
 ] as const;
 
 type Editable = (typeof editableFields)[number];

@@ -46,6 +46,10 @@ export interface Student {
   // student row represents a class roster slot; enrollmentCount/capacity track
   // how many seats are filled.
   classCapacity?: number;
+  // Student's own email — optional. Young students won't have one; Paula
+  // adds it when the student is old enough to receive session notes directly.
+  // Set via admin student detail page, including inline during a session.
+  studentEmail?: string;
   createdAt: string;
   updatedAt: string;
 }
