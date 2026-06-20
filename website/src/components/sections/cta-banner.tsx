@@ -23,7 +23,7 @@ function WordReveal({ text, baseDelay = 0 }: { text: string; baseDelay?: number 
 
 export function CtaBanner() {
   return (
-    <section className="relative bg-neutral-950 text-white overflow-hidden">
+    <section data-spotlight className="relative bg-neutral-950 text-white overflow-hidden">
 
       {/* Aurora background — three drifting radial gradients */}
       <div

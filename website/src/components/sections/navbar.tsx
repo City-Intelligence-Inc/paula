@@ -31,7 +31,7 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-300 ${
+    <header className={`nav-entrance sticky top-0 z-50 transition-all duration-300 ${
       scrolled
         ? "bg-white/90 backdrop-blur-md shadow-sm border-b border-neutral-200/60"
         : "bg-white border-b border-neutral-200"

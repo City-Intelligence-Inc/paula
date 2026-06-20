@@ -45,7 +45,8 @@ export function Services() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
         <div className="mb-12 sm:mb-16 max-w-3xl">
           <h2
-            data-reveal="clip"
+            data-reveal
+            data-scramble
             className="text-4xl sm:text-5xl md:text-6xl text-[#7030A0] leading-[1.05]"
             style={{ fontFamily: "var(--font-original-surfer)" }}
           >
@@ -64,8 +65,12 @@ export function Services() {
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           <div
             data-reveal="scale"
-            className="relative aspect-[5/4] rounded-2xl overflow-hidden bg-neutral-100 order-last lg:order-first photo-hover"
+            data-tilt
+            className="relative aspect-[5/4] rounded-2xl overflow-hidden bg-neutral-100 order-last lg:order-first"
+            style={{ willChange: "transform" }}
           >
+            {/* Purple wash */}
+            <div className="photo-wash" aria-hidden="true" />
             <div data-parallax className="absolute inset-0 scale-[1.09]">
               <Image
                 src={featured.image}

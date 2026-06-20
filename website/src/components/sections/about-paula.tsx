@@ -7,7 +7,8 @@ export function AboutPaula() {
         {/* Section opener */}
         <div className="max-w-3xl mb-16 sm:mb-20">
           <p
-            data-reveal="clip"
+            data-reveal
+            data-scramble
             className="text-4xl sm:text-5xl md:text-6xl text-[#7030A0] mb-4 leading-[1.05]"
             style={{ fontFamily: "var(--font-original-surfer)" }}
           >
@@ -26,9 +27,13 @@ export function AboutPaula() {
         <div className="grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-10 lg:gap-16 items-start">
           <div
             data-reveal="left"
+            data-tilt
             className="relative max-w-[340px]"
+            style={{ willChange: "transform" }}
           >
-            <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100 rounded-lg photo-hover">
+            <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100 rounded-lg">
+              {/* Purple wash */}
+              <div className="photo-wash" aria-hidden="true" />
               <div data-parallax className="absolute inset-0 scale-[1.09]">
                 <Image
                   src="/paula.avif"

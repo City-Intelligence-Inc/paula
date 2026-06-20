@@ -78,7 +78,7 @@ export function Hero() {
             style={{ fontFamily: "var(--font-original-surfer)", letterSpacing: "-0.02em", textWrap: "balance" }}
           >
             At <span className="text-[#7030A0]">Mathitude</span> it&apos;s all about the{" "}
-            <span className="text-[#7030A0]">attitude</span>
+            <span className="text-gradient-flow">attitude</span>
           </h1>
 
           <p
@@ -120,15 +120,19 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Bottom — photo row */}
+        {/* Bottom — photo row with 3D tilt + color wash */}
         <div className="mt-14 md:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 items-end">
           {PHOTOS.map((photo) => (
             <div
               key={photo.src}
               data-reveal="scale"
               data-delay={photo.delay}
-              className={`relative aspect-[3/4] rounded-xl overflow-hidden bg-neutral-100 ${photo.offset} ${photo.rotate} shadow-md hover:shadow-xl hover:scale-[1.03] hover:rotate-0 transition-all duration-300 photo-hover`}
+              data-tilt
+              className={`relative aspect-[3/4] rounded-xl overflow-hidden bg-neutral-100 ${photo.offset} ${photo.rotate} shadow-md`}
+              style={{ willChange: "transform" }}
             >
+              {/* Purple wash — clears on reveal */}
+              <div className="photo-wash" aria-hidden="true" />
               <Image
                 src={photo.src}
                 alt={photo.alt}

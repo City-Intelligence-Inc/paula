@@ -462,6 +462,79 @@ a.button-press:active {
   }
 }
 
+/* ── Scroll progress bar ──────────────────────────────────────────────── */
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: var(--pct, 0%);
+  background: linear-gradient(90deg, #7030A0 0%, #2AB5B2 100%);
+  z-index: 9999;
+  pointer-events: none;
+  transition: width 0.08s linear;
+}
+
+/* ── Navbar entrance animation ──────────────────────────────────────────── */
+@keyframes nav-entrance {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+.nav-entrance {
+  animation: nav-entrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Gradient flow — "attitude" brand word ────────────────────────────── */
+@keyframes gradient-flow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.text-gradient-flow {
+  background: linear-gradient(120deg, #7030A0 0%, #9B50D0 35%, #2AB5B2 60%, #7030A0 100%);
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-flow 5s ease infinite;
+}
+
+/* ── Photo color wash — clears when .revealed added to parent ────────── */
+.photo-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: #7030A0;
+  opacity: 0.38;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: opacity 0.9s ease 0.35s;
+}
+[data-reveal].revealed .photo-wash,
+[data-reveal="scale"].revealed .photo-wash {
+  opacity: 0;
+}
+
+/* ── Cursor spotlight (dark sections) ───────────────────────────────── */
+[data-spotlight] {
+  --sx: -600px;
+  --sy: 50%;
+}
+[data-spotlight]::before {
+  content: "";
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(112,48,160,0.22) 0%, transparent 65%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  left: var(--sx, -600px);
+  top: var(--sy, 50%);
+  pointer-events: none;
+  z-index: 2;
+  transition: left 0.18s ease-out, top 0.18s ease-out;
+}
+
 /* ── Scroll reveal system ──────────────────────────────────────────────── */
 
 /* Base: all reveal elements start invisible */
