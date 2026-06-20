@@ -1,6 +1,13 @@
 import { ScanCommand, QueryCommand, PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser, requireAdmin } from "@/lib/server/ddb";
 import { notifyAction, sendAdminNotification } from "@/lib/server/notify";
+import {
+  buildEmailRecipients,
+  buildSessionSubject,
+  buildNotesHtml,
+  buildNotesText,
+  formatSessionDateLabel,
+} from "@/lib/session-notify";
 
 export async function GET(request: Request) {
   const auth = await requireUser();
@@ -195,39 +202,19 @@ async function sendSessionNotesEmail(studentId: string, date: string, notes: str
   const student = result.Item;
   if (!student) return;
 
-  const recipients: string[] = [];
-  if (student.parentEmail) recipients.push(student.parentEmail);
-  if (student.studentEmail && student.studentEmail !== student.parentEmail) {
-    recipients.push(student.studentEmail);
-  }
+  const recipients = buildEmailRecipients(student.parentEmail, student.studentEmail);
   if (recipients.length === 0) return;
 
   const studentName = [student.firstName, student.lastName].filter(Boolean).join(" ") || "your student";
-  const dateLabel = new Date(`${date}T12:00:00`).toLocaleDateString("en-US", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
-  });
-  const notesHtml = notes.replace(/\n/g, "<br/>");
+  const dateLabel = formatSessionDateLabel(date);
   const dashboardUrl = process.env.NEXT_PUBLIC_URL
     ? `${process.env.NEXT_PUBLIC_URL}/dashboard`
     : "https://mathitude.com/dashboard";
 
   await sendAdminNotification({
-    subject: `Mathitude session notes — ${studentName}, ${dateLabel}`,
+    subject: buildSessionSubject(studentName, dateLabel),
     to: recipients,
-    html: `
-      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;">
-        <p style="color:#7030A0;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.18em;margin:0 0 8px;">Mathitude</p>
-        <h2 style="color:#111;margin:0 0 4px;font-size:20px;">Session notes</h2>
-        <p style="color:#666;font-size:14px;margin:0 0 24px;">${studentName} &middot; ${dateLabel}</p>
-        <div style="background:#faf9f8;border-left:3px solid #7030A0;padding:16px 20px;border-radius:0 8px 8px 0;font-size:15px;line-height:1.6;color:#222;">${notesHtml}</div>
-        <p style="margin:24px 0 0;font-size:13px;color:#888;">
-          <a href="${dashboardUrl}" style="color:#7030A0;text-decoration:none;">View all session notes →</a>
-        </p>
-        <p style="margin:32px 0 0;font-size:12px;color:#bbb;border-top:1px solid #eee;padding-top:16px;">
-          Mathitude · Menlo Park, CA · <a href="mailto:info@mathitude.com" style="color:#bbb;">info@mathitude.com</a>
-        </p>
-      </div>
-    `,
-    text: `Mathitude session notes — ${studentName}, ${dateLabel}\n\n${notes}\n\nView all notes: ${dashboardUrl}`,
+    html: buildNotesHtml(studentName, dateLabel, notes, dashboardUrl),
+    text: buildNotesText(studentName, dateLabel, notes, dashboardUrl),
   });
 }
