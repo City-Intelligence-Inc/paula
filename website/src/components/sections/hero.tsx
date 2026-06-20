@@ -73,8 +73,7 @@ export function Hero() {
         {/* Top — headline + copy */}
         <div className="text-center max-w-4xl mx-auto">
           <h1
-            data-reveal="clip"
-            className="text-6xl md:text-7xl lg:text-8xl text-black leading-[1.02]"
+            className="hero-headline-anim text-6xl md:text-7xl lg:text-8xl text-black leading-[1.02]"
             style={{ fontFamily: "var(--font-original-surfer)", letterSpacing: "-0.02em", textWrap: "balance" }}
           >
             At <span className="text-[#7030A0]">Mathitude</span> it&apos;s all about the{" "}

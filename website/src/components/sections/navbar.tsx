@@ -15,7 +15,6 @@ import { roleMeta } from "@/lib/roles";
 
 const navLinks = [
   { label: "Tutoring & Groups", href: "/tutoring" },
-  { label: "Our Team", href: "/team" },
   { label: "Free Resources", href: "/free-resources" },
   { label: "Events & News", href: "/events" },
   { label: "Enrichment Books", href: "/shop" },

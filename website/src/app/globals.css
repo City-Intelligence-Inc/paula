@@ -549,14 +549,17 @@ a.button-press:active {
 [data-reveal="right"] { transform: translateX(38px); }
 [data-reveal="scale"] { transform: scale(0.91) translateY(20px); }
 
-/* Clip reveal — editorial heading wipe (must come after base to override) */
+/* Clip reveal — opacity:0 ensures IntersectionObserver fires on layout box.
+   Clip-path handles the editorial wipe; opacity snaps (0.05s) so it doesn't
+   fight the wipe animation. */
 [data-reveal="clip"] {
-  opacity: 1;
+  opacity: 0;
   transform: translateY(8px);
   clip-path: inset(0 0 110% 0);
   transition:
-    clip-path 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.05s ease 0s,
+    clip-path 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.05s,
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.05s;
 }
 
 /* Word reveal — for per-word stagger (overflow:hidden parent required) */
@@ -569,8 +572,23 @@ a.button-press:active {
 
 /* Revealed states */
 [data-reveal].revealed         { opacity: 1; transform: none; }
-[data-reveal="clip"].revealed  { clip-path: inset(0 0 0% 0); transform: none; }
+[data-reveal="clip"].revealed  { opacity: 1; clip-path: inset(0 0 0% 0); transform: none; }
 [data-reveal="word"].revealed  { transform: none; }
+
+/* ── Hero headline: CSS keyframe — fires automatically, zero JS dependency.
+   Above-fold elements must never rely on IntersectionObserver for initial
+   visibility: the observer fires asynchronously and some browsers discount
+   clip-path-hidden elements from intersection ratio. ── */
+@keyframes hero-clip-in {
+  from { clip-path: inset(0 0 110% 0); transform: translateY(8px); opacity: 1; }
+  to   { clip-path: inset(0 0 0% 0);   transform: none;            opacity: 1; }
+}
+.hero-headline-anim {
+  animation: hero-clip-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-headline-anim { animation: none; }
+}
 
 /* Stagger delays */
 [data-delay="1"] { transition-delay: 80ms; }
