@@ -3,59 +3,73 @@
 import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
 
-const messages = [
-  { from: "parent", text: "Hi! We'd love to get our daughter started with tutoring 🙏" },
-  { from: "paula", text: "Hi Sarah! I'd love to help. What grade is she in?" },
-  { from: "parent", text: "She's in 5th grade — really struggling with fractions lately" },
-  { from: "paula", text: "Fractions are tricky but totally conquerable! Let's set up a free intro session so I can get a sense of where she is 🧮" },
-  { from: "parent", text: "That would be amazing, thank you so much!" },
-  { from: "paula", text: "Of course! I'll send over some times — looking forward to meeting her 🌟" },
+const emailThread = [
+  {
+    from: "Sarah M.",
+    initials: "SM",
+    subject: "Inquiry about math tutoring",
+    time: "9:14 AM",
+    body: "Hi Paula, we're interested in enrolling our daughter in math tutoring. She's in 5th grade and has been struggling with fractions. Could you share more about your programs?",
+    isReply: false,
+  },
+  {
+    from: "Paula",
+    initials: "P",
+    subject: "Re: Inquiry about math tutoring",
+    time: "11:02 AM",
+    body: "Hi Sarah, thank you for reaching out! I'd be glad to share more about Mathitude's programs and find the right fit for your daughter. I'll follow up with details — looking forward to connecting.",
+    isReply: true,
+  },
 ];
 
-function PhoneMockup() {
+function EmailMockup() {
   return (
-    <div className="relative mx-auto w-[260px]">
-      <div className="relative bg-[#1c1c1e] rounded-[44px] p-3 shadow-2xl ring-1 ring-white/10">
-        <div className="bg-white rounded-[36px] overflow-hidden" style={{ height: "520px" }}>
-          <div className="flex justify-center pt-3 pb-1">
-            <div className="w-24 h-6 bg-[#1c1c1e] rounded-full" />
+    <div className="w-full max-w-[340px]">
+      {/* Email client chrome */}
+      <div className="bg-white rounded-2xl shadow-2xl ring-1 ring-white/20 overflow-hidden">
+        {/* Toolbar */}
+        <div className="bg-neutral-100 px-4 py-2.5 flex items-center gap-2 border-b border-neutral-200">
+          <div className="flex gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+            <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
+            <div className="w-3 h-3 rounded-full bg-[#28c840]" />
           </div>
-          <div className="border-b border-neutral-100 px-4 py-2 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7030A0] to-[#9b59b6] flex items-center justify-center text-white text-xs font-semibold">
-              P
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-neutral-900 truncate">Mathitude</p>
-              <p className="text-[10px] text-green-500 font-medium">Active now</p>
-            </div>
-            <div className="flex gap-3">
-              <svg className="w-4 h-4 text-[#007AFF]" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-              </svg>
-              <svg className="w-4 h-4 text-[#007AFF]" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
-              </svg>
-            </div>
+          <div className="flex-1 mx-3 bg-white rounded-md px-3 py-1 text-[10px] text-neutral-400 border border-neutral-200 truncate">
+            Inbox — Mathitude
           </div>
-          <div className="px-3 py-3 space-y-2 overflow-hidden" style={{ maxHeight: "400px" }}>
-            <p className="text-[9px] text-neutral-400 text-center font-medium mb-3">Today 9:14 AM</p>
-            {messages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.from === "parent" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[78%] px-3 py-1.5 rounded-2xl text-[11px] leading-[1.4] ${msg.from === "parent" ? "bg-[#007AFF] text-white rounded-br-md" : "bg-[#e9e9eb] text-[#1c1c1e] rounded-bl-md"}`}>
-                  {msg.text}
+        </div>
+
+        {/* Thread */}
+        <div className="divide-y divide-neutral-100">
+          {emailThread.map((email, i) => (
+            <div key={i} className={`px-4 py-3 ${email.isReply ? "bg-[#f9f7fc]" : "bg-white"}`}>
+              <div className="flex items-start gap-2.5">
+                <div
+                  className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-semibold text-white mt-0.5"
+                  style={{ background: email.isReply ? "#7030A0" : "#6b7280" }}
+                >
+                  {email.initials}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-semibold text-neutral-800">{email.from}</span>
+                    <span className="text-[10px] text-neutral-400 flex-shrink-0">{email.time}</span>
+                  </div>
+                  <p className="text-[10px] text-neutral-500 font-medium truncate">{email.subject}</p>
+                  <p className="text-[10px] text-neutral-600 mt-1 leading-relaxed">{email.body}</p>
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="absolute bottom-4 left-3 right-3">
-            <div className="bg-[#f2f2f7] rounded-full px-4 py-2 flex items-center gap-2">
-              <span className="text-[11px] text-neutral-400 flex-1">iMessage</span>
-              <div className="w-5 h-5 rounded-full bg-[#007AFF] flex items-center justify-center">
-                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                </svg>
-              </div>
             </div>
+          ))}
+        </div>
+
+        {/* Compose area */}
+        <div className="px-4 py-3 border-t border-neutral-100 bg-white">
+          <div className="flex items-center gap-2 text-[10px] text-neutral-400">
+            <svg className="w-3.5 h-3.5 text-[#7030A0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span>All correspondence kept on record</span>
           </div>
         </div>
       </div>
@@ -76,18 +90,8 @@ export default function SignUpPage() {
           }}
         />
 
-        {/* Logo */}
-        <Link href="/" className="relative z-10">
-          <span
-            className="text-2xl text-white"
-            style={{ fontFamily: "var(--font-original-surfer)" }}
-          >
-            Mathitude
-          </span>
-        </Link>
-
         {/* Center copy */}
-        <div className="relative z-10 flex flex-col items-start gap-10">
+        <div className="relative z-10 flex flex-col items-start gap-10 mt-auto mb-auto">
           <div className="space-y-4 max-w-xs">
             <h1
               className="text-3xl xl:text-4xl text-white leading-snug"
@@ -100,7 +104,7 @@ export default function SignUpPage() {
               K-12 math enrichment programs.
             </p>
           </div>
-          <PhoneMockup />
+          <EmailMockup />
         </div>
 
         {/* Footer */}
