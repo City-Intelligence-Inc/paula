@@ -28,16 +28,16 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+          <Link href="/" className="flex items-center gap-2 shrink-0 group">
             <Image
               src="/brand/logo.png"
               alt="Mathitude"
-              width={56}
-              height={56}
+              width={64}
+              height={64}
               priority
-              className="w-11 h-11 sm:w-14 sm:h-14 object-contain transition-transform duration-300 group-hover:rotate-[-8deg]"
+              className="w-14 h-14 sm:w-16 sm:h-16 object-contain transition-transform duration-300 group-hover:rotate-[-8deg]"
             />
-            <span className="text-2xl sm:text-3xl font-bold tracking-tight text-[#7030A0]" style={{ fontFamily: "var(--font-original-surfer)" }}>
+            <span className="text-xl sm:text-2xl tracking-tight text-[#7030A0]" style={{ fontFamily: "var(--font-original-surfer)" }}>
               Mathitude
             </span>
           </Link>
