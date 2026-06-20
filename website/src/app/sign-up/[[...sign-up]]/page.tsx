@@ -5,121 +5,53 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const emailSets = [
+  // K–2: very early
   [
-    {
-      initials: "EM",
-      color: "#4285F4",
-      sender: "Emma's Progress Report",
-      subject: "Polynomial Factoring — Week 6",
-      preview: "Factored quadratics by grouping. Ready to advance to the quadratic formula.",
-      time: "9:14 AM",
-      unread: true,
-    },
-    {
-      initials: "UP",
-      color: "#7030A0",
-      sender: "Unit Plan",
-      subject: "Number Theory — 8 Weeks",
-      preview: "Primes, GCD, modular arithmetic, and Diophantine equations. Plan attached.",
-      time: "Yesterday",
-      unread: false,
-    },
-    {
-      initials: "SN",
-      color: "#34A853",
-      sender: "Session Notes — Oct 14",
-      subject: "Proof by Mathematical Induction",
-      preview: "Proved sum of first n integers. Introduced strong induction via Fibonacci sequence.",
-      time: "Mon",
-      unread: false,
-    },
+    { initials: "ZP", color: "#F9AB00", sender: "Zoe's Progress", subject: "Counting & Number Patterns — K", preview: "Counted to 100 by 1s, 2s, and 5s. Introduced skip counting with manipulatives.", time: "9:00 AM", unread: true },
+    { initials: "UP", color: "#7030A0", sender: "Unit Plan", subject: "Shapes & Spatial Reasoning — 1st Grade", preview: "Sorting 2D and 3D shapes, symmetry lines, and intro to area by counting squares.", time: "Yesterday", unread: false },
+    { initials: "SN", color: "#34A853", sender: "Session Notes — Sep 5", subject: "Addition to 20 with Number Bonds", preview: "Built fact fluency using ten-frames. Student decomposed 8+7 independently.", time: "Mon", unread: false },
   ],
+  // 3–5: elementary
   [
-    {
-      initials: "AI",
-      color: "#EA4335",
-      sender: "Aiden's Assessment",
-      subject: "Calculus Readiness — Limits",
-      preview: "Limits and continuity strong. Beginning differentiation rules next session.",
-      time: "10:02 AM",
-      unread: true,
-    },
-    {
-      initials: "CP",
-      color: "#F9AB00",
-      sender: "Competition Prep",
-      subject: "AMC 8 — Counting & Probability",
-      preview: "Covered permutations, combinations, and expected value. Practice set attached.",
-      time: "Yesterday",
-      unread: false,
-    },
-    {
-      initials: "SN",
-      color: "#34A853",
-      sender: "Session Notes — Oct 11",
-      subject: "Triangle Congruence Proofs",
-      preview: "SAS and ASA proofs completed. Student constructed first formal two-column proof.",
-      time: "Fri",
-      unread: false,
-    },
+    { initials: "OL", color: "#4285F4", sender: "Oliver's Report", subject: "Multiplication Tables — 3rd Grade", preview: "All facts through 9×9 solid. Beginning to apply them in multi-step word problems.", time: "10:15 AM", unread: true },
+    { initials: "UP", color: "#7030A0", sender: "Unit Plan", subject: "Fractions & Mixed Numbers — 4th Grade", preview: "Equivalent fractions, comparing on number lines, adding with unlike denominators.", time: "Yesterday", unread: false },
+    { initials: "SN", color: "#34A853", sender: "Session Notes — Sep 12", subject: "Long Division with Remainders", preview: "Introduced the standard algorithm. Remainders interpreted as fractions in context.", time: "Fri", unread: false },
   ],
+  // 5–7: pre-algebra
   [
-    {
-      initials: "MY",
-      color: "#4285F4",
-      sender: "Maya's Progress",
-      subject: "Trigonometry — Unit Circle",
-      preview: "Unit circle mastered. Introducing sine/cosine graphs, period, and amplitude.",
-      time: "8:45 AM",
-      unread: true,
-    },
-    {
-      initials: "EP",
-      color: "#7030A0",
-      sender: "Enrichment Plan",
-      subject: "Combinatorics & Pascal's Triangle",
-      preview: "Binomial theorem, combinations, and lattice paths. Real competition problems included.",
-      time: "2 days ago",
-      unread: false,
-    },
-    {
-      initials: "SN",
-      color: "#34A853",
-      sender: "Session Notes — Oct 9",
-      subject: "Modular Arithmetic & Fermat",
-      preview: "Clock arithmetic, linear congruences, and an introduction to Fermat's little theorem.",
-      time: "Wed",
-      unread: false,
-    },
+    { initials: "NR", color: "#EA4335", sender: "Nora's Assessment", subject: "Ratios, Rates & Percentages", preview: "Unit rate problems strong. Introduced percent change with discount/tax contexts.", time: "8:30 AM", unread: true },
+    { initials: "UP", color: "#7030A0", sender: "Unit Plan", subject: "Variables & Expressions — Pre-Algebra", preview: "Writing algebraic expressions from word problems. Evaluating with substitution.", time: "2 days ago", unread: false },
+    { initials: "SN", color: "#34A853", sender: "Session Notes — Sep 19", subject: "Coordinate Plane & Graphing", preview: "Plotted points in all four quadrants. Introduced slope informally via rise/run.", time: "Wed", unread: false },
   ],
+  // 7–9: algebra
   [
-    {
-      initials: "LK",
-      color: "#EA4335",
-      sender: "Lucas's Report",
-      subject: "Statistics — Standard Deviation",
-      preview: "Mean, median, mode reviewed. Introduced standard deviation with real-world datasets.",
-      time: "11:30 AM",
-      unread: true,
-    },
-    {
-      initials: "AT",
-      color: "#F9AB00",
-      sender: "Advanced Topic",
-      subject: "Complex Numbers & the Complex Plane",
-      preview: "Extended the number line. Graphed, added, and multiplied complex numbers geometrically.",
-      time: "Yesterday",
-      unread: false,
-    },
-    {
-      initials: "SN",
-      color: "#34A853",
-      sender: "Session Notes — Oct 7",
-      subject: "Geometric Series & Convergence",
-      preview: "Derived the sum formula from first principles. Discussed infinite series convergence.",
-      time: "Tue",
-      unread: false,
-    },
+    { initials: "BM", color: "#4285F4", sender: "Ben's Progress", subject: "Linear Equations — 8th Grade", preview: "Solving two-step and multi-step equations. Student self-checked answers independently.", time: "9:45 AM", unread: true },
+    { initials: "UP", color: "#7030A0", sender: "Unit Plan", subject: "Quadratic Functions — 9 Weeks", preview: "Vertex form, factoring, quadratic formula, and discriminant. Graphing parabolas.", time: "Yesterday", unread: false },
+    { initials: "SN", color: "#34A853", sender: "Session Notes — Sep 26", subject: "Systems of Equations — Substitution", preview: "Solved 3×3 systems by substitution and elimination. Interpreted solutions geometrically.", time: "Thu", unread: false },
+  ],
+  // 9–10: geometry & proofs
+  [
+    { initials: "EM", color: "#4285F4", sender: "Emma's Progress Report", subject: "Polynomial Factoring — Week 6", preview: "Factored quadratics by grouping. Ready to advance to the quadratic formula.", time: "9:14 AM", unread: true },
+    { initials: "UP", color: "#7030A0", sender: "Unit Plan", subject: "Euclidean Geometry — Proofs & Circles", preview: "Two-column proofs, angle relationships, arc length, and inscribed angle theorem.", time: "Yesterday", unread: false },
+    { initials: "SN", color: "#34A853", sender: "Session Notes — Oct 3", subject: "Triangle Congruence — SAS & ASA Proofs", preview: "Student wrote first independent two-column proof. Introduced CPCTC for follow-ups.", time: "Mon", unread: false },
+  ],
+  // 10–11: pre-calc & trig
+  [
+    { initials: "MY", color: "#4285F4", sender: "Maya's Progress", subject: "Trigonometry — Unit Circle Mastered", preview: "All six trig functions on the unit circle solid. Moving to graphs and transformations.", time: "8:45 AM", unread: true },
+    { initials: "UP", color: "#7030A0", sender: "Unit Plan", subject: "Logarithms & Exponential Functions", preview: "Change of base, natural log, exponential growth/decay, and inverse relationships.", time: "2 days ago", unread: false },
+    { initials: "SN", color: "#34A853", sender: "Session Notes — Oct 9", subject: "Modular Arithmetic & Fermat's Little Theorem", preview: "Clock arithmetic, linear congruences, and a proof of Fermat's little theorem.", time: "Wed", unread: false },
+  ],
+  // competition math
+  [
+    { initials: "AI", color: "#EA4335", sender: "Aiden's Competition Prep", subject: "AMC 10 — Number Theory Sprint", preview: "Covered divisibility rules, prime factorization, GCD/LCM, and modular arithmetic problems.", time: "10:02 AM", unread: true },
+    { initials: "EP", color: "#F9AB00", sender: "Enrichment Plan", subject: "Combinatorics & Pascal's Triangle", preview: "Binomial theorem, stars-and-bars, lattice paths, and inclusion-exclusion principle.", time: "Yesterday", unread: false },
+    { initials: "SN", color: "#34A853", sender: "Session Notes — Oct 11", subject: "Proof by Mathematical Induction", preview: "Proved sum of first n integers and Fibonacci divisibility. Introduced strong induction.", time: "Fri", unread: false },
+  ],
+  // advanced: calculus & beyond
+  [
+    { initials: "LK", color: "#EA4335", sender: "Lucas's Assessment", subject: "Calculus — Limits & Differentiation", preview: "Epsilon-delta limits understood conceptually. Differentiation rules applied fluently.", time: "11:30 AM", unread: true },
+    { initials: "AT", color: "#F9AB00", sender: "Advanced Topic", subject: "Complex Numbers & the Complex Plane", preview: "Multiplied complex numbers geometrically. Introduced Euler's formula and polar form.", time: "Yesterday", unread: false },
+    { initials: "SN", color: "#34A853", sender: "Session Notes — Oct 14", subject: "Geometric Series & Infinite Convergence", preview: "Derived sum formula from first principles. Compared convergence rates. Ratio test intro.", time: "Tue", unread: false },
   ],
 ];
 
