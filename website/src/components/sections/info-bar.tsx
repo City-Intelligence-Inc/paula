@@ -5,7 +5,7 @@ export function InfoBar() {
     <section className="bg-neutral-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <div className="grid sm:grid-cols-2 gap-10 sm:gap-12">
-          <div>
+          <div data-reveal="left">
             <p className="text-xs font-medium tracking-[0.18em] text-[#7030A0] uppercase mb-3">
               Visit
             </p>
@@ -18,7 +18,7 @@ export function InfoBar() {
             </p>
           </div>
 
-          <div>
+          <div data-reveal="right" data-delay="2">
             <p className="text-xs font-medium tracking-[0.18em] text-[#7030A0] uppercase mb-3">
               Start
             </p>

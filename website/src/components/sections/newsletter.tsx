@@ -36,19 +36,30 @@ export function Newsletter() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
         <div className="grid lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-10 lg:gap-16 items-center border-t border-neutral-200 pt-16 sm:pt-20">
           <div className="max-w-xl">
-            <p className="text-xs font-medium tracking-[0.22em] text-[#7030A0] uppercase mb-5">
+            <p
+              data-reveal
+              className="text-xs font-medium tracking-[0.22em] text-[#7030A0] uppercase mb-5"
+            >
               Stay close
             </p>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-black tracking-tight leading-[1.05]">
+            <h2
+              data-reveal="clip"
+              data-delay="1"
+              className="text-4xl sm:text-5xl md:text-6xl font-semibold text-black tracking-tight leading-[1.05]"
+            >
               A short letter, a few times a year.
             </h2>
-            <p className="mt-5 text-base sm:text-lg text-black leading-relaxed">
+            <p
+              data-reveal
+              data-delay="3"
+              className="mt-5 text-base sm:text-lg text-black leading-relaxed"
+            >
               New math festivals, new workbooks, new ways to bring
               Mathitude home. No spam, ever. Unsubscribe in one click.
             </p>
           </div>
 
-          <div>
+          <div data-reveal data-delay="4">
             {status === "success" ? (
               <div className="rounded-lg border border-[#7030A0]/20 bg-[#7030A0]/5 p-6">
                 <p className="text-base font-medium text-[#7030A0]">

@@ -2,11 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
-// 6/10 + 6/8 Sara: private tutoring is the core offer, so it leads with an
-// enlarged image. The remaining offerings sit in a flatter list below — and
-// only the offerings with a real "learn more" page get a More… link, so a
-// new client isn't given six competing things to click. A single CTA closes
-// the section.
 const featured = {
   title: "Private tutoring",
   description:
@@ -50,28 +45,39 @@ export function Services() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
         <div className="mb-12 sm:mb-16 max-w-3xl">
           <h2
+            data-reveal="clip"
             className="text-4xl sm:text-5xl md:text-6xl text-[#7030A0] leading-[1.05]"
             style={{ fontFamily: "var(--font-original-surfer)" }}
           >
             How we work
           </h2>
-          <p className="mt-5 text-xl sm:text-2xl text-[#3f3346] leading-snug font-light tracking-tight">
+          <p
+            data-reveal
+            data-delay="2"
+            className="mt-5 text-xl sm:text-2xl text-[#3f3346] leading-snug font-light tracking-tight"
+          >
             Bring expert math engagement to your student, family, or school.
           </p>
         </div>
 
-        {/* Featured — private tutoring, enlarged with image */}
+        {/* Featured — private tutoring */}
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
-          <div className="relative aspect-[5/4] rounded-2xl overflow-hidden bg-neutral-100 order-last lg:order-first">
-            <Image
-              src={featured.image}
-              alt="A Mathitude private tutoring session"
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
+          <div
+            data-reveal="scale"
+            className="relative aspect-[5/4] rounded-2xl overflow-hidden bg-neutral-100 order-last lg:order-first photo-hover"
+          >
+            <div data-parallax className="absolute inset-0 scale-[1.09]">
+              <Image
+                src={featured.image}
+                alt="A Mathitude private tutoring session"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
           </div>
-          <div>
+
+          <div data-reveal="right" data-delay="2">
             <h3 className="text-3xl sm:text-4xl font-semibold text-black tracking-tight">
               {featured.title}
             </h3>
@@ -80,6 +86,7 @@ export function Services() {
             </p>
             <Link
               href={featured.learnMoreHref}
+              data-magnetic
               className="mt-7 inline-flex items-center justify-center bg-[#7030A0] text-white hover:bg-[#5d288a] rounded-full px-9 py-4 text-base font-medium uppercase tracking-wide transition-colors min-h-[52px] shadow-sm hover:shadow-md"
             >
               Learn More
@@ -88,15 +95,20 @@ export function Services() {
           </div>
         </div>
 
-        {/* More ways to work with Mathitude */}
+        {/* More ways */}
         <div className="mt-20 sm:mt-24">
-          <h3 className="text-2xl sm:text-3xl font-semibold text-black tracking-tight mb-8">
+          <h3
+            data-reveal
+            className="text-2xl sm:text-3xl font-semibold text-black tracking-tight mb-8"
+          >
             More ways to work with Mathitude
           </h3>
           <div className="grid md:grid-cols-2 gap-x-12 gap-y-0 divide-y divide-neutral-200 md:divide-y-0">
             {more.map((offering, idx) => (
               <div
                 key={offering.title}
+                data-reveal
+                data-delay={String((idx % 3) + 1)}
                 className={`py-7 sm:py-8 ${
                   idx >= 2 ? "md:border-t md:border-neutral-200 md:pt-10" : ""
                 }`}
@@ -121,7 +133,11 @@ export function Services() {
           </div>
         </div>
 
-        <div className="mt-16 sm:mt-20 flex flex-col sm:flex-row items-center gap-6 border-t border-neutral-200 pt-12">
+        <div
+          data-reveal
+          data-delay="1"
+          className="mt-16 sm:mt-20 flex flex-col sm:flex-row items-center gap-6 border-t border-neutral-200 pt-12"
+        >
           <div className="flex-1 text-center sm:text-left">
             <p className="text-lg sm:text-xl text-black leading-relaxed">
               Not sure which fits? Mathitude will help you figure it out.
@@ -133,6 +149,7 @@ export function Services() {
           </div>
           <Link
             href="/contact"
+            data-magnetic
             className="inline-flex items-center justify-center rounded-full bg-[#7030A0] text-white hover:bg-[#5d288a] font-medium uppercase tracking-wide text-base px-9 py-4 transition-colors shadow-sm hover:shadow-md whitespace-nowrap"
           >
             Request a Free Consultation

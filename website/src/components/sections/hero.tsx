@@ -20,24 +20,28 @@ const PHOTOS = [
     alt: "Student building a bucky ball in a hands-on math activity",
     offset: "-translate-y-4",
     rotate: "-rotate-[1.5deg]",
+    delay: "3",
   },
   {
     src: "/photos/bucky_raife_cara3.jpg",
     alt: "Two students mid-jump in a hands-on math activity",
     offset: "translate-y-3",
     rotate: "rotate-[1deg]",
+    delay: "4",
   },
   {
     src: "/photos/bucky_paxton2.jpg",
     alt: "Student creating geometric shapes",
     offset: "-translate-y-2",
     rotate: "-rotate-[0.5deg]",
+    delay: "5",
   },
   {
     src: "/photos/bucky_theo1.jpg",
     alt: "Student engaged in hands-on math learning",
     offset: "translate-y-5",
     rotate: "rotate-[2deg]",
+    delay: "6",
   },
 ];
 
@@ -67,8 +71,9 @@ export function Hero() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 md:pt-24 pb-12 relative">
 
         {/* Top — headline + copy */}
-        <div className="text-center max-w-4xl mx-auto stagger-in">
+        <div className="text-center max-w-4xl mx-auto">
           <h1
+            data-reveal="clip"
             className="text-6xl md:text-7xl lg:text-8xl text-black leading-[1.02]"
             style={{ fontFamily: "var(--font-original-surfer)", letterSpacing: "-0.02em", textWrap: "balance" }}
           >
@@ -76,11 +81,19 @@ export function Hero() {
             <span className="text-[#7030A0]">attitude</span>
           </h1>
 
-          <p className="mt-8 text-xl md:text-2xl text-black max-w-2xl mx-auto leading-relaxed font-light">
+          <p
+            data-reveal
+            data-delay="2"
+            className="mt-8 text-xl md:text-2xl text-black max-w-2xl mx-auto leading-relaxed font-light"
+          >
             K-12 math enrichment, tutoring, and engagement books that foster big mathematical thinking through fun, collaborative learning.
           </p>
 
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[#6b6f76]">
+          <div
+            data-reveal
+            data-delay="3"
+            className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[#6b6f76]"
+          >
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#6b6f76]/50" />
               Pre-K to College
@@ -95,10 +108,11 @@ export function Hero() {
             </span>
           </div>
 
-          <div className="mt-8">
+          <div data-reveal data-delay="4" className="mt-8">
             <Link
               href="/tutoring"
               data-guide="consult"
+              data-magnetic
               className="inline-flex items-center justify-center bg-[#7030A0] text-white hover:bg-[#5d288a] rounded-full px-10 py-4 text-base font-medium uppercase tracking-wide transition-colors min-w-[220px] min-h-[54px] shadow-sm hover:shadow-md"
             >
               Learn More &rarr;
@@ -111,7 +125,9 @@ export function Hero() {
           {PHOTOS.map((photo) => (
             <div
               key={photo.src}
-              className={`relative aspect-[3/4] rounded-xl overflow-hidden bg-neutral-100 ${photo.offset} ${photo.rotate} shadow-md hover:shadow-xl hover:scale-[1.02] hover:-rotate-0 transition-all duration-300`}
+              data-reveal="scale"
+              data-delay={photo.delay}
+              className={`relative aspect-[3/4] rounded-xl overflow-hidden bg-neutral-100 ${photo.offset} ${photo.rotate} shadow-md hover:shadow-xl hover:scale-[1.03] hover:rotate-0 transition-all duration-300 photo-hover`}
             >
               <Image
                 src={photo.src}
