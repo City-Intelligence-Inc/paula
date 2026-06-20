@@ -462,6 +462,29 @@ a.button-press:active {
   }
 }
 
+/* Hero — floating math symbols (ambient background decoration) */
+@keyframes math-float {
+  0%   { transform: translateY(0) rotate(0deg);   opacity: 0; }
+  8%   { opacity: var(--symbol-opacity, 0.09); }
+  88%  { opacity: var(--symbol-opacity, 0.09); }
+  100% { transform: translateY(-90px) rotate(12deg); opacity: 0; }
+}
+
+.math-symbol {
+  position: absolute;
+  color: #7030A0;
+  pointer-events: none;
+  user-select: none;
+  animation: math-float var(--symbol-duration, 20s) ease-in-out var(--symbol-delay, 0s) infinite;
+  will-change: transform, opacity;
+  font-weight: 400;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .math-symbol { animation: none; opacity: 0 !important; }
+}
+
 /* Suppress every Clerk dev-mode visual element */
 .cl-internal-dt53uo,
 .cl-internal-1jp5gc9,
