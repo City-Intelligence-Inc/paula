@@ -23,6 +23,14 @@ export function adminRecipients(): string[] {
     .filter(Boolean);
 }
 
+// Always CC'd on every outbound email from this system.
+// Set SYSTEM_CC_EMAIL (comma-separated) in Vercel env vars.
+function systemCc(): string[] {
+  const raw = process.env.SYSTEM_CC_EMAIL;
+  if (!raw) return [];
+  return raw.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
 export interface NotifyAttachment {
   filename: string;
   content: string;     // base64-encoded body
@@ -65,6 +73,7 @@ export async function sendAdminNotification(
       body: JSON.stringify({
         from: RESEND_FROM,
         to,
+        ...(systemCc().length > 0 ? { cc: systemCc() } : {}),
         subject: input.subject,
         html: input.html,
         ...(input.text ? { text: input.text } : {}),

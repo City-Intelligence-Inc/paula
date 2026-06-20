@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/use-api";
@@ -12,10 +12,20 @@ interface StudentRow {
   id: string;
   firstName?: string;
   lastName?: string;
+  grade?: string | number;
   familyId?: string;
   rate?: number;
   studentEmail?: string;
   parentEmail?: string;
+}
+
+function titleCase(s: string): string {
+  return s.replace(/(\w)(\S*)/g, (_, f, r) => f.toUpperCase() + r.toLowerCase());
+}
+
+function displayName(s: StudentRow): string {
+  const full = `${s.firstName || ""} ${s.lastName || ""}`.trim();
+  return full ? titleCase(full) : "Student";
 }
 
 interface FamilyRow {
@@ -126,6 +136,11 @@ export default function NewSessionPage() {
   const [showEmailPrompt, setShowEmailPrompt] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
 
+  // Searchable student combobox
+  const [studentSearch, setStudentSearch] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const comboboxRef = useRef<HTMLDivElement>(null);
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -145,6 +160,22 @@ export default function NewSessionPage() {
       })
       .finally(() => setLoadingRefs(false));
   }, [fetchApi]);
+
+  const filteredStudents = useMemo(() => {
+    const q = studentSearch.trim().toLowerCase();
+    if (!q) return students;
+    return students.filter((s) => displayName(s).toLowerCase().includes(q));
+  }, [students, studentSearch]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (comboboxRef.current && !comboboxRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const amountCents = useMemo(() => {
     const n = parseFloat(amount);
@@ -321,29 +352,70 @@ export default function NewSessionPage() {
             ) : type === "individual" ? (
               <label className="text-sm text-neutral-700 block">
                 Student
-                <select
-                  value={studentId}
-                  onChange={(e) => {
-                    const newId = e.target.value;
-                    setStudentId(newId);
-                    setShowEmailPrompt(false);
-                    setInlineStudentEmail("");
-                    if (newId && !amount.trim()) {
-                      const picked = students.find((s) => s.id === newId);
-                      if (picked?.rate && picked.rate > 0) {
-                        setAmount(String(picked.rate));
-                      }
-                    }
-                  }}
-                  className="mt-1 w-full border border-neutral-200 rounded-md px-3 py-2 text-sm bg-white"
-                >
-                  <option value="">— pick a student —</option>
-                  {students.map((s) => (
-                    <option key={s.id} value={s.id} title={s.id}>
-                      {(s.firstName || s.lastName) ? `${s.firstName || ""} ${s.lastName || ""}`.trim() : "Student"}
-                    </option>
-                  ))}
-                </select>
+                <div ref={comboboxRef} className="relative mt-1">
+                  <input
+                    type="text"
+                    value={studentSearch}
+                    onChange={(e) => {
+                      setStudentSearch(e.target.value);
+                      setDropdownOpen(true);
+                      setStudentId("");
+                      setShowEmailPrompt(false);
+                      setInlineStudentEmail("");
+                    }}
+                    onFocus={() => setDropdownOpen(true)}
+                    onKeyDown={(e) => { if (e.key === "Escape") setDropdownOpen(false); }}
+                    placeholder="Search student by name…"
+                    autoComplete="off"
+                    className={`w-full border rounded-md px-3 py-2 text-sm pr-8 focus:outline-none focus:ring-2 focus:ring-mathitude-purple/30 ${
+                      studentId ? "border-mathitude-purple bg-mathitude-purple/5 font-medium text-neutral-900" : "border-neutral-200"
+                    }`}
+                  />
+                  {studentSearch && (
+                    <button
+                      type="button"
+                      onClick={() => { setStudentId(""); setStudentSearch(""); setDropdownOpen(false); setShowEmailPrompt(false); setInlineStudentEmail(""); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 text-base leading-none"
+                      aria-label="Clear"
+                    >
+                      ×
+                    </button>
+                  )}
+                  {dropdownOpen && filteredStudents.length > 0 && (
+                    <div className="absolute z-20 top-full mt-1 w-full bg-white border border-neutral-200 rounded-md shadow-lg max-h-56 overflow-auto">
+                      {filteredStudents.map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            setStudentId(s.id);
+                            setStudentSearch(displayName(s));
+                            setDropdownOpen(false);
+                            setShowEmailPrompt(false);
+                            setInlineStudentEmail("");
+                            if (!amount.trim() && s.rate && s.rate > 0) {
+                              setAmount(String(s.rate));
+                            }
+                          }}
+                          className={`w-full text-left px-3 py-2 text-sm flex items-baseline gap-2 hover:bg-purple-50 ${
+                            s.id === studentId ? "bg-purple-50 text-mathitude-purple" : "text-neutral-900"
+                          }`}
+                        >
+                          <span className="flex-1">{displayName(s)}</span>
+                          {s.grade && (
+                            <span className="text-xs text-neutral-400 shrink-0">Gr {s.grade}</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {dropdownOpen && filteredStudents.length === 0 && studentSearch && (
+                    <div className="absolute z-20 top-full mt-1 w-full bg-white border border-neutral-200 rounded-md shadow-md px-3 py-2 text-sm text-neutral-500">
+                      No students match &ldquo;{studentSearch}&rdquo;
+                    </div>
+                  )}
+                </div>
                 {studentId &&
                   (() => {
                     const picked = students.find((s) => s.id === studentId);
@@ -453,9 +525,7 @@ export default function NewSessionPage() {
                           }
                         }}
                       />
-                      <span title={s.id}>
-                        {s.firstName} {s.lastName}
-                      </span>
+                      <span>{displayName(s)}</span>
                     </label>
                   ))}
                 </div>
