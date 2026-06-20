@@ -2,40 +2,157 @@
 
 import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
-const emails = [
-  {
-    initials: "SM",
-    color: "#4285F4",
-    sender: "Sarah M.",
-    subject: "Emma's progress — Fractions & Decimals",
-    preview: "Emma mastered equivalent fractions this week. Next: mixed numbers and decimal conversion.",
-    time: "9:14 AM",
-    unread: true,
-  },
-  {
-    initials: "JK",
-    color: "#34A853",
-    sender: "Jennifer K.",
-    subject: "Algebra Foundations — Unit Plan",
-    preview: "Attached: 8-week plan covering variables, expressions, and linear equations for Grade 6.",
-    time: "Yesterday",
-    unread: false,
-  },
-  {
-    initials: "MT",
-    color: "#EA4335",
-    sender: "Michael T.",
-    subject: "Session notes — Oct 14",
-    preview: "Covered long division and introduced remainders as fractions. Strong conceptual grasp.",
-    time: "Mon",
-    unread: false,
-  },
+const emailSets = [
+  [
+    {
+      initials: "EM",
+      color: "#4285F4",
+      sender: "Emma's Progress Report",
+      subject: "Polynomial Factoring — Week 6",
+      preview: "Factored quadratics by grouping. Ready to advance to the quadratic formula.",
+      time: "9:14 AM",
+      unread: true,
+    },
+    {
+      initials: "UP",
+      color: "#7030A0",
+      sender: "Unit Plan",
+      subject: "Number Theory — 8 Weeks",
+      preview: "Primes, GCD, modular arithmetic, and Diophantine equations. Plan attached.",
+      time: "Yesterday",
+      unread: false,
+    },
+    {
+      initials: "SN",
+      color: "#34A853",
+      sender: "Session Notes — Oct 14",
+      subject: "Proof by Mathematical Induction",
+      preview: "Proved sum of first n integers. Introduced strong induction via Fibonacci sequence.",
+      time: "Mon",
+      unread: false,
+    },
+  ],
+  [
+    {
+      initials: "AI",
+      color: "#EA4335",
+      sender: "Aiden's Assessment",
+      subject: "Calculus Readiness — Limits",
+      preview: "Limits and continuity strong. Beginning differentiation rules next session.",
+      time: "10:02 AM",
+      unread: true,
+    },
+    {
+      initials: "CP",
+      color: "#F9AB00",
+      sender: "Competition Prep",
+      subject: "AMC 8 — Counting & Probability",
+      preview: "Covered permutations, combinations, and expected value. Practice set attached.",
+      time: "Yesterday",
+      unread: false,
+    },
+    {
+      initials: "SN",
+      color: "#34A853",
+      sender: "Session Notes — Oct 11",
+      subject: "Triangle Congruence Proofs",
+      preview: "SAS and ASA proofs completed. Student constructed first formal two-column proof.",
+      time: "Fri",
+      unread: false,
+    },
+  ],
+  [
+    {
+      initials: "MY",
+      color: "#4285F4",
+      sender: "Maya's Progress",
+      subject: "Trigonometry — Unit Circle",
+      preview: "Unit circle mastered. Introducing sine/cosine graphs, period, and amplitude.",
+      time: "8:45 AM",
+      unread: true,
+    },
+    {
+      initials: "EP",
+      color: "#7030A0",
+      sender: "Enrichment Plan",
+      subject: "Combinatorics & Pascal's Triangle",
+      preview: "Binomial theorem, combinations, and lattice paths. Real competition problems included.",
+      time: "2 days ago",
+      unread: false,
+    },
+    {
+      initials: "SN",
+      color: "#34A853",
+      sender: "Session Notes — Oct 9",
+      subject: "Modular Arithmetic & Fermat",
+      preview: "Clock arithmetic, linear congruences, and an introduction to Fermat's little theorem.",
+      time: "Wed",
+      unread: false,
+    },
+  ],
+  [
+    {
+      initials: "LK",
+      color: "#EA4335",
+      sender: "Lucas's Report",
+      subject: "Statistics — Standard Deviation",
+      preview: "Mean, median, mode reviewed. Introduced standard deviation with real-world datasets.",
+      time: "11:30 AM",
+      unread: true,
+    },
+    {
+      initials: "AT",
+      color: "#F9AB00",
+      sender: "Advanced Topic",
+      subject: "Complex Numbers & the Complex Plane",
+      preview: "Extended the number line. Graphed, added, and multiplied complex numbers geometrically.",
+      time: "Yesterday",
+      unread: false,
+    },
+    {
+      initials: "SN",
+      color: "#34A853",
+      sender: "Session Notes — Oct 7",
+      subject: "Geometric Series & Convergence",
+      preview: "Derived the sum formula from first principles. Discussed infinite series convergence.",
+      time: "Tue",
+      unread: false,
+    },
+  ],
 ];
 
 function GmailPhoneMockup() {
+  const [setIndex, setSetIndex] = useState(0);
+  const [phase, setPhase] = useState<"in" | "out">("in");
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPhase("out");
+      setTimeout(() => {
+        setSetIndex((i) => (i + 1) % emailSets.length);
+        setPhase("in");
+      }, 450);
+    }, 3800);
+    return () => clearInterval(timer);
+  }, []);
+
+  const emails = emailSets[setIndex];
+
   return (
     <div className="relative mx-auto w-[260px]">
+      <style>{`
+        @keyframes slideInUp {
+          from { opacity: 0; transform: translateY(18px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideOutUp {
+          from { opacity: 1; transform: translateY(0); }
+          to   { opacity: 0; transform: translateY(-14px); }
+        }
+      `}</style>
+
       <div className="relative bg-[#1c1c1e] rounded-[44px] p-3 shadow-2xl ring-1 ring-white/10">
         <div className="bg-white rounded-[36px] overflow-hidden" style={{ height: "520px" }}>
           {/* Dynamic island */}
@@ -43,7 +160,7 @@ function GmailPhoneMockup() {
             <div className="w-24 h-6 bg-[#1c1c1e] rounded-full" />
           </div>
 
-          {/* Gmail header */}
+          {/* Gmail search bar */}
           <div className="px-3 pb-2">
             <div className="flex items-center gap-2 bg-[#f1f3f4] rounded-full px-3 py-2">
               <svg className="w-3.5 h-3.5 text-[#5f6368]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -59,12 +176,23 @@ function GmailPhoneMockup() {
             <span className="text-[10px] font-semibold text-[#1a73e8] border-b-2 border-[#1a73e8] pb-1.5 inline-block">Primary</span>
           </div>
 
-          {/* Email list */}
+          {/* Animated email list */}
           <div className="divide-y divide-[#f1f3f4]">
             {emails.map((email, i) => (
-              <div key={i} className={`flex items-start gap-2.5 px-3 py-2.5 ${email.unread ? "bg-white" : "bg-white"}`}>
+              <div
+                key={`${setIndex}-${i}`}
+                className="flex items-start gap-2.5 px-3 py-2.5 bg-white"
+                style={{
+                  animation: phase === "in"
+                    ? `slideInUp 0.38s ease both`
+                    : `slideOutUp 0.32s ease both`,
+                  animationDelay: phase === "in"
+                    ? `${i * 0.07}s`
+                    : `${i * 0.04}s`,
+                }}
+              >
                 <div
-                  className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white text-[11px] font-semibold mt-0.5"
+                  className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white text-[10px] font-bold mt-0.5"
                   style={{ background: email.color }}
                 >
                   {email.initials}
@@ -81,7 +209,7 @@ function GmailPhoneMockup() {
                   <p className={`text-[10px] truncate ${email.unread ? "font-semibold text-[#202124]" : "text-[#444746]"}`}>
                     {email.subject}
                   </p>
-                  <p className="text-[10px] text-[#5f6368] truncate">{email.preview}</p>
+                  <p className="text-[10px] text-[#5f6368] leading-snug line-clamp-2">{email.preview}</p>
                 </div>
               </div>
             ))}
@@ -105,7 +233,6 @@ function GmailPhoneMockup() {
 export default function SignInPage() {
   return (
     <div className="h-screen flex overflow-hidden">
-      {/* Left panel */}
       <div className="hidden lg:flex lg:w-[52%] bg-[#7030A0] flex-col justify-between p-14 xl:p-20 relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-30"
@@ -115,7 +242,6 @@ export default function SignInPage() {
           }}
         />
 
-        {/* Center — headline + phone */}
         <div className="relative z-10 flex flex-col items-start gap-10 mt-auto mb-auto">
           <div className="space-y-4 max-w-xs">
             <h1
@@ -132,35 +258,24 @@ export default function SignInPage() {
           <GmailPhoneMockup />
         </div>
 
-        {/* Footer */}
         <p className="relative z-10 text-white/30 text-xs">
           © {new Date().getFullYear()} Mathitude · Menlo Park, CA
         </p>
       </div>
 
-      {/* Right panel */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 bg-white overflow-y-auto">
-        {/* Mobile logo */}
         <Link href="/" className="lg:hidden mb-8">
-          <span
-            className="text-2xl text-[#7030A0]"
-            style={{ fontFamily: "var(--font-original-surfer)" }}
-          >
+          <span className="text-2xl text-[#7030A0]" style={{ fontFamily: "var(--font-original-surfer)" }}>
             Mathitude
           </span>
         </Link>
 
         <div className="w-full max-w-[400px]">
           <div className="mb-8 text-center">
-            <h1
-              className="text-3xl text-neutral-900"
-              style={{ fontFamily: "var(--font-original-surfer)" }}
-            >
+            <h1 className="text-3xl text-neutral-900" style={{ fontFamily: "var(--font-original-surfer)" }}>
               Welcome back
             </h1>
-            <p className="mt-2 text-sm text-neutral-500">
-              Sign in to your Mathitude account
-            </p>
+            <p className="mt-2 text-sm text-neutral-500">Sign in to your Mathitude account</p>
           </div>
 
           <SignIn
@@ -183,12 +298,9 @@ export default function SignInPage() {
                 header: "hidden",
                 headerTitle: "hidden",
                 headerSubtitle: "hidden",
-                socialButtonsBlockButton:
-                  "border border-neutral-200 hover:bg-neutral-50 text-neutral-700 font-medium rounded-lg",
-                formButtonPrimary:
-                  "bg-[#7030A0] hover:bg-[#5d288a] rounded-lg font-medium uppercase tracking-wide shadow-none",
-                formFieldInput:
-                  "border-neutral-200 focus:border-[#7030A0] focus:ring-1 focus:ring-[#7030A0] rounded-lg bg-white",
+                socialButtonsBlockButton: "border border-neutral-200 hover:bg-neutral-50 text-neutral-700 font-medium rounded-lg",
+                formButtonPrimary: "bg-[#7030A0] hover:bg-[#5d288a] rounded-lg font-medium uppercase tracking-wide shadow-none",
+                formFieldInput: "border-neutral-200 focus:border-[#7030A0] focus:ring-1 focus:ring-[#7030A0] rounded-lg bg-white",
                 formFieldLabel: "text-neutral-600 text-sm font-medium",
                 identityPreviewEditButton: "text-[#7030A0] hover:text-[#5d288a]",
                 footerActionLink: "text-[#7030A0] hover:text-[#5d288a] font-medium",
