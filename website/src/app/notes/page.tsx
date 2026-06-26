@@ -4,25 +4,36 @@ import * as React from "react";
 import { Navbar } from "@/components/sections/navbar";
 import { Footer } from "@/components/sections/footer";
 import { ParentNotesView } from "@/components/notes/parent-notes-view";
-import { DEMO_STUDENTS, demoNotesForStudent } from "@/lib/session-notes";
+import {
+  DEMO_STUDENTS,
+  DEMO_FAMILIES,
+  demoNotesForStudent,
+  studentsVisibleTo,
+} from "@/lib/session-notes";
 
 // /notes — the family-facing notes page (FEATURE_LIST N-9), matching
 // PARENT_VIEWING_NOTES.png. SYNTHETIC data. Demo controls let you view as a
-// Parent (who can switch between their children) or a Student (locked to their
-// own record — R-7, "students only see their own information"). In production
-// the role + the child set come from the signed-in user, not these controls.
-//
-// NOTE: the two demo students are treated as siblings in one family here so the
-// parent multi-child switch is demonstrable. The real family model lands in the
-// role-scoping pass (#2).
+// Parent (scoped to one family, switching between that family's children) or a
+// Student (locked to their own record — R-7). In production the role + scope
+// come from the signed-in user, not these controls.
 export default function NotesPage() {
   const [asRole, setAsRole] = React.useState<"parent" | "student">("parent");
-  const [childId, setChildId] = React.useState(DEMO_STUDENTS[0].id);
+  const [familyId, setFamilyId] = React.useState(DEMO_FAMILIES[0].id);
+  const [selfId, setSelfId] = React.useState(DEMO_STUDENTS[0].id);
 
-  // A student only ever sees themselves.
-  const studentId = asRole === "student" ? DEMO_STUDENTS[0].id : childId;
-  const student = DEMO_STUDENTS.find((s) => s.id === studentId)!;
-  const notes = demoNotesForStudent(studentId);
+  const visible = studentsVisibleTo(asRole, { familyId, studentId: selfId });
+  const [childId, setChildId] = React.useState(visible[0]?.id ?? "");
+
+  // Keep the selected child inside the current family scope.
+  React.useEffect(() => {
+    if (visible.length && !visible.some((s) => s.id === childId)) {
+      setChildId(visible[0].id);
+    }
+  }, [visible, childId]);
+
+  const studentId = asRole === "student" ? selfId : childId;
+  const student = DEMO_STUDENTS.find((s) => s.id === studentId);
+  const notes = student ? demoNotesForStudent(student.id) : [];
 
   return (
     <>
@@ -49,11 +60,44 @@ export default function NotesPage() {
             </button>
           ))}
           {asRole === "parent" ? (
-            <label className="ml-2 flex items-center gap-2 text-xs text-text-muted">
-              Child
+            <>
+              <label className="ml-2 flex items-center gap-1.5 text-xs text-text-muted">
+                Family
+                <select
+                  value={familyId}
+                  onChange={(e) => setFamilyId(e.target.value)}
+                  className="rounded-md border border-border-warm bg-white px-2 py-1 text-xs"
+                >
+                  {DEMO_FAMILIES.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {visible.length > 1 && (
+                <label className="flex items-center gap-1.5 text-xs text-text-muted">
+                  Child
+                  <select
+                    value={childId}
+                    onChange={(e) => setChildId(e.target.value)}
+                    className="rounded-md border border-border-warm bg-white px-2 py-1 text-xs"
+                  >
+                    {visible.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.firstName} {s.lastName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </>
+          ) : (
+            <label className="ml-2 flex items-center gap-1.5 text-xs text-text-muted">
+              as student
               <select
-                value={childId}
-                onChange={(e) => setChildId(e.target.value)}
+                value={selfId}
+                onChange={(e) => setSelfId(e.target.value)}
                 className="rounded-md border border-border-warm bg-white px-2 py-1 text-xs"
               >
                 {DEMO_STUDENTS.map((s) => (
@@ -63,17 +107,19 @@ export default function NotesPage() {
                 ))}
               </select>
             </label>
-          ) : (
-            <span className="ml-2 text-[11px] text-text-muted">
-              Students only see their own notes — no sibling switch.
-            </span>
           )}
         </div>
 
-        <ParentNotesView
-          studentName={`${student.firstName} ${student.lastName}`}
-          notes={notes}
-        />
+        {student ? (
+          <ParentNotesView
+            studentName={`${student.firstName} ${student.lastName}`}
+            notes={notes}
+          />
+        ) : (
+          <p className="mx-auto max-w-3xl px-4 py-16 text-center text-sm text-text-muted">
+            No student in scope.
+          </p>
+        )}
       </main>
       <Footer />
     </>

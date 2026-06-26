@@ -7,6 +7,7 @@ import {
   CAN_EDIT_NOTES,
   CAN_SEE_BILLING,
   demoNotesForStudent,
+  studentsVisibleTo,
   DEMO_STUDENTS,
 } from "./session-notes.ts";
 
@@ -121,5 +122,40 @@ describe("group sessions", () => {
 
   test("demo students resolve", () => {
     assert.ok(DEMO_STUDENTS.length >= 2);
+  });
+});
+
+// ─────────────────────────────────────────────
+// Student scoping (R-2 / R-5 / R-6 / R-7)
+// ─────────────────────────────────────────────
+describe("studentsVisibleTo", () => {
+  test("staff see every student", () => {
+    assert.equal(studentsVisibleTo("super_admin", {}).length, DEMO_STUDENTS.length);
+    assert.equal(studentsVisibleTo("office_staff", {}).length, DEMO_STUDENTS.length);
+  });
+
+  test("a tutor sees only their portfolio, not another tutor's student (R-5)", () => {
+    const sam = studentsVisibleTo("tutor", { tutorId: "tutor_sam" }).map((s) => s.id);
+    assert.deepEqual(sam.sort(), ["stu_milo", "stu_robin"]);
+    assert.ok(!sam.includes("stu_ada"));
+    const jess = studentsVisibleTo("tutor", { tutorId: "tutor_jess" }).map((s) => s.id);
+    assert.deepEqual(jess, ["stu_ada"]);
+  });
+
+  test("a parent sees their family's children only, never another family (R-2/R-6)", () => {
+    const avery = studentsVisibleTo("parent", { familyId: "fam_avery" }).map((s) => s.id);
+    assert.deepEqual(avery.sort(), ["stu_milo", "stu_robin"]);
+    assert.ok(!avery.includes("stu_ada"));
+  });
+
+  test("a student sees only themselves — no siblings (R-7)", () => {
+    const self = studentsVisibleTo("student", { studentId: "stu_robin" }).map((s) => s.id);
+    assert.deepEqual(self, ["stu_robin"]);
+  });
+
+  test("missing identity yields an empty, fail-closed scope", () => {
+    assert.equal(studentsVisibleTo("tutor", {}).length, 0);
+    assert.equal(studentsVisibleTo("parent", {}).length, 0);
+    assert.equal(studentsVisibleTo("student", {}).length, 0);
   });
 });

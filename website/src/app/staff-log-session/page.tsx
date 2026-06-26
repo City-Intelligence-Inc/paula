@@ -11,18 +11,18 @@ import {
   DEMO_STUDENTS,
   DEMO_NOTES,
   DEMO_SHORTCUTS,
+  DEMO_TUTORS,
+  DEMO_FAMILIES,
   ROLES,
   VISIBLE_FIELDS,
+  studentsVisibleTo,
 } from "@/lib/session-notes";
 
 // /staff-log-session — Session Notes MVP (FEATURE_LIST Roles + Notes).
-// Runs on SYNTHETIC data so it renders without Clerk/DynamoDB. The role
-// switcher is a DEMO affordance to show the visibility model (R-1..R-7,
-// N-8/N-9) in one place — in production the role comes from the signed-in
-// session, not a dropdown. Swap DEMO_* for the API once Ari wires it:
-//   notes      <- GET /api/students/:id/session-notes
-//   onSaveNote -> POST/PUT /api/students/:id/session-notes
-//   shortcuts  <- GET /api/note-resources ; onCreateShortcut -> POST it
+// SYNTHETIC data; the "Demo · view as" switcher shows every portal's visibility
+// + scope in one place. In production both the role AND the scope (which
+// students you may touch) come from the signed-in user, not these controls.
+// Swap DEMO_* for the API once Ari wires it (see SESSION_NOTES_MVP.md).
 const ALL_ROLES: PortalRole[] = [
   "super_admin",
   "office_staff",
@@ -31,8 +31,7 @@ const ALL_ROLES: PortalRole[] = [
   "student",
 ];
 
-// Mirror the server's noteForActor: hide staff-only fields from non-staff so
-// the data itself (not just the columns) reflects what a family may see.
+// Mirror the server's noteForActor: hide staff-only fields from non-staff.
 function visibleNote(role: PortalRole, n: SessionNote): SessionNote {
   const allowed = VISIBLE_FIELDS[role];
   return {
@@ -44,9 +43,29 @@ function visibleNote(role: PortalRole, n: SessionNote): SessionNote {
 
 export default function StaffLogSessionPage() {
   const [role, setRole] = React.useState<PortalRole>("super_admin");
+  // Demo "identity" behind the role — drives scope (R-2/R-5/R-6/R-7).
+  const [tutorId, setTutorId] = React.useState(DEMO_TUTORS[0].id);
+  const [familyId, setFamilyId] = React.useState(DEMO_FAMILIES[0].id);
+  const [selfId, setSelfId] = React.useState(DEMO_STUDENTS[0].id);
+
+  const visibleStudents = React.useMemo(
+    () => studentsVisibleTo(role, { tutorId, familyId, studentId: selfId }),
+    [role, tutorId, familyId, selfId],
+  );
+
   const [selectedStudentId, setSelectedStudentId] = React.useState(
     DEMO_STUDENTS[0].id,
   );
+  // Keep the selected student inside the current scope (fail-closed).
+  React.useEffect(() => {
+    if (
+      visibleStudents.length &&
+      !visibleStudents.some((s) => s.id === selectedStudentId)
+    ) {
+      setSelectedStudentId(visibleStudents[0].id);
+    }
+  }, [visibleStudents, selectedStudentId]);
+
   const [allNotes, setAllNotes] = React.useState<SessionNote[]>(DEMO_NOTES);
   const [shortcuts, setShortcuts] =
     React.useState<MentionShortcut[]>(DEMO_SHORTCUTS);
@@ -98,6 +117,11 @@ export default function StaffLogSessionPage() {
     return created;
   }
 
+  const selStudent =
+    visibleStudents.find((s) => s.id === selectedStudentId) ??
+    visibleStudents[0];
+  const isFamily = role === "parent" || role === "student";
+
   return (
     <main className="mx-auto max-w-[1152px] px-4 py-8">
       <header className="mb-5">
@@ -110,7 +134,7 @@ export default function StaffLogSessionPage() {
         </p>
       </header>
 
-      {/* DEMO role switcher — not part of production UI */}
+      {/* DEMO controls — role + the identity that drives scope */}
       <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border-warm bg-surface-paper px-4 py-3">
         <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
           Demo · view as
@@ -130,16 +154,73 @@ export default function StaffLogSessionPage() {
             {ROLES[r].label}
           </button>
         ))}
+
+        {/* Identity picker — which tutor / family / student you are */}
+        {role === "tutor" && (
+          <label className="ml-2 flex items-center gap-1.5 text-xs text-text-muted">
+            as tutor
+            <select
+              value={tutorId}
+              onChange={(e) => setTutorId(e.target.value)}
+              className="rounded-md border border-border-warm bg-white px-2 py-1 text-xs"
+            >
+              {DEMO_TUTORS.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {role === "parent" && (
+          <label className="ml-2 flex items-center gap-1.5 text-xs text-text-muted">
+            in
+            <select
+              value={familyId}
+              onChange={(e) => setFamilyId(e.target.value)}
+              className="rounded-md border border-border-warm bg-white px-2 py-1 text-xs"
+            >
+              {DEMO_FAMILIES.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {role === "student" && (
+          <label className="ml-2 flex items-center gap-1.5 text-xs text-text-muted">
+            as student
+            <select
+              value={selfId}
+              onChange={(e) => setSelfId(e.target.value)}
+              className="rounded-md border border-border-warm bg-white px-2 py-1 text-xs"
+            >
+              {DEMO_STUDENTS.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.firstName} {s.lastName}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
         <span className="ml-auto text-[11px] text-text-muted">
-          Production reads the role from the signed-in user, not this switch.
+          {role === "tutor" && "Tutors see only their portfolio."}
+          {role === "parent" && "Parents see only their family's children."}
+          {role === "student" && "Students see only their own notes."}
+          {(role === "super_admin" || role === "office_staff") &&
+            "Staff see every student."}
         </span>
       </div>
 
-      {/* Families (parent/student) get the warm card view; staff/tutor get the
-          logging board. Same data + role gating, role-appropriate layout. */}
-      {role === "parent" || role === "student" ? (
+      {visibleStudents.length === 0 ? (
+        <p className="rounded-lg border border-border-warm bg-surface-card px-4 py-8 text-center text-sm text-text-muted">
+          No students in scope.
+        </p>
+      ) : isFamily ? (
         <>
-          {role === "parent" && (
+          {role === "parent" && visibleStudents.length > 1 && (
             <div className="mb-3 flex items-center gap-2">
               <label className="flex items-center gap-2 text-xs text-text-muted">
                 Child
@@ -148,7 +229,7 @@ export default function StaffLogSessionPage() {
                   onChange={(e) => setSelectedStudentId(e.target.value)}
                   className="rounded-md border border-border-warm bg-white px-2 py-1 text-xs"
                 >
-                  {DEMO_STUDENTS.map((s) => (
+                  {visibleStudents.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.firstName} {s.lastName}
                     </option>
@@ -158,19 +239,14 @@ export default function StaffLogSessionPage() {
             </div>
           )}
           <ParentNotesView
-            studentName={
-              (() => {
-                const s = DEMO_STUDENTS.find((x) => x.id === selectedStudentId);
-                return s ? `${s.firstName} ${s.lastName}` : "";
-              })()
-            }
+            studentName={selStudent ? `${selStudent.firstName} ${selStudent.lastName}` : ""}
             notes={notes}
           />
         </>
       ) : (
         <SessionNotesBoard
           role={role}
-          students={DEMO_STUDENTS}
+          students={visibleStudents}
           selectedStudentId={selectedStudentId}
           onSelectStudent={setSelectedStudentId}
           notes={notes}

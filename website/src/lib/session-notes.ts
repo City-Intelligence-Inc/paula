@@ -200,12 +200,60 @@ export interface DemoStudent {
   lastName: string;
   grade: string;
   rate: number; // dollars/hr — only shown to billing roles
+  familyId: string; // R-2/R-6: parents see every child in their family
+  tutorIds: string[]; // R-5: tutors see only their portfolio
 }
 
-export const DEMO_STUDENTS: DemoStudent[] = [
-  { id: "stu_robin", firstName: "Robin", lastName: "Avery", grade: "2nd", rate: 150 },
-  { id: "stu_milo", firstName: "Milo", lastName: "Tran", grade: "4th", rate: 150 },
+export interface DemoFamily {
+  id: string;
+  name: string;
+}
+export interface DemoTutor {
+  id: string;
+  name: string;
+  studentIds: string[];
+}
+
+// Two families + two tutors so scoping is demonstrable: a parent in the Avery
+// family must NOT see the Chen child, and tutor Sam must NOT see tutor Jess's
+// student.
+export const DEMO_FAMILIES: DemoFamily[] = [
+  { id: "fam_avery", name: "Avery family" },
+  { id: "fam_chen", name: "Chen family" },
 ];
+
+export const DEMO_STUDENTS: DemoStudent[] = [
+  { id: "stu_robin", firstName: "Robin", lastName: "Avery", grade: "2nd", rate: 150, familyId: "fam_avery", tutorIds: ["tutor_sam"] },
+  { id: "stu_milo", firstName: "Milo", lastName: "Avery", grade: "4th", rate: 150, familyId: "fam_avery", tutorIds: ["tutor_sam"] },
+  { id: "stu_ada", firstName: "Ada", lastName: "Chen", grade: "3rd", rate: 165, familyId: "fam_chen", tutorIds: ["tutor_jess"] },
+];
+
+export const DEMO_TUTORS: DemoTutor[] = [
+  { id: "tutor_sam", name: "Sam Rivera", studentIds: ["stu_robin", "stu_milo"] },
+  { id: "tutor_jess", name: "Jess Okafor", studentIds: ["stu_ada"] },
+];
+
+// Which students a viewer may see (R-2/R-5/R-6/R-7). Staff see everyone; a tutor
+// sees only their portfolio; a parent sees only their family's children; a
+// student sees only themselves. Mirrors the server-side scope checks Ari wires.
+export function studentsVisibleTo(
+  role: PortalRole,
+  who: { tutorId?: string; familyId?: string; studentId?: string },
+): DemoStudent[] {
+  switch (role) {
+    case "super_admin":
+    case "office_staff":
+      return DEMO_STUDENTS;
+    case "tutor": {
+      const t = DEMO_TUTORS.find((x) => x.id === who.tutorId);
+      return DEMO_STUDENTS.filter((s) => !!t && t.studentIds.includes(s.id));
+    }
+    case "parent":
+      return DEMO_STUDENTS.filter((s) => s.familyId === who.familyId);
+    case "student":
+      return DEMO_STUDENTS.filter((s) => s.id === who.studentId);
+  }
+}
 
 function note(
   studentId: string,
@@ -293,6 +341,24 @@ DEMO_NOTES.push(
     noteGroupId: GROUP_ID,
     groupLabel: "Group: Robin + Milo",
   },
+);
+
+// Chen-family student (different family + tutor) so scoping has two sides.
+DEMO_NOTES.push(
+  note("stu_ada", 1, 45, {
+    sessionPlan: "<ul><li>SET warm-up</li><li>Fraction war with Cuisenaire rods</li></ul>",
+    privateNotes: "Ada races ahead — slow her down on the 'why', not just the answer.",
+    sessionActivities: "<ul><li>SET</li><li>Cuisenaire fraction war</li></ul>",
+    publicNotes:
+      "Ada flew through SET today and is building real fluency with equivalent fractions using the rods. Lovely focus!",
+  }),
+  note("stu_ada", 8, 45, {
+    sessionPlan: "<ul><li>Tangram challenges</li><li>Skip-counting bracelets</li></ul>",
+    privateNotes: "Bring the harder tangram set next time.",
+    sessionActivities: "<ul><li>Tangrams 1–10</li><li>Skip-count bracelets</li></ul>",
+    publicNotes:
+      "Ada solved all ten tangram challenges and started a skip-counting bracelet she wants to finish at home.",
+  }),
 );
 
 export function demoNotesForStudent(studentId: string): SessionNote[] {
