@@ -71,13 +71,13 @@ export function ParentNotesView({
             )}
             <div className="mt-5 grid gap-8 sm:grid-cols-2">
               <div>
-                <h3 className="mb-1.5 text-sm font-semibold text-mathitude-purple">
+                <h3 className="mb-1.5 text-base font-semibold text-mathitude-purple">
                   Activities
                 </h3>
                 <RichTextView html={n.sessionActivities ?? ""} />
               </div>
               <div>
-                <h3 className="mb-1.5 text-sm font-semibold text-mathitude-purple">
+                <h3 className="mb-1.5 text-base font-semibold text-mathitude-purple">
                   Notes
                 </h3>
                 <RichTextView html={n.publicNotes ?? ""} />

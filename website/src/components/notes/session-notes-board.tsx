@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { RichTextEditor, RichTextView, type MentionShortcut } from "./rich-text";
 import {
@@ -13,19 +14,19 @@ import {
   columnsFor,
   CAN_EDIT_NOTES,
   CAN_SEE_BILLING,
+  VISIBLE_FIELDS,
   emptyNoteFields,
-  HISTORY_EXPANDED,
 } from "@/lib/session-notes";
 
-// The Session Notes board — FEATURE_LIST N-1..N-9.
-// One component drives every portal; the role decides which columns show
-// (columnsFor) and whether the entry row is editable (CAN_EDIT_NOTES). The
-// staff "In-session view" switch hides Private Notes (N-3); history stacks
-// beneath each field, most-recent-first, with the recent 5 expanded (N-2/N-6).
+// Session Notes board — one session per screen (current/upcoming or a previous
+// one), with prev/next navigation. Four large fields per session: Session Plan,
+// Private Notes, Session Activities, Public Notes. The "Private" toggle hides
+// the Private Notes column for in-session viewing (spec N-3).
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
+    weekday: "long",
+    month: "long",
     day: "numeric",
     year: "numeric",
   });
@@ -54,12 +55,13 @@ export function SessionNotesBoard({
   onCreateShortcut?: (shortcut: string, href: string) => MentionShortcut | void;
 }) {
   const canEdit = CAN_EDIT_NOTES[role];
-  const [inSessionView, setInSessionView] = React.useState(false);
-  const columns = columnsFor(role, inSessionView);
+  const hasPrivate = VISIBLE_FIELDS[role].includes("privateNotes");
+  const [showPrivate, setShowPrivate] = React.useState(true);
+  const columns = columnsFor(role, hasPrivate && !showPrivate);
 
   const student = students.find((s) => s.id === selectedStudentId);
 
-  // Draft entry row (new session, or an existing session loaded for editing).
+  // Edit pane state (the current/upcoming session, or a past one loaded to edit)
   const [draft, setDraft] = React.useState<SessionNoteFields>(emptyNoteFields());
   const [editingDateTime, setEditingDateTime] = React.useState<string | null>(null);
   const [date, setDate] = React.useState(() => new Date().toISOString().slice(0, 10));
@@ -67,9 +69,19 @@ export function SessionNotesBoard({
   const [durationMin, setDurationMin] = React.useState(60);
   const [saving, setSaving] = React.useState(false);
 
-  const recent = notes.slice(0, HISTORY_EXPANDED);
-  const older = notes.slice(HISTORY_EXPANDED);
-  const [showOlder, setShowOlder] = React.useState(false);
+  // Pager: slot 0 = the edit pane (only when the role can author); the rest are
+  // past sessions, most recent first.
+  const editPane = canEdit ? 1 : 0;
+  const slotCount = editPane + notes.length;
+  const [viewIndex, setViewIndex] = React.useState(0);
+
+  // Keep the pointer valid when the student / scope changes.
+  React.useEffect(() => {
+    setViewIndex(0);
+  }, [selectedStudentId]);
+
+  const onEditPane = canEdit && viewIndex === 0;
+  const pastNote = onEditPane ? null : notes[viewIndex - editPane];
 
   function resetDraft() {
     setDraft(emptyNoteFields());
@@ -81,15 +93,16 @@ export function SessionNotesBoard({
 
   function loadForEdit(n: SessionNote) {
     setDraft({
-      sessionPlan: n.sessionPlan,
-      privateNotes: n.privateNotes,
-      sessionActivities: n.sessionActivities,
-      publicNotes: n.publicNotes,
+      sessionPlan: n.sessionPlan ?? "",
+      privateNotes: n.privateNotes ?? "",
+      sessionActivities: n.sessionActivities ?? "",
+      publicNotes: n.publicNotes ?? "",
     });
     setEditingDateTime(n.dateTime);
     setDate(n.date);
     setTime(n.dateTime.slice(11, 16));
     setDurationMin(n.durationMin);
+    setViewIndex(0); // jump to the edit pane
   }
 
   function submit() {
@@ -100,19 +113,18 @@ export function SessionNotesBoard({
     resetDraft();
   }
 
-  // Grid template: a slim date/meta column + one column per visible field.
-  const gridCols = `140px repeat(${columns.length}, minmax(0, 1fr))`;
+  const gridCols = `repeat(${columns.length}, minmax(0, 1fr))`;
 
   return (
-    <div className="rounded-lg border border-border-warm bg-surface-card">
-      {/* Top bar — mirrors the STAFF_LOG_NOTES mockup header */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-border-warm bg-[#FBF7F0] px-4 py-3">
-        <label className="flex items-center gap-2 text-sm">
-          <span className="text-text-muted">Student</span>
+    <div className="rounded-lg border border-border-warm bg-white">
+      {/* Top bar */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-border-warm bg-white px-5 py-3.5">
+        <label className="flex items-center gap-2 text-[15px]">
+          <span className="text-[#8b8589]">Student</span>
           <select
             value={selectedStudentId}
             onChange={(e) => onSelectStudent(e.target.value)}
-            className="rounded-md border border-border-warm bg-white px-2 py-1 text-sm"
+            className="rounded-md border border-border-warm bg-white px-2.5 py-1.5 text-[15px]"
           >
             {students.map((s) => (
               <option key={s.id} value={s.id}>
@@ -121,124 +133,141 @@ export function SessionNotesBoard({
             ))}
           </select>
         </label>
-        <span className="text-sm text-text-muted">
-          Grade <span className="text-text-primary">{student?.grade ?? "—"}</span>
+        <span className="text-[15px] text-[#8b8589]">
+          Grade <span className="text-black">{student?.grade ?? "—"}</span>
         </span>
         {CAN_SEE_BILLING[role] && (
-          <span className="text-sm text-text-muted">
-            Rate{" "}
-            <span className="text-text-primary">${student?.rate ?? "—"}/hr</span>
+          <span className="text-[15px] text-[#8b8589]">
+            Rate <span className="text-black">${student?.rate ?? "—"}/hr</span>
           </span>
         )}
         <span
-          className="ml-auto inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ring-1"
+          className="ml-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] font-medium ring-1"
           style={{ color: ROLES[role].accent, borderColor: ROLES[role].accent }}
         >
-          <span
-            className="h-1.5 w-1.5 rounded-full"
-            style={{ backgroundColor: ROLES[role].accent }}
-          />
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: ROLES[role].accent }} />
           {ROLES[role].label}
         </span>
-        {canEdit && (
-          <label className="flex items-center gap-2 text-sm">
-            <span className="text-text-muted">In-session view</span>
+        {canEdit && hasPrivate && (
+          <label className="flex items-center gap-2 text-[15px]">
             <Switch
-              checked={inSessionView}
-              onCheckedChange={setInSessionView}
-              aria-label="Hide private notes for in-session view"
+              checked={showPrivate}
+              onCheckedChange={setShowPrivate}
+              aria-label="Show private notes column"
             />
+            <span className="text-black">Private</span>
           </label>
         )}
       </div>
 
-      {!canEdit && (
-        <p className="border-b border-border-warm bg-white px-4 py-2 text-xs text-text-muted">
-          Read-only — you can view{" "}
-          {columns.map((c) => NOTE_FIELDS[c].label).join(" and ")}.
-        </p>
-      )}
-
-      {/* Chart grid */}
-      <div className="max-h-[60vh] overflow-auto">
-        {/* Header row (sticky) */}
-        <div
-          className="sticky top-0 z-10 grid border-b border-border-warm bg-white"
-          style={{ gridTemplateColumns: gridCols }}
+      {/* Pager bar */}
+      <div className="flex flex-wrap items-center gap-3 border-b border-border-warm px-5 py-2.5">
+        <button
+          type="button"
+          onClick={() => setViewIndex((i) => Math.min(slotCount - 1, i + 1))}
+          disabled={viewIndex >= slotCount - 1}
+          className="inline-flex items-center gap-1 rounded-md border border-border-warm px-3 py-1.5 text-sm text-black hover:bg-surface-paper disabled:opacity-40"
         >
-          <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Session
-          </div>
-          {columns.map((c) => (
-            <div
-              key={c}
-              className="border-l border-border-warm px-3 py-2"
-            >
-              <div className="text-sm font-semibold text-text-primary">
-                {NOTE_FIELDS[c].label}
-              </div>
-              <div className="text-[10px] text-text-muted">
-                {NOTE_FIELDS[c].audience}
-              </div>
-            </div>
-          ))}
-        </div>
+          <ChevronLeft className="size-4" /> Previous session
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewIndex((i) => Math.max(0, i - 1))}
+          disabled={viewIndex <= 0}
+          className="inline-flex items-center gap-1 rounded-md border border-border-warm px-3 py-1.5 text-sm text-black hover:bg-surface-paper disabled:opacity-40"
+        >
+          Next session <ChevronRight className="size-4" />
+        </button>
 
-        {/* Entry row (editable roles only) */}
+        <span className="text-[15px] text-black">
+          {onEditPane ? (
+            <span className="font-medium text-mathitude-purple">
+              {editingDateTime ? "Editing session" : "Current / upcoming session"}
+            </span>
+          ) : (
+            <>
+              <span className="font-medium">{pastNote && formatDate(pastNote.dateTime)}</span>
+              <span className="text-[#8b8589]">
+                {" "}
+                · session {viewIndex - editPane + 1} of {notes.length}
+              </span>
+            </>
+          )}
+        </span>
+
         {canEdit && (
-          <div
-            className="grid border-b-2 border-mathitude-purple/30 bg-mathitude-purple/[0.03]"
-            style={{ gridTemplateColumns: gridCols }}
+          <button
+            type="button"
+            onClick={() => setViewIndex(0)}
+            disabled={onEditPane}
+            className="ml-auto rounded-full bg-mathitude-purple px-3.5 py-1.5 text-sm font-medium text-white hover:bg-mathitude-purple/90 disabled:opacity-40"
           >
-            <div className="space-y-2 px-3 py-3">
-              <p className="text-xs font-semibold text-mathitude-purple">
-                {editingDateTime ? "Editing session" : "Logging new session"}
-              </p>
-              <input
-                type="date"
-                value={date}
-                disabled={!!editingDateTime}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded border border-border-warm px-2 py-1 text-xs disabled:opacity-60"
-              />
-              <input
-                type="time"
-                value={time}
-                disabled={!!editingDateTime}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-full rounded border border-border-warm px-2 py-1 text-xs disabled:opacity-60"
-              />
-              <select
-                value={durationMin}
-                onChange={(e) => setDurationMin(Number(e.target.value))}
-                className="w-full rounded border border-border-warm px-2 py-1 text-xs"
+            Current session
+          </button>
+        )}
+      </div>
+
+      {/* Session meta */}
+      <div className="flex flex-wrap items-center gap-4 px-5 py-3 text-sm">
+        {onEditPane ? (
+          <>
+            <input
+              type="date"
+              value={date}
+              disabled={!!editingDateTime}
+              onChange={(e) => setDate(e.target.value)}
+              className="rounded border border-border-warm px-2.5 py-1.5 text-sm disabled:opacity-60"
+            />
+            <input
+              type="time"
+              value={time}
+              disabled={!!editingDateTime}
+              onChange={(e) => setTime(e.target.value)}
+              className="rounded border border-border-warm px-2.5 py-1.5 text-sm disabled:opacity-60"
+            />
+            <select
+              value={durationMin}
+              onChange={(e) => setDurationMin(Number(e.target.value))}
+              className="rounded border border-border-warm px-2.5 py-1.5 text-sm"
+            >
+              {[30, 45, 60, 90].map((m) => (
+                <option key={m} value={m}>{m} min</option>
+              ))}
+            </select>
+          </>
+        ) : pastNote ? (
+          <>
+            <span className="text-black">{pastNote.durationMin} min</span>
+            {pastNote.groupLabel && (
+              <span className="rounded bg-[#8b8589]/10 px-2 py-0.5 text-xs text-[#8b8589]">
+                {pastNote.groupLabel}
+              </span>
+            )}
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => loadForEdit(pastNote)}
+                className="rounded-md border border-border-warm px-3 py-1.5 text-sm text-mathitude-purple hover:bg-surface-paper"
               >
-                {[30, 45, 60, 90].map((m) => (
-                  <option key={m} value={m}>
-                    {m} min
-                  </option>
-                ))}
-              </select>
-              <div className="flex flex-col gap-1 pt-1">
-                <button
-                  type="button"
-                  onClick={submit}
-                  disabled={saving}
-                  className="rounded-full bg-mathitude-purple px-3 py-1.5 text-xs font-medium text-white hover:bg-mathitude-purple/90 disabled:opacity-50"
-                >
-                  {saving ? "Saving…" : editingDateTime ? "Update session" : "Submit session"}
-                </button>
-                <button
-                  type="button"
-                  onClick={resetDraft}
-                  className="rounded-full px-3 py-1 text-xs text-text-muted hover:text-text-primary"
-                >
-                  Cancel
-                </button>
+                Edit this session
+              </button>
+            )}
+          </>
+        ) : null}
+      </div>
+
+      {/* The single session — large field boxes */}
+      {slotCount === 0 ? (
+        <p className="px-5 py-16 text-center text-[15px] text-[#8b8589]">No session notes yet.</p>
+      ) : (
+        <div className="grid gap-4 px-5 pb-5" style={{ gridTemplateColumns: gridCols }}>
+          {columns.map((c) => (
+            <div key={c} className="flex min-w-0 flex-col">
+              <div className="mb-1.5">
+                <h3 className="text-base font-semibold text-black">{NOTE_FIELDS[c].label}</h3>
+                <p className="text-xs text-[#8b8589]">{NOTE_FIELDS[c].audience}</p>
               </div>
-            </div>
-            {columns.map((c) => (
-              <div key={c} className="border-l border-border-warm p-2">
+              {onEditPane ? (
                 <RichTextEditor
                   value={draft[c]}
                   onChange={(html) => setDraft((d) => ({ ...d, [c]: html }))}
@@ -246,95 +275,36 @@ export function SessionNotesBoard({
                   shortcuts={shortcuts}
                   onCreateShortcut={onCreateShortcut}
                 />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* History rows */}
-        {notes.length === 0 && (
-          <p className="px-4 py-8 text-center text-sm text-text-muted">
-            No session notes yet.
-          </p>
-        )}
-        {recent.map((n) => (
-          <HistoryRow
-            key={n.id}
-            note={n}
-            columns={columns}
-            gridCols={gridCols}
-            canEdit={canEdit}
-            onEdit={() => loadForEdit(n)}
-          />
-        ))}
-        {older.length > 0 && !showOlder && (
-          <button
-            type="button"
-            onClick={() => setShowOlder(true)}
-            className="w-full border-t border-border-warm py-2 text-center text-xs text-mathitude-purple hover:bg-surface-paper"
-          >
-            Show {older.length} older session{older.length > 1 ? "s" : ""}
-          </button>
-        )}
-        {showOlder &&
-          older.map((n) => (
-            <HistoryRow
-              key={n.id}
-              note={n}
-              columns={columns}
-              gridCols={gridCols}
-              canEdit={canEdit}
-              onEdit={() => loadForEdit(n)}
-            />
+              ) : (
+                <div className="min-h-[42vh] overflow-auto rounded-md border border-border-warm bg-white px-4 py-3">
+                  <RichTextView html={pastNote?.[c] ?? ""} />
+                </div>
+              )}
+            </div>
           ))}
-      </div>
-    </div>
-  );
-}
-
-function HistoryRow({
-  note,
-  columns,
-  gridCols,
-  canEdit,
-  onEdit,
-}: {
-  note: SessionNote;
-  columns: (keyof SessionNoteFields)[];
-  gridCols: string;
-  canEdit: boolean;
-  onEdit: () => void;
-}) {
-  return (
-    <div
-      className="grid border-b border-border-warm last:border-b-0 hover:bg-surface-paper/60"
-      style={{ gridTemplateColumns: gridCols }}
-    >
-      <div className="px-3 py-3">
-        <div className="text-sm font-medium text-text-primary">
-          {formatDate(note.dateTime)}
         </div>
-        <div className="text-[11px] text-text-muted">{note.durationMin} min</div>
-        {note.groupLabel && (
-          <div className="mt-1 inline-block rounded bg-mathitude-teal/10 px-1.5 py-0.5 text-[10px] text-[#1e9390]">
-            {note.groupLabel}
-          </div>
-        )}
-        {canEdit && (
+      )}
+
+      {/* Save bar (edit pane) */}
+      {onEditPane && (
+        <div className="flex items-center gap-3 border-t border-border-warm px-5 py-3">
           <button
             type="button"
-            onClick={onEdit}
-            className="mt-2 block text-[11px] text-mathitude-purple hover:underline"
+            onClick={submit}
+            disabled={saving}
+            className="rounded-full bg-mathitude-purple px-5 py-2 text-sm font-medium text-white hover:bg-mathitude-purple/90 disabled:opacity-50"
           >
-            Edit
+            {saving ? "Saving…" : editingDateTime ? "Update session" : "Submit session"}
           </button>
-        )}
-      </div>
-      {columns.map((c) => (
-        <div key={c} className="border-l border-border-warm px-3 py-3">
-          <RichTextView html={note[c] ?? ""} />
+          <button
+            type="button"
+            onClick={resetDraft}
+            className="rounded-full px-4 py-2 text-sm text-[#8b8589] hover:text-black"
+          >
+            Cancel
+          </button>
         </div>
-      ))}
+      )}
     </div>
   );
 }

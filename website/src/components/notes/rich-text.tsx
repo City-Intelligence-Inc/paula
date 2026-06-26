@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Bold as BoldIcon, List as ListIcon, Link as LinkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Dependency-free rich text for session notes (spec N-4 input / N-7 display).
@@ -80,7 +81,7 @@ export function RichTextView({
   return (
     <div
       className={cn(
-        "prose-notes text-sm leading-relaxed text-text-primary [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-mathitude-purple [&_a]:underline",
+        "prose-notes text-[15px] leading-7 text-[#1a1a1a] [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1 [&_a]:text-mathitude-purple [&_a]:underline",
         className,
       )}
       dangerouslySetInnerHTML={{ __html: clean }}
@@ -240,16 +241,16 @@ export function RichTextEditor({
       {!disabled && (
         <div className="flex items-center gap-1 border-b border-border-warm px-2 py-1">
           <ToolBtn label="Bold" onClick={() => exec("bold")}>
-            <b>B</b>
+            <BoldIcon className="size-4" />
           </ToolBtn>
           <ToolBtn label="Bullet list" onClick={() => exec("insertUnorderedList")}>
-            ☰
+            <ListIcon className="size-4" />
           </ToolBtn>
           <ToolBtn label="Add link" onClick={addLink}>
-            🔗
+            <LinkIcon className="size-4" />
           </ToolBtn>
           {shortcuts.length > 0 && (
-            <span className="ml-auto text-[10px] text-text-muted">
+            <span className="ml-auto text-xs text-[#8b8589]">
               type <b>@</b> to link a resource
             </span>
           )}
@@ -264,9 +265,9 @@ export function RichTextEditor({
         onBlur={() => setTimeout(() => setMention(null), 150)}
         data-placeholder={placeholder}
         className={cn(
-          "min-h-24 px-3 py-2 text-sm leading-relaxed text-text-primary outline-none",
-          "[&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-mathitude-purple [&_a]:underline",
-          "empty:before:text-zinc-400 empty:before:italic empty:before:content-[attr(data-placeholder)]",
+          "min-h-[38vh] px-4 py-3 text-[15px] leading-7 text-[#1a1a1a] outline-none",
+          "[&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1 [&_a]:text-mathitude-purple [&_a]:underline",
+          "empty:before:text-zinc-500 empty:before:content-[attr(data-placeholder)]",
         )}
       />
       {mention && (
@@ -287,7 +288,7 @@ export function RichTextEditor({
               }}
               className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-surface-paper"
             >
-              <span className="text-mathitude-purple">🔗</span>
+              <LinkIcon className="size-3.5 text-mathitude-purple" />
               <span className="truncate">{s.label}</span>
             </button>
           ))}
