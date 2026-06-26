@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { RichTextEditor, RichTextView, type MentionShortcut } from "./rich-text";
 import {
@@ -30,6 +31,29 @@ function formatDate(iso: string): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+function formatShort(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+// Was this session edited after it happened? (last-updated later than its date)
+function wasEdited(n: SessionNote): boolean {
+  return !!n.updatedAt && n.updatedAt.slice(0, 10) > n.date;
 }
 
 export function SessionNotesBoard({
@@ -74,10 +98,12 @@ export function SessionNotesBoard({
   const editPane = canEdit ? 1 : 0;
   const slotCount = editPane + notes.length;
   const [viewIndex, setViewIndex] = React.useState(0);
+  const [pickerOpen, setPickerOpen] = React.useState(false);
 
   // Keep the pointer valid when the student / scope changes.
   React.useEffect(() => {
     setViewIndex(0);
+    setPickerOpen(false);
   }, [selectedStudentId]);
 
   const onEditPane = canEdit && viewIndex === 0;
@@ -179,6 +205,53 @@ export function SessionNotesBoard({
           Next session <ChevronRight className="size-4" />
         </button>
 
+        {/* Calendar: jump straight to any attended session */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setPickerOpen((o) => !o)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border-warm px-3 py-1.5 text-sm text-black hover:bg-surface-paper"
+          >
+            <CalendarDays className="size-4 text-mathitude-purple" /> Pick session
+          </button>
+          {pickerOpen && (
+            <div className="absolute left-0 top-full z-20 mt-1 max-h-72 w-72 overflow-auto rounded-md border border-border-warm bg-white py-1 shadow-lg">
+              <p className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#8b8589]">
+                Attended sessions
+              </p>
+              {canEdit && (
+                <button
+                  type="button"
+                  onClick={() => { setViewIndex(0); setPickerOpen(false); }}
+                  className={cn(
+                    "flex w-full items-center px-3 py-1.5 text-left text-sm text-mathitude-purple hover:bg-surface-paper",
+                    onEditPane && "bg-surface-paper font-medium",
+                  )}
+                >
+                  Current / upcoming session
+                </button>
+              )}
+              {notes.map((n, i) => (
+                <button
+                  key={n.id}
+                  type="button"
+                  onClick={() => { setViewIndex(editPane + i); setPickerOpen(false); }}
+                  className={cn(
+                    "flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm text-black hover:bg-surface-paper",
+                    viewIndex === editPane + i && "bg-surface-paper font-medium",
+                  )}
+                >
+                  <span>{formatShort(n.dateTime)}</span>
+                  {wasEdited(n) && <span className="text-[10px] text-[#8b8589]">edited</span>}
+                </button>
+              ))}
+              {notes.length === 0 && (
+                <p className="px-3 py-2 text-xs text-[#8b8589]">No attended sessions yet.</p>
+              )}
+            </div>
+          )}
+        </div>
+
         <span className="text-[15px] text-black">
           {onEditPane ? (
             <span className="font-medium text-mathitude-purple">
@@ -238,6 +311,11 @@ export function SessionNotesBoard({
         ) : pastNote ? (
           <>
             <span className="text-black">{pastNote.durationMin} min</span>
+            {wasEdited(pastNote) && (
+              <span className="text-xs text-[#8b8589]">
+                Last updated {formatDateTime(pastNote.updatedAt)}
+              </span>
+            )}
             {pastNote.groupLabel && (
               <span className="rounded bg-[#8b8589]/10 px-2 py-0.5 text-xs text-[#8b8589]">
                 {pastNote.groupLabel}
@@ -276,7 +354,7 @@ export function SessionNotesBoard({
                   onCreateShortcut={onCreateShortcut}
                 />
               ) : (
-                <div className="min-h-[42vh] overflow-auto rounded-md border border-border-warm bg-white px-4 py-3">
+                <div className="min-h-[52vh] overflow-auto rounded-md border border-border-warm bg-white px-4 py-3">
                   <RichTextView html={pastNote?.[c] ?? ""} />
                 </div>
               )}

@@ -265,7 +265,7 @@ export function RichTextEditor({
         onBlur={() => setTimeout(() => setMention(null), 150)}
         data-placeholder={placeholder}
         className={cn(
-          "min-h-[38vh] px-4 py-3 text-[15px] leading-7 text-[#1a1a1a] outline-none",
+          "min-h-[52vh] px-4 py-3 text-[15px] leading-7 text-[#1a1a1a] outline-none",
           "[&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1 [&_a]:text-mathitude-purple [&_a]:underline",
           "empty:before:text-zinc-500 empty:before:content-[attr(data-placeholder)]",
         )}

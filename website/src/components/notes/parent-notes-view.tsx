@@ -7,7 +7,7 @@ import type { SessionNote } from "@/lib/session-notes";
 // Parent/student notes view (FEATURE_LIST N-9) — matches PARENT_VIEWING_NOTES.png:
 // a warm, per-session stacked layout (not the staff spreadsheet). Each session
 // is a block with a centered date heading and two labelled sections,
-// "Activities" and "Notes", separated by a Hitomezashi-stitch divider. Only the
+// "Activities" and "Notes", separated by a subtle sine-wave divider. Only the
 // two family-facing fields are ever shown.
 
 function formatLong(iso: string): string {
@@ -18,20 +18,20 @@ function formatLong(iso: string): string {
   });
 }
 
-// Decorative stitch band, evoking the Hitomezashi projects Paula runs. Pure CSS
-// (a woven grid of short dashes) so there's no asset to ship.
-function StitchDivider() {
+// A quiet, math-flavored session divider: a single sine wave in brand purple
+// at low opacity. Subtle, on-brand, not gaudy.
+function MathDivider() {
   return (
-    <div
-      aria-hidden
-      className="mx-auto my-2 h-3 w-40 opacity-70"
-      style={{
-        color: "#8b8589",
-        backgroundImage:
-          "repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 8px), repeating-linear-gradient(0deg, currentColor 0 2px, transparent 2px 8px)",
-        backgroundSize: "8px 8px",
-      }}
-    />
+    <div aria-hidden className="my-6 flex justify-center text-mathitude-purple/35">
+      <svg width="180" height="20" viewBox="0 0 180 20" fill="none">
+        <path
+          d="M2 10 q 11 -7 22 0 t 22 0 t 22 0 t 22 0 t 22 0 t 22 0 t 22 0 t 22 0"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </svg>
+    </div>
   );
 }
 
@@ -59,7 +59,7 @@ export function ParentNotesView({
 
       {notes.map((n, i) => (
         <React.Fragment key={n.id}>
-          {i > 0 && <StitchDivider />}
+          {i > 0 && <MathDivider />}
           <section className="py-8">
             <h2 className="text-center text-lg font-semibold text-mathitude-purple">
               {formatLong(n.dateTime)}
