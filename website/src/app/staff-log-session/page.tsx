@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { SessionNotesBoard } from "@/components/notes/session-notes-board";
+import { ParentNotesView } from "@/components/notes/parent-notes-view";
 import type { MentionShortcut } from "@/components/notes/rich-text";
 import {
   type PortalRole,
@@ -134,16 +135,50 @@ export default function StaffLogSessionPage() {
         </span>
       </div>
 
-      <SessionNotesBoard
-        role={role}
-        students={DEMO_STUDENTS}
-        selectedStudentId={selectedStudentId}
-        onSelectStudent={setSelectedStudentId}
-        notes={notes}
-        shortcuts={shortcuts}
-        onSaveNote={handleSave}
-        onCreateShortcut={handleCreateShortcut}
-      />
+      {/* Families (parent/student) get the warm card view; staff/tutor get the
+          logging board. Same data + role gating, role-appropriate layout. */}
+      {role === "parent" || role === "student" ? (
+        <>
+          {role === "parent" && (
+            <div className="mb-3 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-xs text-text-muted">
+                Child
+                <select
+                  value={selectedStudentId}
+                  onChange={(e) => setSelectedStudentId(e.target.value)}
+                  className="rounded-md border border-border-warm bg-white px-2 py-1 text-xs"
+                >
+                  {DEMO_STUDENTS.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.firstName} {s.lastName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
+          <ParentNotesView
+            studentName={
+              (() => {
+                const s = DEMO_STUDENTS.find((x) => x.id === selectedStudentId);
+                return s ? `${s.firstName} ${s.lastName}` : "";
+              })()
+            }
+            notes={notes}
+          />
+        </>
+      ) : (
+        <SessionNotesBoard
+          role={role}
+          students={DEMO_STUDENTS}
+          selectedStudentId={selectedStudentId}
+          onSelectStudent={setSelectedStudentId}
+          notes={notes}
+          shortcuts={shortcuts}
+          onSaveNote={handleSave}
+          onCreateShortcut={handleCreateShortcut}
+        />
+      )}
     </main>
   );
 }
