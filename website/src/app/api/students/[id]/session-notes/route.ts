@@ -96,10 +96,10 @@ async function upsert(
   const authz = await authorize(id);
   if (authz.response) return authz.response;
   const actor = authz.actor!;
-  // Only tutors + admins author/edit (R-4: office staff view-only on notes is
-  // enforced upstream; tutors here are scope-checked). Parents/students never.
-  if (!actor.isAdmin && actor.role !== "tutor") {
-    return forbidden("Only tutors and admins can write session notes.");
+  // Only Tutors + Super Admin author/edit (#4). Office staff (isAdmin but not
+  // isMaster) are view-only on notes; parents/students never write.
+  if (!actor.isMaster && actor.role !== "tutor") {
+    return forbidden("Only tutors and the super admin can write session notes.");
   }
   if (authz.scope === "limited") {
     // A limited instructor may still log their own group-session notes.

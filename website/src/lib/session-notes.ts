@@ -144,10 +144,12 @@ export const VISIBLE_FIELDS: Record<PortalRole, NoteField[]> = {
   student: ["sessionActivities", "publicNotes"],
 };
 
-// Who may author/edit notes (staff side only).
+// Who may author/edit notes (#4): only Tutors + Super Admin. Office staff can
+// VIEW all four columns (N-8) but are view-only on notes; parents/students
+// never author.
 export const CAN_EDIT_NOTES: Record<PortalRole, boolean> = {
   super_admin: true,
-  office_staff: true,
+  office_staff: false,
   tutor: true,
   parent: false,
   student: false,
