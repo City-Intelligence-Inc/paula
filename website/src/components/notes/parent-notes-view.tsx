@@ -18,18 +18,29 @@ function formatLong(iso: string): string {
   });
 }
 
-// A quiet, math-flavored session divider: a single sine wave in brand purple
-// at low opacity. Subtle, on-brand, not gaudy.
+// Math-flavored session divider: an actual sine wave (purple) with a cosine
+// wave (taupe) overlaid a quarter-phase ahead. Computed from Math.sin/cos so
+// they read unmistakably as waves. On-brand, playful, still tasteful.
 function MathDivider() {
+  const W = 200;
+  const mid = 20;
+  const amp = 13;
+  const periods = 2;
+  const wave = (phase: number) => {
+    const pts: string[] = [];
+    for (let x = 0; x <= W; x += 4) {
+      const y = mid - amp * Math.sin((x / W) * periods * 2 * Math.PI + phase);
+      pts.push(`${x} ${y.toFixed(1)}`);
+    }
+    return "M" + pts.join(" L");
+  };
   return (
-    <div aria-hidden className="my-6 flex justify-center text-mathitude-purple/35">
-      <svg width="180" height="20" viewBox="0 0 180 20" fill="none">
-        <path
-          d="M2 10 q 11 -7 22 0 t 22 0 t 22 0 t 22 0 t 22 0 t 22 0 t 22 0 t 22 0"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
+    <div aria-hidden className="my-7 flex justify-center">
+      <svg width="200" height="40" viewBox="0 0 200 40" fill="none">
+        {/* sine */}
+        <path d={wave(0)} stroke="#7030A0" strokeWidth="2" strokeLinecap="round" opacity="0.65" />
+        {/* cosine (sine shifted +90°) */}
+        <path d={wave(Math.PI / 2)} stroke="#8b8589" strokeWidth="2" strokeLinecap="round" opacity="0.55" />
       </svg>
     </div>
   );

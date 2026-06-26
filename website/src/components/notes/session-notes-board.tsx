@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays, LayoutList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { RichTextEditor, RichTextView, type MentionShortcut } from "./rich-text";
@@ -99,6 +99,7 @@ export function SessionNotesBoard({
   const slotCount = editPane + notes.length;
   const [viewIndex, setViewIndex] = React.useState(0);
   const [pickerOpen, setPickerOpen] = React.useState(false);
+  const [viewAll, setViewAll] = React.useState(false);
 
   // Keep the pointer valid when the student / scope changes.
   React.useEffect(() => {
@@ -186,6 +187,10 @@ export function SessionNotesBoard({
         )}
       </div>
 
+      {viewAll ? (
+        <CompareAll notes={notes} columns={columns} onExit={() => setViewAll(false)} />
+      ) : (
+      <>
       {/* Pager bar */}
       <div className="flex flex-wrap items-center gap-3 border-b border-border-warm px-5 py-2.5">
         <button
@@ -381,6 +386,87 @@ export function SessionNotesBoard({
           >
             Cancel
           </button>
+        </div>
+      )}
+
+      {/* View-all toggle — Sara's compare-all history */}
+      <div className="border-t border-border-warm px-5 py-3">
+        <button
+          type="button"
+          onClick={() => setViewAll(true)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border-warm px-3 py-1.5 text-sm text-black hover:bg-surface-paper"
+        >
+          <LayoutList className="size-4 text-mathitude-purple" /> View all sessions
+        </button>
+      </div>
+      </>
+      )}
+    </div>
+  );
+}
+
+// Compare-all history view (Sara's original): every session stacked as rows,
+// fields as columns, read-only, scrollable — for comparing across sessions.
+function CompareAll({
+  notes,
+  columns,
+  onExit,
+}: {
+  notes: SessionNote[];
+  columns: (keyof SessionNoteFields)[];
+  onExit: () => void;
+}) {
+  const grid = `150px repeat(${columns.length}, minmax(0, 1fr))`;
+  return (
+    <div>
+      <div className="flex items-center justify-between border-b border-border-warm px-5 py-2.5">
+        <span className="text-[15px] font-medium text-black">All sessions — compare</span>
+        <button
+          type="button"
+          onClick={onExit}
+          className="rounded-md border border-border-warm px-3 py-1.5 text-sm text-black hover:bg-surface-paper"
+        >
+          Single session view
+        </button>
+      </div>
+      {notes.length === 0 ? (
+        <p className="px-5 py-12 text-center text-[15px] text-[#8b8589]">No session notes yet.</p>
+      ) : (
+        <div className="max-h-[72vh] overflow-auto">
+          <div
+            className="sticky top-0 z-10 grid border-b border-border-warm bg-white"
+            style={{ gridTemplateColumns: grid }}
+          >
+            <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[#8b8589]">
+              Session
+            </div>
+            {columns.map((c) => (
+              <div key={c} className="border-l border-border-warm px-3 py-2 text-sm font-semibold text-black">
+                {NOTE_FIELDS[c].label}
+              </div>
+            ))}
+          </div>
+          {notes.map((n) => (
+            <div key={n.id} className="grid border-b border-border-warm" style={{ gridTemplateColumns: grid }}>
+              <div className="px-3 py-3">
+                <div className="text-sm font-medium text-black">{formatShort(n.dateTime)}</div>
+                <div className="text-[11px] text-[#8b8589]">{n.durationMin} min</div>
+                {wasEdited(n) && (
+                  <div className="text-[10px] text-[#8b8589]">edited {formatShort(n.updatedAt)}</div>
+                )}
+                {n.groupLabel && (
+                  <div className="mt-1 inline-block rounded bg-[#8b8589]/10 px-1.5 py-0.5 text-[10px] text-[#8b8589]">
+                    {n.groupLabel}
+                  </div>
+                )}
+              </div>
+              {columns.map((c) => (
+                <div key={c} className="border-l border-border-warm px-3 py-3">
+                  <RichTextView html={n[c] ?? ""} className="text-sm leading-6" />
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       )}
     </div>
