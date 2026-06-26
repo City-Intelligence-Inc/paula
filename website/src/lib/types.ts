@@ -83,11 +83,25 @@ export interface Session {
   date: string; // YYYY-MM-DD for GSI
   time: string; // HH:MM for GSI
   duration: number; // minutes
-  type: "individual" | "group" | "note";
+  type: "individual" | "group" | "note" | "session-note";
   status: "scheduled" | "completed" | "cancelled";
   notes?: string;
   privateNotes?: string;
   content?: string; // for session notes
+  // ---- Session Notes v3 (FEATURE_LIST N-1..N-9) ----
+  // Stored on type:"session-note" items, one per student per session (the
+  // sessions table is keyed by studentId, so a GROUP session fans out into
+  // one item per student tied together by `noteGroupId`). The three SHARED
+  // fields below carry identical content across a group's items; `privateNotes`
+  // (above) stays per-student. Field-level visibility is enforced server-side
+  // (lib/server/access.ts noteFieldsForRole): parents/students only ever
+  // receive sessionActivities + publicNotes.
+  sessionPlan?: string; // shared — staff-only
+  sessionActivities?: string; // shared — visible to family
+  publicNotes?: string; // shared — parent/student-facing
+  noteGroupId?: string; // links the per-student items of one group session
+  createdBy?: string; // author id (tutor/staff)
+  readyToNotify?: boolean; // Submit sets this; Ari's notifier sends the email
   students?: string[]; // for group sessions, list of student IDs
   // Post-session form extensions (5/17 spec):
   offering?: SessionOffering;
@@ -141,6 +155,22 @@ export interface Resource {
   linkText?: string;
   href?: string;
   tags?: string[];
+}
+
+// N-5: a reusable, org-wide shortcut a tutor can drop into a note by typing
+// `@`. Stored in the existing `resources` table under a dedicated partition
+// (category: "tutor-shortcut") so no new infra is needed. `shortcut` is the
+// searchable key Paula described ("Straws 1", "Spacers for the Rhombi ball").
+// Any tutor/staff may create; only Super Admin may delete (a shortcut others
+// rely on shouldn't vanish from under them).
+export interface NoteResource {
+  category: "tutor-shortcut";
+  id: string;
+  shortcut: string; // e.g. "Straws 1"
+  label: string; // display text of the inserted chip
+  href: string; // the underlying link
+  createdBy: string;
+  createdAt: string;
 }
 
 // ---------------------------------------------------------

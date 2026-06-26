@@ -139,3 +139,28 @@ export function filterSessionsForLimitedTutor(
     return s.type === "group";
   });
 }
+
+// Session-note field visibility (FEATURE_LIST N-8/N-9). Staff (admin +
+// tutors) see all four columns; parents and students receive ONLY the two
+// shared, family-facing fields. This strips the staff-only fields server-side
+// so they never cross the wire to a family member — never rely on the client
+// to hide them.
+export function stripStaffOnlyNoteFields<T extends object>(note: T): T {
+  const { sessionPlan: _sp, privateNotes: _pn, ...rest } = note as Record<
+    string,
+    unknown
+  >;
+  void _sp;
+  void _pn;
+  return rest as T;
+}
+
+// Apply note visibility for a resolved actor: staff get the full note,
+// parents/students get the family-facing subset.
+export function noteForActor<T extends object>(
+  actor: Pick<Actor, "isAdmin" | "role">,
+  note: T,
+): T {
+  if (actor.isAdmin || actor.role === "tutor") return note;
+  return stripStaffOnlyNoteFields(note);
+}
