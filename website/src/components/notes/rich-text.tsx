@@ -28,7 +28,11 @@ export function sanitizeNoteHtml(html: string): string {
   let s = html
     .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
     .replace(/<\/?(script|style)\b[^>]*>/gi, "")
-    .replace(/<!--[\s\S]*?-->/g, "");
+    .replace(/<!--[\s\S]*?-->/g, "")
+    // Drop a trailing, UNCLOSED tag (no closing `>`). Without this a malformed
+    // `<a href="javascript:...">`-with-no-`>` skips the allowlist pass below
+    // (which requires a closing `>`) and survives verbatim.
+    .replace(/<\/?[a-zA-Z][^>]*$/g, "");
 
   s = s.replace(
     /<(\/?)([a-zA-Z][a-zA-Z0-9]*)([^>]*)>/g,
