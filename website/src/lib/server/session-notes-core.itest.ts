@@ -1,0 +1,163 @@
+// Integration tests — exercise the real session-notes core against a local
+// in-memory DynamoDB (dynalite). These prove BEHAVIOR (RBAC denials + actual
+// persistence), not just rule constants. Run with dynalite up:
+//
+//   npm run db:local      # in one shell (dynalite on :8000)
+//   npm run test:integration
+//
+// Named *.itest.ts so the default `npm test` (pure unit tests, no DB) skips it.
+import { test, describe, before } from "node:test";
+import assert from "node:assert/strict";
+import {
+  DynamoDBClient,
+  CreateTableCommand,
+  DeleteTableCommand,
+} from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  listSessionNotes,
+  upsertSessionNote,
+  type NoteActor,
+  type NoteDeps,
+} from "./session-notes-core.ts";
+
+const ENDPOINT = process.env.AWS_ENDPOINT_URL_DYNAMODB || "http://localhost:8000";
+const tables = { sessions: "itest-sessions", students: "itest-students" };
+
+let deps: NoteDeps;
+
+const superAdmin: NoteActor = { userId: "sa", role: "master_admin", isAdmin: true, isMaster: true };
+const officeStaff: NoteActor = { userId: "os", role: "admin", isAdmin: true, isMaster: false };
+const parent: NoteActor = { userId: "pa", role: "parent", isAdmin: false, isMaster: false };
+const tutorSam: NoteActor = { userId: "sam_uid", role: "tutor", isAdmin: false, isMaster: false, tutorId: "tutor_sam" };
+const tutorUnassigned: NoteActor = { userId: "no_uid", role: "tutor", isAdmin: false, isMaster: false, tutorId: "tutor_none" };
+const tutorLimited: NoteActor = { userId: "lim_uid", role: "tutor", isAdmin: false, isMaster: false, tutorId: "tutor_lim" };
+
+before(async () => {
+  const raw = new DynamoDBClient({
+    endpoint: ENDPOINT,
+    region: "us-west-2",
+    credentials: { accessKeyId: "local", secretAccessKey: "local" },
+  });
+  const db = DynamoDBDocumentClient.from(raw, {
+    marshallOptions: { removeUndefinedValues: true },
+  });
+  deps = { db, tables };
+
+  // Drop + recreate for a clean slate, so the suite is idempotent whether
+  // dynalite is fresh or warm from a previous run.
+  const mk = async (name: string, keys: { name: string; key: "HASH" | "RANGE" }[]) => {
+    await raw
+      .send(new DeleteTableCommand({ TableName: name }))
+      .catch((e) => {
+        if (!/not found|ResourceNotFound|does not exist/i.test(String(e))) throw e;
+      });
+    await raw.send(
+      new CreateTableCommand({
+        TableName: name,
+        BillingMode: "PAY_PER_REQUEST",
+        AttributeDefinitions: keys.map((k) => ({ AttributeName: k.name, AttributeType: "S" })),
+        KeySchema: keys.map((k) => ({ AttributeName: k.name, KeyType: k.key })),
+      }),
+    );
+  };
+
+  await mk(tables.sessions, [
+    { name: "studentId", key: "HASH" },
+    { name: "dateTime", key: "RANGE" },
+  ]);
+  await mk(tables.students, [{ name: "id", key: "HASH" }]);
+
+  // Seed students: Robin (tutor_sam, full) and a limited-scope class student.
+  await db.send(new PutCommand({ TableName: tables.students, Item: { id: "stu_robin", tutorIds: ["tutor_sam"] } }));
+  await db.send(
+    new PutCommand({
+      TableName: tables.students,
+      Item: { id: "stu_class", tutorIds: ["tutor_lim"], tutorAccess: [{ tutorId: "tutor_lim", scope: "limited" }] },
+    }),
+  );
+  // Two notes on the limited student: one by tutor_lim, one by someone else.
+  for (const [dt, who] of [["2026-06-01T12:00:00.000Z", "lim_uid"], ["2026-06-08T12:00:00.000Z", "other_uid"]] as const) {
+    await db.send(
+      new PutCommand({
+        TableName: tables.sessions,
+        Item: { studentId: "stu_class", dateTime: dt, date: dt.slice(0, 10), type: "session-note", createdBy: who, publicNotes: "x" },
+      }),
+    );
+  }
+});
+
+// ─────────────────────────────────────────────
+// upsertSessionNote — who can write (#4, R-5)
+// ─────────────────────────────────────────────
+describe("upsertSessionNote (RBAC + persistence)", () => {
+  test("super admin → 201 and the row truly persists with private notes", async () => {
+    const r = await upsertSessionNote(superAdmin, "stu_robin", {
+      dateTime: "2026-06-20T12:00:00.000Z",
+      publicNotes: "<b>great session</b>",
+      privateNotes: "internal only",
+    }, deps);
+    assert.equal(r.status, 201);
+    const got = await deps.db.send(new GetCommand({
+      TableName: tables.sessions,
+      Key: { studentId: "stu_robin", dateTime: "2026-06-20T12:00:00.000Z" },
+    }));
+    assert.equal(got.Item?.type, "session-note");
+    assert.equal(got.Item?.privateNotes, "internal only");
+  });
+
+  test("re-submitting the same dateTime edits in place → 200 (editable, not append)", async () => {
+    const r = await upsertSessionNote(superAdmin, "stu_robin", {
+      dateTime: "2026-06-20T12:00:00.000Z",
+      publicNotes: "edited",
+    }, deps);
+    assert.equal(r.status, 200);
+  });
+
+  test("office staff → 403 (view-only on notes)", async () => {
+    const r = await upsertSessionNote(officeStaff, "stu_robin", { publicNotes: "x" }, deps);
+    assert.equal(r.status, 403);
+  });
+
+  test("parent → 403 (cannot write here)", async () => {
+    const r = await upsertSessionNote(parent, "stu_robin", { publicNotes: "x" }, deps);
+    assert.equal(r.status, 403);
+  });
+
+  test("assigned tutor → 201", async () => {
+    const r = await upsertSessionNote(tutorSam, "stu_robin", {
+      dateTime: "2026-06-21T12:00:00.000Z", publicNotes: "tutor note",
+    }, deps);
+    assert.equal(r.status, 201);
+  });
+
+  test("unassigned tutor → 403 (not in this student's portfolio, R-5)", async () => {
+    const r = await upsertSessionNote(tutorUnassigned, "stu_robin", { publicNotes: "x" }, deps);
+    assert.equal(r.status, 403);
+  });
+});
+
+// ─────────────────────────────────────────────
+// listSessionNotes — who can read + scope filtering
+// ─────────────────────────────────────────────
+describe("listSessionNotes (read access + scope)", () => {
+  test("super admin reads notes for the student → 200", async () => {
+    const r = await listSessionNotes(superAdmin, "stu_robin", deps);
+    assert.equal(r.status, 200);
+    const notes = (r.body as { notes: unknown[] }).notes;
+    assert.ok(notes.length >= 1);
+  });
+
+  test("parent cannot read via this staff/tutor route → 403", async () => {
+    const r = await listSessionNotes(parent, "stu_robin", deps);
+    assert.equal(r.status, 403);
+  });
+
+  test("limited tutor sees only their OWN notes on a class student", async () => {
+    const r = await listSessionNotes(tutorLimited, "stu_class", deps);
+    assert.equal(r.status, 200);
+    const notes = (r.body as { notes: { createdBy: string }[] }).notes;
+    assert.equal(notes.length, 1);
+    assert.equal(notes[0].createdBy, "lim_uid");
+  });
+});

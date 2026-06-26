@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --test 'src/**/*.test.ts'",
+    "test:integration": "node --test 'src/**/*.itest.ts'",
     "db:local": "node scripts/dynalite-server.mjs",
     "db:setup": "node scripts/create-local-tables.mjs && node scripts/seed-local.mjs"
   },

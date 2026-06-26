@@ -77,4 +77,8 @@ the role comes from the signed-in user, not a dropdown.
 
 ## Verification
 
-`npm test` (11/11 pass) · `tsc --noEmit` clean · `eslint` clean · `next build` OK.
+- **Unit** (`npm test`, no DB): pure-function rules — role visibility, scoping, group isolation, sanitizer. Notes suite 55 tests; full repo suite 228, all passing.
+- **Integration** (`npm run db:local` then `npm run test:integration`): the real `session-notes-core` against a local dynalite DynamoDB — proves RBAC *behavior* + persistence (super admin writes & persists; office staff/parent/unassigned-tutor get 403; limited tutor sees only own notes). 9 tests, idempotent.
+- `tsc --noEmit` clean · `eslint` clean · `next build` OK.
+
+**Still needs Ari (not covered by either):** real Clerk auth resolution (the integration tests mock the actor), real AWS DynamoDB, and a browser/E2E smoke per role on staging. The route is now a thin shell over the integration-tested `lib/server/session-notes-core.ts`, so the live wiring is small.
