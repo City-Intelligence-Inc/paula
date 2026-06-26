@@ -18,46 +18,48 @@ const ALLOWED_TAGS = new Set([
   "B", "STRONG", "I", "EM", "U", "UL", "OL", "LI", "A", "BR", "P", "SPAN", "DIV",
 ]);
 
+// Allowlist sanitizer that runs IDENTICALLY on server and client — no DOM
+// dependency — so SSR and hydration produce the same markup (a `typeof window`
+// branch here was the original hydration-mismatch bug). Drops disallowed tags
+// (keeping their text), strips every attribute except a safe href on <a>, and
+// removes <script>/<style>/comments outright. Used on both write and read.
 export function sanitizeNoteHtml(html: string): string {
-  if (typeof window === "undefined" || !html) return stripTagsServer(html);
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  const walk = (node: Node) => {
-    const children = Array.from(node.childNodes);
-    for (const child of children) {
-      if (child.nodeType === Node.ELEMENT_NODE) {
-        const el = child as HTMLElement;
-        if (!ALLOWED_TAGS.has(el.tagName)) {
-          // Unwrap disallowed elements: keep their text, drop the tag.
-          el.replaceWith(...Array.from(el.childNodes));
-          continue;
+  if (!html) return "";
+  let s = html
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "")
+    .replace(/<\/?(script|style)\b[^>]*>/gi, "")
+    .replace(/<!--[\s\S]*?-->/g, "");
+
+  s = s.replace(
+    /<(\/?)([a-zA-Z][a-zA-Z0-9]*)([^>]*)>/g,
+    (_m, slash: string, tag: string, attrs: string) => {
+      const upper = tag.toUpperCase();
+      if (!ALLOWED_TAGS.has(upper)) return ""; // drop the tag, keep inner text
+      if (slash) return `</${tag.toLowerCase()}>`;
+      if (upper === "A") {
+        const m = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(attrs);
+        const href = (m && (m[1] ?? m[2] ?? m[3])) || "";
+        if (href && isSafeHref(href)) {
+          return `<a href="${escapeAttr(href)}" target="_blank" rel="noopener noreferrer">`;
         }
-        // Strip every attribute except a safe href on <a>.
-        for (const attr of Array.from(el.attributes)) {
-          if (el.tagName === "A" && attr.name === "href" && isSafeHref(attr.value)) {
-            continue;
-          }
-          el.removeAttribute(attr.name);
-        }
-        if (el.tagName === "A") {
-          el.setAttribute("target", "_blank");
-          el.setAttribute("rel", "noopener noreferrer");
-        }
-        walk(el);
+        return "<a>";
       }
-    }
-  };
-  walk(doc.body);
-  return doc.body.innerHTML;
+      return `<${tag.toLowerCase()}>`;
+    },
+  );
+  return s;
 }
 
 function isSafeHref(href: string): boolean {
   return /^(https?:|mailto:)/i.test(href.trim());
 }
 
-// Server-side / no-DOM fallback: strip all tags to plain text rather than risk
-// rendering unsanitized markup.
-function stripTagsServer(html: string): string {
-  return (html || "").replace(/<[^>]*>/g, "");
+function escapeAttr(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 export function RichTextView({
