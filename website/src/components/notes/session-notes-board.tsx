@@ -106,7 +106,7 @@ export function SessionNotesBoard({
   return (
     <div className="rounded-lg border border-border-warm bg-surface-card">
       {/* Top bar — mirrors the STAFF_LOG_NOTES mockup header */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-border-warm bg-surface-paper px-4 py-3">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-border-warm bg-[#FBF7F0] px-4 py-3">
         <label className="flex items-center gap-2 text-sm">
           <span className="text-text-muted">Student</span>
           <select

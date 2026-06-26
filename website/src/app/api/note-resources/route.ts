@@ -58,6 +58,20 @@ export async function POST(request: Request) {
     return Response.json({ error: "href must be http(s)" }, { status: 400 });
   }
 
+  // Dedupe by shortcut name (case-insensitive) — a shared shortcut shouldn't
+  // exist twice. Return the existing one instead of creating a duplicate.
+  const existing = await ddb().send(
+    new QueryCommand({
+      TableName: Tables.resources,
+      KeyConditionExpression: "category = :c",
+      ExpressionAttributeValues: { ":c": SHORTCUT_CATEGORY },
+    }),
+  );
+  const dup = ((existing.Items as NoteResource[]) || []).find(
+    (r) => r.shortcut.toLowerCase() === shortcut.toLowerCase(),
+  );
+  if (dup) return Response.json({ resource: dup }, { status: 200 });
+
   const now = new Date().toISOString();
   const resource: NoteResource = {
     category: "tutor-shortcut",

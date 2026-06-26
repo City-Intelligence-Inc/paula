@@ -141,7 +141,17 @@ export function RichTextEditor({
 
   const addLink = () => {
     const url = window.prompt("Link URL (https://…)");
-    if (url && isSafeHref(url)) exec("createLink", url);
+    if (!url || !isSafeHref(url)) return;
+    exec("createLink", url);
+    // N-5 (Paula #8): when a link is added, offer to save it as a reusable
+    // shortcut available to all tutors via the @-menu.
+    if (
+      onCreateShortcut &&
+      window.confirm("Save this link as a reusable @-shortcut for all tutors?")
+    ) {
+      const name = window.prompt("Shortcut name (e.g. 'Straws 1')")?.trim();
+      if (name) onCreateShortcut(name, url);
+    }
   };
 
   // Detect an `@query` token immediately before the caret and position the
