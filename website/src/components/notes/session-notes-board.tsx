@@ -134,10 +134,18 @@ export function SessionNotesBoard({
 
   function submit() {
     setSaving(true);
-    const dateTime = editingDateTime || new Date(`${date}T${time}:00`).toISOString();
+    const wasEditing = editingDateTime; // null = new session
+    const dateTime = wasEditing || new Date(`${date}T${time}:00`).toISOString();
     onSaveNote(draft, { dateTime, durationMin });
     setSaving(false);
     resetDraft();
+    // After editing a past session, stay on it (read-only) so the user can see
+    // their edits instead of bouncing back to the empty current-session pane.
+    // (Position is unchanged because editing keeps the same dateTime.)
+    if (wasEditing) {
+      const idx = notes.findIndex((n) => n.dateTime === wasEditing);
+      if (idx >= 0) setViewIndex(editPane + idx);
+    }
   }
 
   const gridCols = `repeat(${columns.length}, minmax(0, 1fr))`;
