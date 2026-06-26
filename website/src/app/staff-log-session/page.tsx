@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { Navbar } from "@/components/sections/navbar";
+import { Footer } from "@/components/sections/footer";
 import { SessionNotesBoard } from "@/components/notes/session-notes-board";
 import { ParentNotesView } from "@/components/notes/parent-notes-view";
 import type { MentionShortcut } from "@/components/notes/rich-text";
@@ -130,16 +132,20 @@ export default function StaffLogSessionPage() {
   const isFamily = role === "parent" || role === "student";
 
   return (
-    // Operator portal surface: warm cream per DESIGN.md (the brand is warmth),
-    // applied locally rather than via the global --color-surface-paper token,
-    // which has drifted to a cool gray (#F4F4F5) — flagged for a team decision.
-    <main className="min-h-screen bg-[#FBF7F0] px-4 py-8">
-      <div className="mx-auto max-w-[1152px]">
+    // Branding kit: white neutral, purple titles (Original Surfer), taupe-grey
+    // accents, black headings/body. Marketing nav/footer per Sara's mockup.
+    <>
+      <Navbar />
+      <main className="flex-1 bg-white">
+        <div className="mx-auto max-w-[1152px] px-4 py-8">
       <header className="mb-5">
-        <h1 className="text-2xl font-medium tracking-tight text-text-primary">
+        <h1
+          className="text-3xl text-[#7030A0]"
+          style={{ fontFamily: "var(--font-original-surfer)" }}
+        >
           Session Notes
         </h1>
-        <p className="mt-1 text-sm text-text-muted">
+        <p className="mt-1 text-sm text-[#8b8589]">
           Log a session and review history. MVP on synthetic data — no real
           student information.
         </p>
@@ -266,7 +272,9 @@ export default function StaffLogSessionPage() {
           onCreateShortcut={handleCreateShortcut}
         />
       )}
-      </div>
-    </main>
+        </div>
+      </main>
+      <Footer />
+    </>
   );
 }

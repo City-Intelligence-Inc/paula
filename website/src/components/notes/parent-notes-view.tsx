@@ -26,7 +26,7 @@ function StitchDivider() {
       aria-hidden
       className="mx-auto my-2 h-3 w-40 opacity-70"
       style={{
-        color: "var(--color-mathitude-teal)",
+        color: "#8b8589",
         backgroundImage:
           "repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 8px), repeating-linear-gradient(0deg, currentColor 0 2px, transparent 2px 8px)",
         backgroundSize: "8px 8px",
