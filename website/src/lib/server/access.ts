@@ -65,6 +65,10 @@ export async function resolveActor(): Promise<ResolvedActor> {
   };
 }
 
+export async function findTutorByEmail(userId: string, email: string): Promise<Tutor | null> {
+  return findTutor(userId, email);
+}
+
 async function findTutor(userId: string, email: string): Promise<Tutor | null> {
   try {
     const cu = await currentUser().catch(() => null);
@@ -124,6 +128,33 @@ export function stripPricingFromSession<T extends Record<string, unknown>>(
   void _a;
   void _p;
   return rest as T;
+}
+
+// Gate check: is this email known to the system as a parent (either directly
+// via the parents table, or as a student's parentEmail)?
+export async function isKnownParentEmail(email: string): Promise<boolean> {
+  const e = email.trim().toLowerCase();
+  try {
+    const [parentsRes, studentsRes] = await Promise.all([
+      ddb().send(new ScanCommand({
+        TableName: Tables.parents,
+        ProjectionExpression: "email",
+      })),
+      ddb().send(new ScanCommand({
+        TableName: Tables.students,
+        ProjectionExpression: "parentEmail",
+      })),
+    ]);
+    const inParents = (parentsRes.Items || []).some(
+      (p) => typeof p.email === "string" && p.email.trim().toLowerCase() === e,
+    );
+    if (inParents) return true;
+    return (studentsRes.Items || []).some(
+      (s) => typeof s.parentEmail === "string" && s.parentEmail.trim().toLowerCase() === e,
+    );
+  } catch {
+    return false;
+  }
 }
 
 // Filter a student's sessions/notes down to what a "limited" class instructor

@@ -88,9 +88,7 @@ export default function DashboardPage() {
       <div className="mt-10 p-5 rounded-lg bg-neutral-50 border border-neutral-200">
         <p className="text-sm text-neutral-600">
           <span className="font-medium text-neutral-900">Need help?</span>{" "}
-          Call us at{" "}
-          <a href="tel:5102052633" className="font-medium text-neutral-900 hover:underline underline-offset-4">510.205.2633</a>
-          {" "}or email{" "}
+          Email{" "}
           <a href="mailto:info@mathitude.com" className="font-medium text-neutral-900 hover:underline underline-offset-4">info@mathitude.com</a>
         </p>
       </div>
