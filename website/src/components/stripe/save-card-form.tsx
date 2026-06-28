@@ -55,7 +55,7 @@ function useStripePromise() {
   return { promise, configured, modeMismatch };
 }
 
-function CardForm({ parentId }: { parentId?: string }) {
+function CardForm({ parentId, onSuccess }: { parentId?: string; onSuccess?: () => void }) {
   const stripe = useStripe();
   const elements = useElements();
   const fetchApi = useApi();
@@ -130,6 +130,7 @@ function CardForm({ parentId }: { parentId?: string }) {
         }
         setSuccess(true);
         setMessage("Card saved. This parent now has one card on file.");
+        onSuccess?.();
         // Notify the panel so it reloads from Stripe + clears any draft state.
         // No hard reload — the panel handles re-render and the user can
         // continue staging default/remove changes for Save Changes.
@@ -222,10 +223,12 @@ export function SaveCardForm({
   parentId,
   hideHeader = false,
   fullWidth = false,
+  onSuccess,
 }: {
   parentId?: string;
   hideHeader?: boolean;
   fullWidth?: boolean;
+  onSuccess?: () => void;
 } = {}) {
   const { promise, configured, modeMismatch } = useStripePromise();
   // Default: centered max-w-md (parent dashboard). Inside an admin family
@@ -246,7 +249,7 @@ export function SaveCardForm({
 
       {configured && promise ? (
         <Elements stripe={promise}>
-          <CardForm parentId={parentId} />
+          <CardForm parentId={parentId} onSuccess={onSuccess} />
         </Elements>
       ) : configured === false ? (
         <NotConfigured modeMismatch={modeMismatch} />

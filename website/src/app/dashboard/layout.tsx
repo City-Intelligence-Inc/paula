@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard/shell";
 import { isAdminEmail } from "@/lib/server/admins";
 import { isKnownParentEmail, findTutorByEmail } from "@/lib/server/access";
-import { sendAdminNotification } from "@/lib/server/notify";
 
 export default async function DashboardLayout({
   children,
@@ -32,16 +31,7 @@ export default async function DashboardLayout({
     ]);
 
     if (!isTutor && !isParent) {
-      // Fire-and-forget — don't block the redirect on email delivery
-      sendAdminNotification({
-        subject: "⚠️ Unauthorized login attempt",
-        html: `<p>Someone signed into Mathitude who has not been added to the system.</p>
-<p><strong>Email:</strong> ${email}</p>
-<p>If this person should have access, add them as a parent or tutor in the admin portal first.</p>`,
-        text: `Unauthorized login attempt.\n\nEmail: ${email}\n\nIf this person should have access, add them as a parent or tutor in the admin portal first.`,
-      }).catch(() => {});
-
-      redirect("/unauthorized");
+      redirect("/onboarding");
     }
   }
 
