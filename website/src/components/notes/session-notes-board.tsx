@@ -99,7 +99,7 @@ export function SessionNotesBoard({
   const slotCount = editPane + notes.length;
   const [viewIndex, setViewIndex] = React.useState(0);
   const [pickerOpen, setPickerOpen] = React.useState(false);
-  const [viewAll, setViewAll] = React.useState(false);
+  const [viewAll, setViewAll] = React.useState(true);
 
   // Keep the pointer valid when the student / scope changes.
   React.useEffect(() => {
