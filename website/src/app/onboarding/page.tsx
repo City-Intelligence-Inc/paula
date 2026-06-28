@@ -5,47 +5,71 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { SaveCardForm } from "@/components/stripe/save-card-form";
 import { GRADE_OPTIONS, gradeLabel } from "@/lib/grades";
-import { CheckCircle2 } from "lucide-react";
 
 const inputClass =
-  "w-full border border-neutral-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7030A0]/30 focus:border-[#7030A0]";
+  "w-full border border-[#E8E3D9] rounded-lg px-4 py-3 text-sm text-[#1A1A2E] bg-white placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#7030A0]/20 focus:border-[#7030A0] transition-colors";
 
-const STEPS = ["Your student", "Payment", "All set"] as const;
+const selectClass =
+  "w-full border border-[#E8E3D9] rounded-lg px-4 py-3 text-sm text-[#1A1A2E] bg-white focus:outline-none focus:ring-2 focus:ring-[#7030A0]/20 focus:border-[#7030A0] transition-colors appearance-none cursor-pointer";
 
-function StepBar({ current }: { current: number }) {
+const STEPS = [
+  { label: "Your student", sub: "Who are we teaching?" },
+  { label: "Payment",      sub: "Secure card on file" },
+  { label: "All set",      sub: "Portal access granted" },
+];
+
+function ProgressBar({ current }: { current: number }) {
   return (
-    <div className="flex items-center gap-0 mb-10">
-      {STEPS.map((label, i) => (
-        <div key={label} className="flex items-center flex-1 last:flex-none">
-          <div className="flex flex-col items-center">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-colors ${
-                i < current
-                  ? "bg-[#7030A0] border-[#7030A0] text-white"
-                  : i === current
-                  ? "border-[#7030A0] text-[#7030A0] bg-white"
-                  : "border-neutral-300 text-neutral-400 bg-white"
-              }`}
-            >
-              {i < current ? "✓" : i + 1}
+    <div className="mb-10">
+      <div className="flex items-center gap-0">
+        {STEPS.map((s, i) => (
+          <div key={s.label} className="flex items-center" style={{ flex: i < STEPS.length - 1 ? "1" : "0" }}>
+            <div className="flex flex-col items-center">
+              <div
+                className="relative flex items-center justify-center"
+                style={{ width: 32, height: 32 }}
+              >
+                {/* ring */}
+                <div
+                  className="absolute inset-0 rounded-full transition-all duration-300"
+                  style={{
+                    background: i < current ? "#7030A0" : i === current ? "white" : "#F5F2EE",
+                    border: i === current ? "2px solid #7030A0" : i < current ? "2px solid #7030A0" : "2px solid #D4CECC",
+                  }}
+                />
+                <span
+                  className="relative text-xs font-semibold"
+                  style={{ color: i < current ? "white" : i === current ? "#7030A0" : "#A8A29E" }}
+                >
+                  {i < current ? (
+                    <svg width="13" height="10" viewBox="0 0 13 10" fill="none">
+                      <path d="M1 5l3.5 3.5L12 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  ) : (
+                    i + 1
+                  )}
+                </span>
+              </div>
+              <span
+                className="mt-2 text-xs font-medium whitespace-nowrap"
+                style={{ color: i === current ? "#7030A0" : i < current ? "#6B6F76" : "#A8A29E" }}
+              >
+                {s.label}
+              </span>
             </div>
-            <span
-              className={`mt-1 text-xs font-medium whitespace-nowrap ${
-                i === current ? "text-[#7030A0]" : i < current ? "text-neutral-600" : "text-neutral-400"
-              }`}
-            >
-              {label}
-            </span>
+            {i < STEPS.length - 1 && (
+              <div
+                className="flex-1 mb-5 mx-2 transition-all duration-500"
+                style={{
+                  height: 2,
+                  background: i < current ? "#7030A0" : "#E8E3D9",
+                  borderRadius: 1,
+                }}
+              />
+            )}
           </div>
-          {i < STEPS.length - 1 && (
-            <div
-              className={`flex-1 h-0.5 mx-2 mb-5 transition-colors ${
-                i < current ? "bg-[#7030A0]" : "bg-neutral-200"
-              }`}
-            />
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -59,7 +83,6 @@ export default function OnboardingPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Step 1 form
   const [studentFirstName, setStudentFirstName] = useState("");
   const [studentLastName, setStudentLastName] = useState("");
   const [grade, setGrade] = useState("K");
@@ -86,156 +109,225 @@ export default function OnboardingPage() {
     }
   }
 
+  const firstName = user?.firstName;
+
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-start justify-center pt-16 px-4 pb-16">
-      <div className="w-full max-w-lg">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-neutral-900 tracking-tight">
-            Welcome to Mathitude{user?.firstName ? `, ${user.firstName}` : ""}
-          </h1>
-          <p className="mt-2 text-sm text-neutral-500">
-            Complete setup to access your family portal.
-          </p>
-        </div>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ background: "#FBF7F0", fontFamily: "'Avenir Next', 'Nunito Sans', system-ui, sans-serif" }}
+    >
+      {/* Top bar */}
+      <header className="flex items-center justify-between px-8 py-5 border-b border-[#E8E3D9] bg-white/60 backdrop-blur-sm">
+        <span
+          className="text-lg font-semibold tracking-tight"
+          style={{ color: "#7030A0", fontFamily: "var(--font-original-surfer, serif)" }}
+        >
+          Mathitude
+        </span>
+        <span className="text-xs text-[#A8A29E]">Family setup</span>
+      </header>
 
-        <StepBar current={step} />
+      <div className="flex-1 flex items-start justify-center px-4 pt-12 pb-20">
+        <div className="w-full" style={{ maxWidth: 480 }}>
 
-        {/* Step 0 — Student info */}
-        {step === 0 && (
-          <div className="bg-white rounded-xl border border-neutral-200 p-6 shadow-sm">
-            <h2 className="text-base font-semibold text-neutral-900 mb-1">
-              Tell us about your student
-            </h2>
-            <p className="text-sm text-neutral-500 mb-5">
-              You can add siblings later from the family portal.
+          {/* Welcome line */}
+          <div className="mb-8">
+            <p className="text-xs font-semibold tracking-widest uppercase text-[#7030A0] mb-2">
+              Getting started
             </p>
+            <h1
+              className="text-2xl font-semibold leading-snug"
+              style={{ color: "#1A1A2E", letterSpacing: "-0.02em" }}
+            >
+              {firstName ? `Welcome, ${firstName}.` : "Welcome."}
+            </h1>
+            <p className="mt-1 text-sm text-[#6B6F76] leading-relaxed">
+              A few quick details and you&apos;ll have full access to your family portal.
+            </p>
+          </div>
 
-            <form onSubmit={submitStep1} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-neutral-600 mb-1">
-                    First name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={studentFirstName}
-                    onChange={(e) => setStudentFirstName(e.target.value)}
-                    className={inputClass}
-                    placeholder="First"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-neutral-600 mb-1">
-                    Last name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={studentLastName}
-                    onChange={(e) => setStudentLastName(e.target.value)}
-                    className={inputClass}
-                    placeholder="Last"
-                  />
-                </div>
-              </div>
+          <ProgressBar current={step} />
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-neutral-600 mb-1">
-                    Grade
-                  </label>
-                  <select
-                    value={grade}
-                    onChange={(e) => setGrade(e.target.value)}
-                    className={inputClass}
-                  >
-                    {GRADE_OPTIONS.map((g) => (
-                      <option key={g} value={g}>
-                        {gradeLabel(g)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-neutral-600 mb-1">
-                    School{" "}
-                    <span className="font-normal text-neutral-400">(optional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={school}
-                    onChange={(e) => setSchool(e.target.value)}
-                    className={inputClass}
-                    placeholder="School name"
-                  />
-                </div>
-              </div>
-
-              {error && (
-                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
-                  {error}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={saving}
-                className="w-full bg-[#7030A0] hover:bg-[#5d288a] text-white text-sm font-medium rounded-md px-4 py-2.5 transition-colors disabled:opacity-60"
+          {/* ── Step 0: student info ── */}
+          {step === 0 && (
+            <form onSubmit={submitStep1}>
+              <div
+                className="rounded-xl bg-white border border-[#E8E3D9] overflow-hidden"
+                style={{ boxShadow: "0 1px 4px rgba(26,26,46,0.06)" }}
               >
-                {saving ? "Saving…" : "Continue"}
-              </button>
+                <div className="px-6 pt-6 pb-2 border-b border-[#E8E3D9]">
+                  <h2 className="text-base font-semibold text-[#1A1A2E]">Your student</h2>
+                  <p className="text-sm text-[#6B6F76] mt-0.5">
+                    Who is Paula teaching?
+                  </p>
+                </div>
+
+                <div className="px-6 py-6 space-y-4">
+                  {/* Name row */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#6B6F76] uppercase tracking-wide mb-1.5">
+                        First name
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={studentFirstName}
+                        onChange={(e) => setStudentFirstName(e.target.value)}
+                        className={inputClass}
+                        placeholder="First"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#6B6F76] uppercase tracking-wide mb-1.5">
+                        Last name
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={studentLastName}
+                        onChange={(e) => setStudentLastName(e.target.value)}
+                        className={inputClass}
+                        placeholder="Last"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Grade */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#6B6F76] uppercase tracking-wide mb-1.5">
+                      Grade
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={grade}
+                        onChange={(e) => setGrade(e.target.value)}
+                        className={selectClass}
+                      >
+                        {GRADE_OPTIONS.map((g) => (
+                          <option key={g} value={g}>{gradeLabel(g)}</option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+                        <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                          <path d="M1 1l5 5 5-5" stroke="#6B6F76" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* School — required */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#6B6F76] uppercase tracking-wide mb-1.5">
+                      School
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={school}
+                      onChange={(e) => setSchool(e.target.value)}
+                      className={inputClass}
+                      placeholder="e.g. Lincoln Elementary"
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="mx-6 mb-4 px-3 py-2 rounded-lg bg-[#FDF2F4] border border-[#F4C2CA] text-sm text-[#B0263C]">
+                    {error}
+                  </div>
+                )}
+
+                <div className="px-6 pb-6">
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="w-full rounded-full py-3 text-sm font-semibold text-white transition-all disabled:opacity-50"
+                    style={{ background: saving ? "#A070C0" : "#7030A0" }}
+                  >
+                    {saving ? "Saving…" : "Continue to payment →"}
+                  </button>
+                </div>
+              </div>
+
+              <p className="mt-4 text-xs text-center text-[#A8A29E]">
+                You can add siblings from the family portal after setup.
+              </p>
             </form>
-          </div>
-        )}
+          )}
 
-        {/* Step 1 — Payment */}
-        {step === 1 && (
-          <div className="bg-white rounded-xl border border-neutral-200 p-6 shadow-sm">
-            <h2 className="text-base font-semibold text-neutral-900 mb-1">
-              Save a payment method
-            </h2>
-            <p className="text-sm text-neutral-500 mb-5">
-              Mathitude charges per session — saving your card now means no
-              extra steps when sessions begin.
-            </p>
-            <SaveCardForm
-              parentId={parentId ?? undefined}
-              hideHeader
-              fullWidth
-              onSuccess={() => setStep(2)}
-            />
-            <button
-              onClick={() => setStep(2)}
-              className="mt-4 w-full text-sm text-neutral-400 hover:text-neutral-600 text-center"
+          {/* ── Step 1: payment ── */}
+          {step === 1 && (
+            <div
+              className="rounded-xl bg-white border border-[#E8E3D9] overflow-hidden"
+              style={{ boxShadow: "0 1px 4px rgba(26,26,46,0.06)" }}
             >
-              Skip for now
-            </button>
-          </div>
-        )}
+              <div className="px-6 pt-6 pb-2 border-b border-[#E8E3D9]">
+                <h2 className="text-base font-semibold text-[#1A1A2E]">Save a card</h2>
+                <p className="text-sm text-[#6B6F76] mt-0.5">
+                  Sessions are charged per booking — save once, no friction later.
+                </p>
+              </div>
 
-        {/* Step 2 — Done */}
-        {step === 2 && (
-          <div className="bg-white rounded-xl border border-neutral-200 p-8 shadow-sm text-center">
-            <div className="flex justify-center mb-4">
-              <CheckCircle2 className="w-12 h-12 text-green-500" />
+              <div className="px-6 py-6">
+                <SaveCardForm
+                  parentId={parentId ?? undefined}
+                  hideHeader
+                  fullWidth
+                  onSuccess={() => setStep(2)}
+                />
+              </div>
+
+              <div className="px-6 pb-6 pt-0">
+                <button
+                  onClick={() => setStep(2)}
+                  className="w-full py-2 text-xs text-[#A8A29E] hover:text-[#6B6F76] transition-colors"
+                >
+                  I&apos;ll add a card later
+                </button>
+              </div>
             </div>
-            <h2 className="text-xl font-semibold text-neutral-900 mb-2">
-              You&apos;re all set!
-            </h2>
-            <p className="text-sm text-neutral-500 mb-6">
-              Paula has been notified and will be in touch to schedule your
-              first session. Your portal is ready.
-            </p>
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="bg-[#7030A0] hover:bg-[#5d288a] text-white text-sm font-medium rounded-md px-6 py-2.5 transition-colors"
+          )}
+
+          {/* ── Step 2: done ── */}
+          {step === 2 && (
+            <div
+              className="rounded-xl bg-white border border-[#E8E3D9] overflow-hidden text-center"
+              style={{ boxShadow: "0 1px 4px rgba(26,26,46,0.06)" }}
             >
-              Go to my portal
-            </button>
-          </div>
-        )}
+              <div
+                className="px-6 pt-10 pb-6"
+                style={{ background: "linear-gradient(to bottom, #F9F5FF, white)" }}
+              >
+                {/* Check mark */}
+                <div
+                  className="mx-auto mb-5 flex items-center justify-center rounded-full"
+                  style={{ width: 56, height: 56, background: "#7030A0" }}
+                >
+                  <svg width="24" height="18" viewBox="0 0 24 18" fill="none">
+                    <path d="M2 9l6.5 6.5L22 2" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <h2 className="text-xl font-semibold text-[#1A1A2E] mb-2" style={{ letterSpacing: "-0.02em" }}>
+                  You&apos;re in.
+                </h2>
+                <p className="text-sm text-[#6B6F76] leading-relaxed max-w-xs mx-auto">
+                  Paula has been notified and will reach out to schedule your first session.
+                </p>
+              </div>
+
+              <div className="px-6 pb-8">
+                <button
+                  onClick={() => router.push("/dashboard")}
+                  className="w-full rounded-full py-3 text-sm font-semibold text-white transition-all"
+                  style={{ background: "#7030A0" }}
+                >
+                  Open my portal
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
