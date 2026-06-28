@@ -68,9 +68,29 @@ export default function StaffLogSessionPage() {
     }
   }, [visibleStudents, selectedStudentId]);
 
-  const [allNotes, setAllNotes] = React.useState<SessionNote[]>(DEMO_NOTES);
-  const [shortcuts, setShortcuts] =
-    React.useState<MentionShortcut[]>(DEMO_SHORTCUTS);
+  const NOTES_KEY = "mathitude_session_notes_v1";
+  const SHORTCUTS_KEY = "mathitude_note_shortcuts_v1";
+
+  const [allNotes, setAllNotes] = React.useState<SessionNote[]>(() => {
+    if (typeof window === "undefined") return DEMO_NOTES;
+    try {
+      const stored = localStorage.getItem(NOTES_KEY);
+      if (stored) return JSON.parse(stored) as SessionNote[];
+    } catch {}
+    // First visit: seed localStorage with demo notes so they persist immediately.
+    try { localStorage.setItem(NOTES_KEY, JSON.stringify(DEMO_NOTES)); } catch {}
+    return DEMO_NOTES;
+  });
+
+  const [shortcuts, setShortcuts] = React.useState<MentionShortcut[]>(() => {
+    if (typeof window === "undefined") return DEMO_SHORTCUTS;
+    try {
+      const stored = localStorage.getItem(SHORTCUTS_KEY);
+      if (stored) return JSON.parse(stored) as MentionShortcut[];
+    } catch {}
+    try { localStorage.setItem(SHORTCUTS_KEY, JSON.stringify(DEMO_SHORTCUTS)); } catch {}
+    return DEMO_SHORTCUTS;
+  });
 
   const notes = React.useMemo(
     () =>
@@ -99,18 +119,16 @@ export default function StaffLogSessionPage() {
         updatedAt: new Date().toISOString(),
         ...fields,
       };
-      if (idx >= 0) {
-        const copy = [...prev];
-        copy[idx] = { ...prev[idx], ...next };
-        return copy;
-      }
-      return [next, ...prev];
+      const updated =
+        idx >= 0
+          ? prev.map((n, i) => (i === idx ? { ...n, ...next } : n))
+          : [next, ...prev];
+      try { localStorage.setItem(NOTES_KEY, JSON.stringify(updated)); } catch {}
+      return updated;
     });
   }
 
   function handleCreateShortcut(shortcut: string, href: string): MentionShortcut {
-    // Dedupe: reuse an existing shortcut with the same name (case-insensitive)
-    // or the same URL, so the shared library doesn't fill with duplicates.
     const existing = shortcuts.find(
       (s) =>
         s.shortcut.toLowerCase() === shortcut.toLowerCase() || s.href === href,
@@ -122,7 +140,11 @@ export default function StaffLogSessionPage() {
       label: shortcut,
       href,
     };
-    setShortcuts((prev) => [...prev, created]);
+    setShortcuts((prev) => {
+      const updated = [...prev, created];
+      try { localStorage.setItem(SHORTCUTS_KEY, JSON.stringify(updated)); } catch {}
+      return updated;
+    });
     return created;
   }
 
