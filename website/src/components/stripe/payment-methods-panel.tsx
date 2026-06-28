@@ -189,6 +189,26 @@ export function PaymentMethodsPanel({ parentId }: { parentId?: string } = {}) {
   }
 
   if (!data?.stripeCustomerId) {
+    if (addingCard) {
+      return (
+        <Card className="border border-[color:var(--color-border-warm)] rounded-lg bg-neutral-50 p-4 slide-down-in">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-neutral-500">
+              Enter the card details. Stripe stores the card; Mathitude never sees the number.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAddingCard(false)}
+              className="border border-neutral-200 text-neutral-700 hover:bg-neutral-50 rounded-md text-xs shrink-0 ml-2"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+          <SaveCardForm parentId={parentId} hideHeader fullWidth />
+        </Card>
+      );
+    }
     return (
       <Card className="border border-dashed border-[color:var(--color-border-warm)] rounded-lg bg-[color:var(--color-surface-card)]/50">
         <CardContent className="py-4 text-sm text-neutral-600 space-y-2">
@@ -203,10 +223,7 @@ export function PaymentMethodsPanel({ parentId }: { parentId?: string } = {}) {
           )}
           <Button
             size="sm"
-            onClick={() => {
-              setEditing(true);
-              setAddingCard(true);
-            }}
+            onClick={() => setAddingCard(true)}
             className="bg-[#7030A0] hover:bg-[#5d288a] text-white uppercase tracking-wide"
           >
             <Plus className="h-3 w-3" />

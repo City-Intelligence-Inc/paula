@@ -55,56 +55,64 @@ export async function GET(request: Request) {
     });
   }
 
-  const stripe = await getStripe();
+  try {
+    const stripe = await getStripe();
 
-  // Self-heal the default-card invariant before reading. If cards exist but
-  // no default is set (legacy customers from before single-card-per-customer
-  // enforcement, or a Stripe-dashboard manual edit), promote the newest card
-  // to default. ensureDefaultCard is idempotent + no-op when state is fine.
-  await ensureDefaultCard(stripe, stripeCustomerId);
+    // Self-heal the default-card invariant before reading. If cards exist but
+    // no default is set (legacy customers from before single-card-per-customer
+    // enforcement, or a Stripe-dashboard manual edit), promote the newest card
+    // to default. ensureDefaultCard is idempotent + no-op when state is fine.
+    await ensureDefaultCard(stripe, stripeCustomerId);
 
-  const [pmList, customer] = await Promise.all([
-    stripe.paymentMethods.list({
-      customer: stripeCustomerId,
-      type: "card",
-      limit: 20,
-    }),
-    stripe.customers.retrieve(stripeCustomerId),
-  ]);
+    const [pmList, customer] = await Promise.all([
+      stripe.paymentMethods.list({
+        customer: stripeCustomerId,
+        type: "card",
+        limit: 20,
+      }),
+      stripe.customers.retrieve(stripeCustomerId),
+    ]);
 
-  const defaultPmId =
-    !("deleted" in customer) || !customer.deleted
-      ? (customer.invoice_settings?.default_payment_method as
-          | string
-          | null) ?? null
-      : null;
+    const defaultPmId =
+      !("deleted" in customer) || !customer.deleted
+        ? (customer.invoice_settings?.default_payment_method as
+            | string
+            | null) ?? null
+        : null;
 
-  // Default card first, then newest → oldest. Matches the "Default" badge
-  // Stripe surfaces on the dashboard and the order this app's charge path
-  // selects (resolveDefaultPaymentMethod).
-  const paymentMethods = pmList.data
-    .slice()
-    .sort((a, b) => {
-      const aDefault = a.id === defaultPmId ? 1 : 0;
-      const bDefault = b.id === defaultPmId ? 1 : 0;
-      if (aDefault !== bDefault) return bDefault - aDefault;
-      return b.created - a.created;
-    })
-    .map((pm) => ({
-      id: pm.id,
-      brand: pm.card?.brand,
-      last4: pm.card?.last4,
-      expMonth: pm.card?.exp_month,
-      expYear: pm.card?.exp_year,
-      funding: pm.card?.funding,
-      created: new Date(pm.created * 1000).toISOString(),
-      isDefault: pm.id === defaultPmId,
-    }));
+    // Default card first, then newest → oldest. Matches the "Default" badge
+    // Stripe surfaces on the dashboard and the order this app's charge path
+    // selects (resolveDefaultPaymentMethod).
+    const paymentMethods = pmList.data
+      .slice()
+      .sort((a, b) => {
+        const aDefault = a.id === defaultPmId ? 1 : 0;
+        const bDefault = b.id === defaultPmId ? 1 : 0;
+        if (aDefault !== bDefault) return bDefault - aDefault;
+        return b.created - a.created;
+      })
+      .map((pm) => ({
+        id: pm.id,
+        brand: pm.card?.brand,
+        last4: pm.card?.last4,
+        expMonth: pm.card?.exp_month,
+        expYear: pm.card?.exp_year,
+        funding: pm.card?.funding,
+        created: new Date(pm.created * 1000).toISOString(),
+        isDefault: pm.id === defaultPmId,
+      }));
 
-  return Response.json({
-    parentId: parent.id,
-    stripeCustomerId,
-    paymentMethods,
-    defaultPaymentMethodId: defaultPmId,
-  });
+    return Response.json({
+      parentId: parent.id,
+      stripeCustomerId,
+      paymentMethods,
+      defaultPaymentMethodId: defaultPmId,
+    });
+  } catch (err) {
+    console.error("[payment-methods] Stripe error for customer", stripeCustomerId, err);
+    return Response.json(
+      { error: err instanceof Error ? err.message : "Failed to load payment methods from Stripe" },
+      { status: 500 },
+    );
+  }
 }
