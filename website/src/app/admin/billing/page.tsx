@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useApi } from "@/hooks/use-api";
+import Link from "next/link";
 import {
   CheckCircle2,
   XCircle,
@@ -46,6 +47,7 @@ interface ApproveResult {
   ok: boolean;
   status?: string;
   error?: string;
+  familyId?: string;
 }
 
 function formatAmount(cents: number): string {
@@ -303,12 +305,20 @@ export default function AdminBillingPage() {
                 <span className="text-neutral-500 text-xs">
                   {formatDate(r.dateTime)}
                 </span>
-                <span
-                  className={`text-xs ${
-                    r.ok ? "text-emerald-600" : "text-red-500"
-                  }`}
-                >
-                  {r.ok ? r.status || "succeeded" : r.error || "failed"}
+                <span className={`text-xs ${r.ok ? "text-emerald-600" : "text-red-500"}`}>
+                  {r.ok ? (r.status || "succeeded") : (
+                    <>
+                      {r.error || "failed"}
+                      {!r.ok && r.familyId && (r.error === "No card on file") && (
+                        <Link
+                          href={`/admin/families/${r.familyId}`}
+                          className="ml-2 underline underline-offset-2 text-[#7030A0] hover:text-[#5d288a]"
+                        >
+                          Add card →
+                        </Link>
+                      )}
+                    </>
+                  )}
                 </span>
               </div>
             ))}

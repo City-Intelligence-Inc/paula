@@ -85,6 +85,7 @@ export async function POST(request: Request) {
   const parent = {
     id: parentId,
     familyId,
+    clerkUserId: clerkUser.id,
     firstName: parentFirstName,
     lastName: parentLastName,
     email,

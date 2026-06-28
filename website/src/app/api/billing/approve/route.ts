@@ -39,6 +39,7 @@ interface RowResult {
   status?: string;
   paymentIntentId?: string;
   error?: string;
+  familyId?: string;
 }
 
 type DDB = ReturnType<typeof ddb>;
@@ -171,6 +172,12 @@ export async function POST(request: Request) {
         | { id: string; firstName: string; lastName: string }
         | undefined;
 
+      // Resolve the student's familyId for actionable error links.
+      const studentForFamily = await c.send(
+        new GetCommand({ TableName: Tables.students, Key: { id: row.chargeStudentId || row.studentId } }),
+      );
+      const familyId = (studentForFamily.Item as { familyId?: string } | undefined)?.familyId;
+
       const { customerId, offline } = await resolveCustomerId(c, row);
 
       if (offline) {
@@ -186,9 +193,17 @@ export async function POST(request: Request) {
         continue;
       }
       if (!customerId) {
-        throw new Error(
-          "No Stripe customer on file — save a card under this family's primary payer first.",
-        );
+        noteSession(sessionKey, false, true);
+        results.push({
+          studentId: row.studentId,
+          dateTime: row.dateTime,
+          splitIndex: row.splitIndex,
+          splitLabel: row.splitLabel,
+          ok: false,
+          error: "No card on file",
+          familyId,
+        });
+        continue;
       }
 
       const paymentMethod = await resolveDefaultPaymentMethod(stripe, customerId);
