@@ -45,11 +45,13 @@ export async function POST(request: Request) {
   }
 
   let body: {
+    parentFirstName?: string;
+    parentLastName?: string;
+    parentPhone?: string;
     studentFirstName?: string;
     studentLastName?: string;
     grade?: string;
     school?: string;
-    parentPhone?: string;
   };
   try {
     body = await request.json();
@@ -69,8 +71,8 @@ export async function POST(request: Request) {
   const parentId = `par_${slug}_${suffix}`;
   const studentId = `stu_${slug}_${suffix}`;
 
-  const parentFirstName = clerkUser.firstName || email.split("@")[0];
-  const parentLastName = clerkUser.lastName || "";
+  const parentFirstName = body.parentFirstName?.trim() || clerkUser.firstName || email.split("@")[0];
+  const parentLastName = body.parentLastName?.trim() || clerkUser.lastName || "";
   const parentName = [parentFirstName, parentLastName].filter(Boolean).join(" ");
 
   const family = {
