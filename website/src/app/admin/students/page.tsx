@@ -49,6 +49,7 @@ export default function AdminStudentsPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [grade, setGrade] = useState("K");
+  const [school, setSchool] = useState("");
   const [status, setStatus] = useState<"active" | "waitlist">("active");
   const [parentName, setParentName] = useState("");
   const [parentEmail, setParentEmail] = useState("");
@@ -75,6 +76,7 @@ export default function AdminStudentsPage() {
     setFirstName("");
     setLastName("");
     setGrade("K");
+    setSchool("");
     setStatus("active");
     setParentName("");
     setParentEmail("");
@@ -94,6 +96,7 @@ export default function AdminStudentsPage() {
           firstName,
           lastName,
           grade,
+          school: school.trim() || undefined,
           status,
           parentName,
           parentEmail,
@@ -139,7 +142,7 @@ export default function AdminStudentsPage() {
       if (gradeFilter !== "all" && s.grade !== gradeFilter) return false;
       if (!q) return true;
       const hay =
-        `${s.firstName} ${s.lastName} ${s.parentName} ${s.parentEmail} ${s.grade}`.toLowerCase();
+        `${s.firstName} ${s.lastName} ${s.parentName} ${s.parentEmail} ${s.grade} ${s.school ?? ""}`.toLowerCase();
       return hay.includes(q);
     });
 
@@ -272,7 +275,7 @@ export default function AdminStudentsPage() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">
                   Grade
@@ -288,6 +291,18 @@ export default function AdminStudentsPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  School <span className="font-normal text-neutral-400">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={school}
+                  onChange={(e) => setSchool(e.target.value)}
+                  className={inputClass}
+                  placeholder="School name"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-1">

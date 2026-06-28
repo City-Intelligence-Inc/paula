@@ -89,6 +89,7 @@ export default function StudentDetailPage({
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
   const [editGrade, setEditGrade] = useState("");
+  const [editSchool, setEditSchool] = useState("");
   const [editStatus, setEditStatus] = useState<"active" | "waitlist" | "inactive">("active");
   const [editParentName, setEditParentName] = useState("");
   const [editParentEmail, setEditParentEmail] = useState("");
@@ -137,6 +138,7 @@ export default function StudentDetailPage({
     setEditFirstName(s.firstName);
     setEditLastName(s.lastName);
     setEditGrade(s.grade);
+    setEditSchool(s.school || "");
     setEditStatus(s.status);
     setEditParentName(s.parentName);
     setEditParentEmail(s.parentEmail);
@@ -244,6 +246,7 @@ export default function StudentDetailPage({
           firstName: editFirstName,
           lastName: editLastName,
           grade: editGrade,
+          school: editSchool.trim() || undefined,
           status: editStatus,
           parentName: editParentName,
           parentEmail: editParentEmail,
@@ -361,7 +364,8 @@ export default function StudentDetailPage({
                     </Badge>
                   </div>
                   <p className="text-sm text-neutral-500 mt-1">
-                    Grade {student.grade} &middot;{" "}
+                    Grade {student.grade}
+                    {student.school ? ` · ${student.school}` : ""} &middot;{" "}
                     {student.sessionType === "individual"
                       ? "Individual"
                       : "Group"}{" "}
@@ -466,7 +470,7 @@ export default function StudentDetailPage({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1">
                     Grade
@@ -482,6 +486,18 @@ export default function StudentDetailPage({
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">
+                    School <span className="font-normal text-neutral-400">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editSchool}
+                    onChange={(e) => setEditSchool(e.target.value)}
+                    className={inputClass}
+                    placeholder="School name"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1">

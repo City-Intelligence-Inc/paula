@@ -171,6 +171,11 @@ export function SessionNotesBoard({
         <span className="text-[15px] text-[#8b8589]">
           Grade <span className="text-black">{student?.grade ?? "—"}</span>
         </span>
+        {student?.school && (
+          <span className="text-[15px] text-[#8b8589]">
+            School <span className="text-black">{student.school}</span>
+          </span>
+        )}
         {CAN_SEE_BILLING[role] && (
           <span className="text-[15px] text-[#8b8589]">
             Rate <span className="text-black">${student?.rate ?? "—"}/hr</span>

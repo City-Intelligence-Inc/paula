@@ -64,6 +64,7 @@ function NewFamilyForm() {
   const [studentFirstName, setStudentFirstName] = useState(seedStudentFirst);
   const [studentLastName, setStudentLastName] = useState(seedStudentLast);
   const [studentGrade, setStudentGrade] = useState("K");
+  const [studentSchool, setStudentSchool] = useState("");
   const [studentRate, setStudentRate] = useState("");
   const [sessionType, setSessionType] = useState<"individual" | "group">(
     "individual",
@@ -97,6 +98,7 @@ function NewFamilyForm() {
           firstName: studentFirstName.trim(),
           lastName: studentLastName.trim(),
           grade: studentGrade,
+          school: studentSchool.trim() || undefined,
           status: "active",
           parentName: `${parentFirstName.trim()} ${parentLastName.trim()}`.trim(),
           parentEmail: parentEmail.trim(),
@@ -240,6 +242,16 @@ function NewFamilyForm() {
                     </option>
                   ))}
                 </select>
+              </label>
+              <label className="text-sm text-neutral-700 block">
+                School <span className="font-normal text-neutral-400">(optional)</span>
+                <input
+                  type="text"
+                  value={studentSchool}
+                  onChange={(e) => setStudentSchool(e.target.value)}
+                  placeholder="School name"
+                  className="mt-1 w-full border border-neutral-200 rounded-md px-3 py-2 text-sm"
+                />
               </label>
               <label className="text-sm text-neutral-700 block">
                 Default session type

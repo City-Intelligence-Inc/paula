@@ -48,6 +48,7 @@ const editableFields = [
   "firstName",
   "lastName",
   "grade",
+  "school",
   "status",
   "parentName",
   "parentEmail",

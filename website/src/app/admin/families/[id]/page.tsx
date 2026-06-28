@@ -595,6 +595,7 @@ function AddSiblingForm({
     firstName: "",
     lastName: "",
     grade: "",
+    school: "",
     rate: "",
   });
 
@@ -613,7 +614,7 @@ function AddSiblingForm({
       const j = await r.json();
       if (r.ok && j.student) {
         onAdded(j.student);
-        setForm({ firstName: "", lastName: "", grade: "", rate: "" });
+        setForm({ firstName: "", lastName: "", grade: "", school: "", rate: "" });
         setOpen(false);
       } else {
         alert(j.error || "Add failed");
@@ -670,6 +671,13 @@ function AddSiblingForm({
             placeholder="Grade (K, 1–16)"
             value={form.grade}
             onChange={(e) => setForm((p) => ({ ...p, grade: e.target.value }))}
+            className="border border-neutral-200 rounded-md px-3 py-2 text-sm"
+          />
+          <input
+            type="text"
+            placeholder="School (optional)"
+            value={form.school}
+            onChange={(e) => setForm((p) => ({ ...p, school: e.target.value }))}
             className="border border-neutral-200 rounded-md px-3 py-2 text-sm"
           />
           <input

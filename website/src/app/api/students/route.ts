@@ -138,6 +138,7 @@ export async function POST(request: Request) {
     firstName: body.firstName,
     lastName: body.lastName,
     grade: body.grade || "",
+    ...(body.school?.trim() ? { school: body.school.trim() } : {}),
     status: body.status || "active",
     sessionType: body.sessionType || "individual",
     rate: typeof body.rate === "number" ? body.rate : 0,
