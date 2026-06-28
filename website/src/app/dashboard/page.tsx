@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-import { BookOpen, Calendar, FolderOpen, Newspaper, CreditCard, ArrowRight, Sparkles } from "lucide-react";
+import { BookOpen, Calendar, FolderOpen, Newspaper, CreditCard, ArrowRight, ShieldCheck } from "lucide-react";
 
 const steps = [
   {
@@ -58,6 +58,25 @@ export default function DashboardPage() {
       </div>
 
       <div className="space-y-4">
+        {/* Step 0 — always complete, non-interactive */}
+        <div className="flex items-center gap-5 p-5 rounded-lg border border-green-200 bg-green-50">
+          <div className="shrink-0 w-10 h-10 rounded-lg bg-green-600 flex items-center justify-center">
+            <ShieldCheck className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="text-xs font-medium text-green-600">Step 0</span>
+            <h2 className="text-base font-medium text-neutral-900 mt-0.5">
+              Approved by the Mathitude team
+            </h2>
+            <p className="text-sm text-green-700 mt-0.5">
+              Your account has been set up and verified. You&apos;re good to go.
+            </p>
+          </div>
+          <div className="shrink-0 text-sm font-medium text-green-600">
+            Done ✓
+          </div>
+        </div>
+
         {steps.map((step, i) => (
           <Link
             key={step.href}
