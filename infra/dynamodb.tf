@@ -450,3 +450,71 @@ resource "aws_dynamodb_table" "secrets" {
     Project = "mathitude"
   }
 }
+
+# ---- Notifications table ----
+
+resource "aws_dynamodb_table" "notifications" {
+  name         = "${var.table_prefix}-notifications"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  attribute {
+    name = "createdAt"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "by-user"
+    hash_key        = "userId"
+    range_key       = "createdAt"
+    projection_type = "ALL"
+  }
+
+  tags = {
+    Project = "mathitude"
+  }
+}
+
+# ---- User roles table (Clerk userId → portal role) ----
+
+resource "aws_dynamodb_table" "user_roles" {
+  name         = "${var.table_prefix}-user-roles"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "clerkUserId"
+
+  attribute {
+    name = "clerkUserId"
+    type = "S"
+  }
+
+  attribute {
+    name = "role"
+    type = "S"
+  }
+
+  attribute {
+    name = "createdAt"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "by-role"
+    hash_key        = "role"
+    range_key       = "createdAt"
+    projection_type = "ALL"
+  }
+
+  tags = {
+    Project = "mathitude"
+  }
+}
