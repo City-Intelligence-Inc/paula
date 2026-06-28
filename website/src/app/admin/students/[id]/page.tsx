@@ -385,21 +385,36 @@ export default function StudentDetailPage({
 
               {/* Parent Contact */}
               <div>
-                <h3 className="text-sm font-semibold text-neutral-900 tracking-tight mb-2">
+                <h3 className="text-sm font-semibold text-neutral-900 tracking-tight mb-3">
                   Parent Contact
                 </h3>
-                <p className="text-sm font-medium text-neutral-900">
-                  {student.parentName}
-                </p>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
-                  <span className="flex items-center gap-1.5 text-sm text-neutral-500">
-                    <Phone className="h-3.5 w-3.5" />
-                    {student.parentPhone}
-                  </span>
-                  <span className="flex items-center gap-1.5 text-sm text-neutral-500">
-                    <Mail className="h-3.5 w-3.5" />
-                    {student.parentEmail}
-                  </span>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-neutral-900">
+                    {student.parentName || <span className="text-neutral-400 italic font-normal">No name</span>}
+                  </p>
+                  {student.parentEmail && (
+                    <a
+                      href={`mailto:${student.parentEmail}`}
+                      className="flex items-center gap-2 text-sm text-neutral-600 hover:text-[#7030A0] transition-colors group w-fit"
+                    >
+                      <Mail className="h-3.5 w-3.5 text-neutral-400 group-hover:text-[#7030A0] transition-colors" />
+                      {student.parentEmail}
+                    </a>
+                  )}
+                  {student.parentPhone ? (
+                    <a
+                      href={`tel:${student.parentPhone.replace(/\D/g, "")}`}
+                      className="flex items-center gap-2 text-sm text-neutral-600 hover:text-[#7030A0] transition-colors group w-fit"
+                    >
+                      <Phone className="h-3.5 w-3.5 text-neutral-400 group-hover:text-[#7030A0] transition-colors" />
+                      {student.parentPhone}
+                    </a>
+                  ) : (
+                    <span className="flex items-center gap-2 text-sm text-neutral-400 italic">
+                      <Phone className="h-3.5 w-3.5" />
+                      No phone — add via Edit
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -565,14 +580,14 @@ export default function StudentDetailPage({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1">
-                    Parent Phone
+                    Parent Phone <span className="font-normal text-neutral-400">(optional)</span>
                   </label>
                   <input
                     type="tel"
-                    required
                     value={editParentPhone}
                     onChange={(e) => setEditParentPhone(e.target.value)}
                     className={inputClass}
+                    placeholder="e.g. 510-555-1234"
                   />
                 </div>
               </div>
