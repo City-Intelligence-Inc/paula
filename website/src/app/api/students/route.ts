@@ -47,6 +47,7 @@ interface NewStudentBody {
   firstName?: string;
   lastName?: string;
   grade?: string;
+  school?: string;
   status?: "active" | "waitlist" | "inactive";
   parentName?: string;
   parentEmail?: string;

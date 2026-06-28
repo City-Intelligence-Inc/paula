@@ -201,6 +201,7 @@ export interface DemoStudent {
   firstName: string;
   lastName: string;
   grade: string;
+  school?: string;
   rate: number; // dollars/hr — only shown to billing roles
   familyId: string; // R-2/R-6: parents see every child in their family
   tutorIds: string[]; // R-5: tutors see only their portfolio
