@@ -102,29 +102,14 @@ export function tutorScopeForStudent(
   return entry?.scope === "limited" ? "limited" : "full";
 }
 
-// Pricing/billing fields a tutor must never see (5/17 Paula — pricing blind
-// to tutors). Master admin + admin keep them.
-export function stripPricingFromStudent<T extends Record<string, unknown>>(
-  student: T,
-): T {
-  const { rate: _r, stripeCustomerId: _s, primaryPayerParentId: _p, ...rest } =
-    student as Record<string, unknown>;
-  void _r;
-  void _s;
-  void _p;
-  return rest as T;
-}
-
-export function stripPricingFromSession<T extends Record<string, unknown>>(
-  session: T,
-): T {
-  const { rate: _r, amountCents: _a, payers: _p, ...rest } =
-    session as Record<string, unknown>;
-  void _r;
-  void _a;
-  void _p;
-  return rest as T;
-}
+// Pure field-projection helpers live in field-projection.ts (dependency-free so
+// they're unit-testable under node --test). Re-exported here so existing call
+// sites can keep importing them from access.
+export {
+  stripPricingFromStudent,
+  stripContactFromStudent,
+  stripPricingFromSession,
+} from "./field-projection";
 
 // Filter a student's sessions/notes down to what a "limited" class instructor
 // is allowed to see: group sessions only, plus notes they authored themselves.
