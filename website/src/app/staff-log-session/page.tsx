@@ -49,6 +49,10 @@ export default function StaffLogSessionPage() {
   const [tutorId, setTutorId] = React.useState(DEMO_TUTORS[0].id);
   const [familyId, setFamilyId] = React.useState(DEMO_FAMILIES[0].id);
   const [selfId, setSelfId] = React.useState(DEMO_STUDENTS[0].id);
+  // Two single-session layouts to compare (7/4 feedback).
+  const [noteLayout, setNoteLayout] = React.useState<
+    "notes-column" | "notes-fullwidth"
+  >("notes-column");
 
   const visibleStudents = React.useMemo(
     () => studentsVisibleTo(role, { tutorId, familyId, studentId: selfId }),
@@ -269,16 +273,45 @@ export default function StaffLogSessionPage() {
           />
         </>
       ) : (
-        <SessionNotesBoard
-          role={role}
-          students={visibleStudents}
-          selectedStudentId={selectedStudentId}
-          onSelectStudent={setSelectedStudentId}
-          notes={notes}
-          shortcuts={shortcuts}
-          onSaveNote={handleSave}
-          onCreateShortcut={handleCreateShortcut}
-        />
+        <>
+          {/* Compare the two single-session layouts */}
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+              Note layout
+            </span>
+            {(
+              [
+                ["notes-column", "Notes column (V1)"],
+                ["notes-fullwidth", "Full-width notes (V2)"],
+              ] as const
+            ).map(([val, label]) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => setNoteLayout(val)}
+                className="rounded-full px-3 py-1 text-xs font-medium ring-1 ring-border-warm transition-colors"
+                style={
+                  noteLayout === val
+                    ? { backgroundColor: "#7030A0", color: "#fff" }
+                    : { color: "#7030A0" }
+                }
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <SessionNotesBoard
+            role={role}
+            students={visibleStudents}
+            selectedStudentId={selectedStudentId}
+            onSelectStudent={setSelectedStudentId}
+            notes={notes}
+            shortcuts={shortcuts}
+            onSaveNote={handleSave}
+            onCreateShortcut={handleCreateShortcut}
+            layout={noteLayout}
+          />
+        </>
       )}
         </div>
       </main>

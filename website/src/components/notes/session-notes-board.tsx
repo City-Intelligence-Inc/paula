@@ -72,6 +72,7 @@ export function SessionNotesBoard({
   shortcuts = [],
   onSaveNote,
   onCreateShortcut,
+  layout = "notes-column",
 }: {
   role: PortalRole;
   students: DemoStudent[];
@@ -84,6 +85,10 @@ export function SessionNotesBoard({
     meta: { dateTime: string; durationMin: number },
   ) => void;
   onCreateShortcut?: (shortcut: string, href: string) => MentionShortcut | void;
+  // Single-session layout variant (7/4 feedback — two options to compare):
+  //  "notes-column"    — Plan | Activities | (Private over Public) as a 3rd wide column
+  //  "notes-fullwidth" — Plan | Activities on top (thin), Private then Public full-width below
+  layout?: "notes-column" | "notes-fullwidth";
 }) {
   const canEdit = CAN_EDIT_NOTES[role];
   const hasPrivate = VISIBLE_FIELDS[role].includes("privateNotes");
@@ -410,11 +415,28 @@ export function SessionNotesBoard({
         </div>
       ) : null}
 
-      {/* The single session — Plan & Activities as thinner columns; Private +
-          Public stacked (private on top) in one wider Notes column. */}
+      {/* The single session — two layout variants to compare. */}
       {slotCount === 0 ? (
         <p className="px-5 py-16 text-center text-[15px] text-[#8b8589]">No session notes yet.</p>
+      ) : layout === "notes-fullwidth" ? (
+        /* Plan | Activities on top (thin & short); Private then Public full-width below. */
+        <div className="px-5 pb-5 pt-4">
+          {leftFields.length > 0 && (
+            <div
+              className="grid items-start gap-4"
+              style={{ gridTemplateColumns: `repeat(${leftFields.length}, minmax(0, 1fr))` }}
+            >
+              {leftFields.map((c) => fieldColumn(c, "min-h-[24vh]"))}
+            </div>
+          )}
+          {notesStack.length > 0 && (
+            <div className="mt-4 flex flex-col gap-4">
+              {notesStack.map((c) => fieldColumn(c, "min-h-[30vh]"))}
+            </div>
+          )}
+        </div>
       ) : (
+        /* Plan | Activities as thin columns; Private over Public in a wider 3rd column. */
         <div className="grid items-start gap-4 px-5 pb-5 pt-4" style={{ gridTemplateColumns: singleCols }}>
           {leftFields.map((c) => fieldColumn(c, "min-h-[56vh]"))}
           {notesStack.length > 0 && (
