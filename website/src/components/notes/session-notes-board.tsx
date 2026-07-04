@@ -158,10 +158,47 @@ export function SessionNotesBoard({
     }
   }
 
-  // The four note fields fill the full width (spreadsheet style). Date, time and
-  // duration are compact controls up top — not columns — so they don't squeeze
-  // the note fields or leave a tall blank beneath them.
-  const gridCols = `repeat(${columns.length}, minmax(0, 1fr))`;
+  // Single-session layout (7/4 feedback): Session Plan and Session Activities
+  // are their own thinner columns; Private + Public notes stack (private on top)
+  // in one wider "Notes" column so there's more room to write. Date/time/duration
+  // are compact controls up top, not columns.
+  const leftFields = columns.filter(
+    (c) => c === "sessionPlan" || c === "sessionActivities",
+  );
+  const notesStack = columns.filter(
+    (c) => c === "privateNotes" || c === "publicNotes",
+  ); // VISIBLE_FIELDS order → private first, then public
+  const singleCols = [
+    ...leftFields.map(() => "minmax(0, 1fr)"),
+    ...(notesStack.length ? ["minmax(0, 1.7fr)"] : []),
+  ].join(" ");
+
+  // One note field: header + editor (edit pane) or read-only view. `minH` is the
+  // Tailwind min-height class (shorter for the two stacked notes fields).
+  function fieldColumn(c: keyof SessionNoteFields, minH: string) {
+    return (
+      <div key={c} className="flex min-w-0 flex-col">
+        <div className="mb-1.5">
+          <h3 className="text-base font-semibold text-black">{NOTE_FIELDS[c].label}</h3>
+          <p className="text-xs text-[#8b8589]">{NOTE_FIELDS[c].audience}</p>
+        </div>
+        {onEditPane ? (
+          <RichTextEditor
+            value={draft[c]}
+            onChange={(html) => setDraft((d) => ({ ...d, [c]: html }))}
+            placeholder={NOTE_FIELDS[c].placeholder}
+            editorMinHeight={minH}
+            shortcuts={shortcuts}
+            onCreateShortcut={onCreateShortcut}
+          />
+        ) : (
+          <div className={cn(minH, "overflow-auto rounded-md border border-border-warm bg-white px-4 py-3")}>
+            <RichTextView html={pastNote?.[c] ?? ""} />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-lg border border-border-warm bg-white">
@@ -373,32 +410,18 @@ export function SessionNotesBoard({
         </div>
       ) : null}
 
-      {/* The single session — the four note fields fill the full width. */}
+      {/* The single session — Plan & Activities as thinner columns; Private +
+          Public stacked (private on top) in one wider Notes column. */}
       {slotCount === 0 ? (
         <p className="px-5 py-16 text-center text-[15px] text-[#8b8589]">No session notes yet.</p>
       ) : (
-        <div className="grid gap-4 px-5 pb-5 pt-4" style={{ gridTemplateColumns: gridCols }}>
-          {columns.map((c) => (
-            <div key={c} className="flex min-w-0 flex-col">
-              <div className="mb-1.5">
-                <h3 className="text-base font-semibold text-black">{NOTE_FIELDS[c].label}</h3>
-                <p className="text-xs text-[#8b8589]">{NOTE_FIELDS[c].audience}</p>
-              </div>
-              {onEditPane ? (
-                <RichTextEditor
-                  value={draft[c]}
-                  onChange={(html) => setDraft((d) => ({ ...d, [c]: html }))}
-                  placeholder={NOTE_FIELDS[c].placeholder}
-                  shortcuts={shortcuts}
-                  onCreateShortcut={onCreateShortcut}
-                />
-              ) : (
-                <div className="min-h-[64vh] overflow-auto rounded-md border border-border-warm bg-white px-4 py-3">
-                  <RichTextView html={pastNote?.[c] ?? ""} />
-                </div>
-              )}
+        <div className="grid items-start gap-4 px-5 pb-5 pt-4" style={{ gridTemplateColumns: singleCols }}>
+          {leftFields.map((c) => fieldColumn(c, "min-h-[56vh]"))}
+          {notesStack.length > 0 && (
+            <div className="flex min-w-0 flex-col gap-4">
+              {notesStack.map((c) => fieldColumn(c, "min-h-[26vh]"))}
             </div>
-          ))}
+          )}
         </div>
       )}
 
