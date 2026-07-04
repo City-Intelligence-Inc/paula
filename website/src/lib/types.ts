@@ -20,6 +20,9 @@ export interface Student {
   firstName: string;
   lastName: string;
   grade: string;
+  // Short school abbreviation (2–5 chars, e.g. "WCS", "PALY") shown in session
+  // rows and the student header. Distinct from schoolLogins (ghost portal creds).
+  school?: string;
   status: "active" | "waitlist" | "inactive";
   parentName: string;
   parentEmail: string;

@@ -99,7 +99,10 @@ export function SessionNotesBoard({
   const slotCount = editPane + notes.length;
   const [viewIndex, setViewIndex] = React.useState(0);
   const [pickerOpen, setPickerOpen] = React.useState(false);
-  const [viewAll, setViewAll] = React.useState(false);
+  // Default to the full session history on load (7/4 feedback) — staff/tutor/
+  // super-admin land on the whole chart, not a blank input. Authors drop into
+  // the single-session editor from here via "Single session view".
+  const [viewAll, setViewAll] = React.useState(true);
 
   // Keep the pointer valid when the student / scope changes.
   React.useEffect(() => {
@@ -170,6 +173,9 @@ export function SessionNotesBoard({
         </label>
         <span className="text-[15px] text-[#8b8589]">
           Grade <span className="text-black">{student?.grade ?? "—"}</span>
+        </span>
+        <span className="text-[15px] text-[#8b8589]">
+          School <span className="text-black">{student?.school ?? "—"}</span>
         </span>
         {CAN_SEE_BILLING[role] && (
           <span className="text-[15px] text-[#8b8589]">
@@ -367,7 +373,7 @@ export function SessionNotesBoard({
                   onCreateShortcut={onCreateShortcut}
                 />
               ) : (
-                <div className="min-h-[52vh] overflow-auto rounded-md border border-border-warm bg-white px-4 py-3">
+                <div className="min-h-[64vh] overflow-auto rounded-md border border-border-warm bg-white px-4 py-3">
                   <RichTextView html={pastNote?.[c] ?? ""} />
                 </div>
               )}
@@ -424,11 +430,11 @@ function CompareAll({
   columns: (keyof SessionNoteFields)[];
   onExit: () => void;
 }) {
-  const grid = `150px repeat(${columns.length}, minmax(0, 1fr))`;
+  const grid = `120px repeat(${columns.length}, minmax(0, 1fr))`;
   return (
     <div>
       <div className="flex items-center justify-between border-b border-border-warm px-5 py-2.5">
-        <span className="text-[15px] font-medium text-black">All sessions — compare</span>
+        <span className="text-[15px] font-medium text-black">All sessions — full history</span>
         <button
           type="button"
           onClick={onExit}
@@ -440,13 +446,13 @@ function CompareAll({
       {notes.length === 0 ? (
         <p className="px-5 py-12 text-center text-[15px] text-[#8b8589]">No session notes yet.</p>
       ) : (
-        <div className="max-h-[72vh] overflow-auto">
+        <div className="max-h-[82vh] overflow-auto">
           <div
             className="sticky top-0 z-10 grid border-b border-border-warm bg-white"
             style={{ gridTemplateColumns: grid }}
           >
             <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[#8b8589]">
-              Session
+              Session Date
             </div>
             {columns.map((c) => (
               <div key={c} className="border-l border-border-warm px-3 py-2 text-sm font-semibold text-black">

@@ -201,6 +201,7 @@ export interface DemoStudent {
   firstName: string;
   lastName: string;
   grade: string;
+  school: string; // short abbreviation, 2–5 chars (e.g. "WCS", "PALY")
   rate: number; // dollars/hr — only shown to billing roles
   familyId: string; // R-2/R-6: parents see every child in their family
   tutorIds: string[]; // R-5: tutors see only their portfolio
@@ -225,9 +226,9 @@ export const DEMO_FAMILIES: DemoFamily[] = [
 ];
 
 export const DEMO_STUDENTS: DemoStudent[] = [
-  { id: "stu_robin", firstName: "Robin", lastName: "Avery", grade: "2nd", rate: 150, familyId: "fam_avery", tutorIds: ["tutor_sam"] },
-  { id: "stu_milo", firstName: "Milo", lastName: "Avery", grade: "4th", rate: 150, familyId: "fam_avery", tutorIds: ["tutor_sam"] },
-  { id: "stu_ada", firstName: "Ada", lastName: "Chen", grade: "3rd", rate: 165, familyId: "fam_chen", tutorIds: ["tutor_jess"] },
+  { id: "stu_robin", firstName: "Robin", lastName: "Avery", grade: "2nd", school: "WCS", rate: 150, familyId: "fam_avery", tutorIds: ["tutor_sam"] },
+  { id: "stu_milo", firstName: "Milo", lastName: "Avery", grade: "4th", school: "WCS", rate: 150, familyId: "fam_avery", tutorIds: ["tutor_sam"] },
+  { id: "stu_ada", firstName: "Ada", lastName: "Chen", grade: "3rd", school: "PALY", rate: 165, familyId: "fam_chen", tutorIds: ["tutor_jess"] },
 ];
 
 export const DEMO_TUTORS: DemoTutor[] = [
