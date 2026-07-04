@@ -81,7 +81,7 @@ export function ParentNotesView({
 }) {
   const grid = "120px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)";
   return (
-    <div className="mx-auto max-w-[1152px] px-4 py-8">
+    <div className="mx-auto max-w-[1600px] px-4 py-8">
       <h1
         className="mb-5 text-center text-4xl text-mathitude-purple"
         style={{ fontFamily: "var(--font-original-surfer)" }}

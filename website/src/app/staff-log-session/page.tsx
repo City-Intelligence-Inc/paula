@@ -143,7 +143,7 @@ export default function StaffLogSessionPage() {
     <>
       <Navbar />
       <main className="flex-1 bg-white">
-        <div className="mx-auto max-w-[1152px] px-4 py-8">
+        <div className="mx-auto max-w-[1600px] px-4 py-8">
       <header className="mb-5">
         <h1
           className="text-3xl text-[#7030A0]"
