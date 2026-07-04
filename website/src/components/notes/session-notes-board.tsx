@@ -208,6 +208,32 @@ export function SessionNotesBoard({
     );
   }
 
+  // Editor column that GROWS to fill its cell so every column in the V1 current-
+  // session layout ends on the same bottom line. `fill: "cell"` for a grid item,
+  // `"half"` for one of the two stacked notes editors sharing a column.
+  function editorColumn(c: keyof SessionNoteFields, fill: "cell" | "half") {
+    return (
+      <div
+        key={c}
+        className={cn("flex min-w-0 flex-col", fill === "cell" ? "h-full" : "flex-1")}
+      >
+        <div className="mb-1.5">
+          <h3 className="text-base font-semibold text-black">{NOTE_FIELDS[c].label}</h3>
+          <p className="text-xs text-[#8b8589]">{NOTE_FIELDS[c].audience}</p>
+        </div>
+        <RichTextEditor
+          value={draft[c]}
+          onChange={(html) => setDraft((d) => ({ ...d, [c]: html }))}
+          placeholder={NOTE_FIELDS[c].placeholder}
+          className="flex flex-1 flex-col"
+          editorMinHeight="min-h-[22vh] flex-1"
+          shortcuts={shortcuts}
+          onCreateShortcut={onCreateShortcut}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-lg border border-border-warm bg-white">
       {/* Top bar */}
@@ -257,7 +283,7 @@ export function SessionNotesBoard({
       </div>
 
       {viewAll ? (
-        <CompareAll notes={notes} columns={columns} onExit={() => setViewAll(false)} />
+        <CompareAll notes={notes} columns={readFields} onExit={() => setViewAll(false)} />
       ) : (
       <>
       {/* Pager bar */}
@@ -459,12 +485,13 @@ export function SessionNotesBoard({
           )}
         </div>
       ) : (
-        /* Plan | Activities as thin columns; Private over Public in a wider 3rd column. */
-        <div className="grid items-start gap-4 px-5 pb-5 pt-4" style={{ gridTemplateColumns: singleCols }}>
-          {leftFields.map((c) => fieldColumn(c, "min-h-[56vh]"))}
+        /* Plan | Activities as thin columns; Private over Public in a wider 3rd
+           column. Columns stretch so all end on the same bottom line. */
+        <div className="grid items-stretch gap-4 px-5 pb-5 pt-4" style={{ gridTemplateColumns: singleCols }}>
+          {leftFields.map((c) => editorColumn(c, "cell"))}
           {notesStack.length > 0 && (
             <div className="flex min-w-0 flex-col gap-4">
-              {notesStack.map((c) => fieldColumn(c, "min-h-[26vh]"))}
+              {notesStack.map((c) => editorColumn(c, "half"))}
             </div>
           )}
         </div>
