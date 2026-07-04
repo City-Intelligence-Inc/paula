@@ -173,6 +173,9 @@ export function SessionNotesBoard({
   const notesStack = columns.filter(
     (c) => c === "privateNotes" || c === "publicNotes",
   ); // VISIBLE_FIELDS order → private first, then public
+  // Past (read-only) sessions show every field side by side, with Private and
+  // Public adjacent (7/4 feedback) — the stacking is only to give writing room.
+  const readFields = [...leftFields, ...notesStack];
   const singleCols = [
     ...leftFields.map(() => "minmax(0, 1fr)"),
     ...(notesStack.length ? ["minmax(0, 1.7fr)"] : []),
@@ -339,16 +342,27 @@ export function SessionNotesBoard({
           )}
         </span>
 
-        {canEdit && (
+        <div className="ml-auto flex items-center gap-2">
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => setViewIndex(0)}
+              disabled={onEditPane}
+              className="rounded-full bg-mathitude-purple px-3.5 py-1.5 text-sm font-medium text-white hover:bg-mathitude-purple/90 disabled:opacity-40"
+            >
+              Current session
+            </button>
+          )}
+          {/* Toggle to the full history — sits where "Single session view" is in
+              the compare view, so it reads as one toggle (7/4 feedback). */}
           <button
             type="button"
-            onClick={() => setViewIndex(0)}
-            disabled={onEditPane}
-            className="ml-auto rounded-full bg-mathitude-purple px-3.5 py-1.5 text-sm font-medium text-white hover:bg-mathitude-purple/90 disabled:opacity-40"
+            onClick={() => setViewAll(true)}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border-warm px-3 py-1.5 text-sm text-black hover:bg-surface-paper"
           >
-            Current session
+            <LayoutList className="size-4 text-mathitude-purple" /> View all sessions
           </button>
-        )}
+        </div>
       </div>
 
       {/* Compact session meta — date · time · duration up top in one tidy row,
@@ -415,9 +429,18 @@ export function SessionNotesBoard({
         </div>
       ) : null}
 
-      {/* The single session — two layout variants to compare. */}
+      {/* The single session — two layout variants to compare (edit pane only);
+          old sessions always render every field side by side. */}
       {slotCount === 0 ? (
         <p className="px-5 py-16 text-center text-[15px] text-[#8b8589]">No session notes yet.</p>
+      ) : !onEditPane ? (
+        /* Old session (read-only): Plan · Activities · Private · Public side by side. */
+        <div
+          className="grid items-start gap-4 px-5 pb-5 pt-4"
+          style={{ gridTemplateColumns: `repeat(${readFields.length}, minmax(0, 1fr))` }}
+        >
+          {readFields.map((c) => fieldColumn(c, "min-h-[56vh]"))}
+        </div>
       ) : layout === "notes-fullwidth" ? (
         /* Plan | Activities on top (thin & short); Private then Public full-width below. */
         <div className="px-5 pb-5 pt-4">
@@ -468,16 +491,6 @@ export function SessionNotesBoard({
         </div>
       )}
 
-      {/* View-all toggle — Sara's compare-all history */}
-      <div className="border-t border-border-warm px-5 py-3">
-        <button
-          type="button"
-          onClick={() => setViewAll(true)}
-          className="inline-flex items-center gap-1.5 rounded-md border border-border-warm px-3 py-1.5 text-sm text-black hover:bg-surface-paper"
-        >
-          <LayoutList className="size-4 text-mathitude-purple" /> View all sessions
-        </button>
-      </div>
       </>
       )}
     </div>
