@@ -108,6 +108,12 @@ export default function StaffLogSessionPage() {
     });
   }
 
+  function handleReply(noteId: string, text: string) {
+    setAllNotes((prev) =>
+      prev.map((n) => (n.id === noteId ? { ...n, familyReply: text } : n)),
+    );
+  }
+
   function handleCreateShortcut(shortcut: string, href: string): MentionShortcut {
     // Dedupe: reuse an existing shortcut with the same name (case-insensitive)
     // or the same URL, so the shared library doesn't fill with duplicates.
@@ -258,6 +264,8 @@ export default function StaffLogSessionPage() {
           <ParentNotesView
             studentName={selStudent ? `${selStudent.firstName} ${selStudent.lastName}` : ""}
             notes={notes}
+            canReply={role === "parent"}
+            onSaveReply={handleReply}
           />
         </>
       ) : (

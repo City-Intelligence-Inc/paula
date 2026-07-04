@@ -51,6 +51,13 @@ function formatDateTime(iso: string): string {
   });
 }
 
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 // Was this session edited after it happened? (last-updated later than its date)
 function wasEdited(n: SessionNote): boolean {
   return !!n.updatedAt && n.updatedAt.slice(0, 10) > n.date;
@@ -151,7 +158,9 @@ export function SessionNotesBoard({
     }
   }
 
-  const gridCols = `repeat(${columns.length}, minmax(0, 1fr))`;
+  // N-1: seven fields in one horizontal row — Session Date, Session Time,
+  // Duration (compact leading columns), then the note fields.
+  const gridCols = `150px 130px 120px repeat(${columns.length}, minmax(0, 1fr))`;
 
   return (
     <div className="rounded-lg border border-border-warm bg-white">
@@ -299,65 +308,101 @@ export function SessionNotesBoard({
         )}
       </div>
 
-      {/* Session meta */}
-      <div className="flex flex-wrap items-center gap-4 px-5 py-3 text-sm">
-        {onEditPane ? (
-          <>
-            <input
-              type="date"
-              value={date}
-              disabled={!!editingDateTime}
-              onChange={(e) => setDate(e.target.value)}
-              className="rounded border border-border-warm px-2.5 py-1.5 text-sm disabled:opacity-60"
-            />
-            <input
-              type="time"
-              value={time}
-              disabled={!!editingDateTime}
-              onChange={(e) => setTime(e.target.value)}
-              className="rounded border border-border-warm px-2.5 py-1.5 text-sm disabled:opacity-60"
-            />
-            <select
-              value={durationMin}
-              onChange={(e) => setDurationMin(Number(e.target.value))}
-              className="rounded border border-border-warm px-2.5 py-1.5 text-sm"
+      {/* Session chrome — last-updated / group label / edit button. The session
+          fields themselves (date, time, duration + notes) live in the row below. */}
+      {!onEditPane && pastNote && (
+        <div className="flex flex-wrap items-center gap-4 px-5 py-3 text-sm">
+          {wasEdited(pastNote) && (
+            <span className="text-xs text-[#8b8589]">
+              Last updated {formatDateTime(pastNote.updatedAt)}
+            </span>
+          )}
+          {pastNote.groupLabel && (
+            <span className="rounded bg-[#8b8589]/10 px-2 py-0.5 text-xs text-[#8b8589]">
+              {pastNote.groupLabel}
+            </span>
+          )}
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => loadForEdit(pastNote)}
+              className="rounded-md border border-border-warm px-3 py-1.5 text-sm text-mathitude-purple hover:bg-surface-paper"
             >
-              {[30, 45, 60, 90].map((m) => (
-                <option key={m} value={m}>{m} min</option>
-              ))}
-            </select>
-          </>
-        ) : pastNote ? (
-          <>
-            <span className="text-black">{pastNote.durationMin} min</span>
-            {wasEdited(pastNote) && (
-              <span className="text-xs text-[#8b8589]">
-                Last updated {formatDateTime(pastNote.updatedAt)}
-              </span>
-            )}
-            {pastNote.groupLabel && (
-              <span className="rounded bg-[#8b8589]/10 px-2 py-0.5 text-xs text-[#8b8589]">
-                {pastNote.groupLabel}
-              </span>
-            )}
-            {canEdit && (
-              <button
-                type="button"
-                onClick={() => loadForEdit(pastNote)}
-                className="rounded-md border border-border-warm px-3 py-1.5 text-sm text-mathitude-purple hover:bg-surface-paper"
-              >
-                Edit this session
-              </button>
-            )}
-          </>
-        ) : null}
-      </div>
+              Edit this session
+            </button>
+          )}
+        </div>
+      )}
 
-      {/* The single session — large field boxes */}
+      {/* The single session — seven fields in one horizontal row (N-1):
+          Session Date · Session Time · Duration · then the note fields. */}
       {slotCount === 0 ? (
         <p className="px-5 py-16 text-center text-[15px] text-[#8b8589]">No session notes yet.</p>
       ) : (
-        <div className="grid gap-4 px-5 pb-5" style={{ gridTemplateColumns: gridCols }}>
+        <div className="grid gap-4 px-5 pb-5 pt-3" style={{ gridTemplateColumns: gridCols }}>
+          {/* Session Date */}
+          <div className="flex min-w-0 flex-col self-start">
+            <div className="mb-1.5">
+              <h3 className="text-base font-semibold text-black">Session Date</h3>
+              <p className="text-xs text-[#8b8589]">When</p>
+            </div>
+            {onEditPane ? (
+              <input
+                type="date"
+                value={date}
+                disabled={!!editingDateTime}
+                onChange={(e) => setDate(e.target.value)}
+                className="rounded-md border border-border-warm px-2.5 py-2 text-sm disabled:opacity-60"
+              />
+            ) : (
+              <div className="rounded-md border border-border-warm bg-white px-3 py-2 text-sm text-black">
+                {pastNote && formatShort(pastNote.dateTime)}
+              </div>
+            )}
+          </div>
+          {/* Session Time */}
+          <div className="flex min-w-0 flex-col self-start">
+            <div className="mb-1.5">
+              <h3 className="text-base font-semibold text-black">Session Time</h3>
+              <p className="text-xs text-[#8b8589]">Start</p>
+            </div>
+            {onEditPane ? (
+              <input
+                type="time"
+                value={time}
+                disabled={!!editingDateTime}
+                onChange={(e) => setTime(e.target.value)}
+                className="rounded-md border border-border-warm px-2.5 py-2 text-sm disabled:opacity-60"
+              />
+            ) : (
+              <div className="rounded-md border border-border-warm bg-white px-3 py-2 text-sm text-black">
+                {pastNote && formatTime(pastNote.dateTime)}
+              </div>
+            )}
+          </div>
+          {/* Duration */}
+          <div className="flex min-w-0 flex-col self-start">
+            <div className="mb-1.5">
+              <h3 className="text-base font-semibold text-black">Duration</h3>
+              <p className="text-xs text-[#8b8589]">Minutes</p>
+            </div>
+            {onEditPane ? (
+              <select
+                value={durationMin}
+                onChange={(e) => setDurationMin(Number(e.target.value))}
+                className="rounded-md border border-border-warm px-2.5 py-2 text-sm"
+              >
+                {[30, 45, 60, 90].map((m) => (
+                  <option key={m} value={m}>{m} min</option>
+                ))}
+              </select>
+            ) : (
+              <div className="rounded-md border border-border-warm bg-white px-3 py-2 text-sm text-black">
+                {pastNote?.durationMin} min
+              </div>
+            )}
+          </div>
+          {/* Note fields */}
           {columns.map((c) => (
             <div key={c} className="flex min-w-0 flex-col">
               <div className="mb-1.5">

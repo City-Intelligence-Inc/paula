@@ -83,6 +83,7 @@ export interface SessionNote extends SessionNoteFields {
   updatedAt: string; // ISO
   noteGroupId?: string; // set on group sessions; shared fields match across the group
   groupLabel?: string; // display only, e.g. "Group: Robin + Milo"
+  familyReply?: string; // N-5: a parent's note back on a completed session (parents edit; staff/students read)
 }
 
 // N-5 shortcut library entry (mirrors NoteResource in types.ts).

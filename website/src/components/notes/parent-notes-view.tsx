@@ -4,44 +4,66 @@ import * as React from "react";
 import { RichTextView } from "./rich-text";
 import type { SessionNote } from "@/lib/session-notes";
 
-// Parent/student notes view (FEATURE_LIST N-9) — matches PARENT_VIEWING_NOTES.png:
-// a warm, per-session stacked layout (not the staff spreadsheet). Each session
-// is a block with a centered date heading and two labelled sections,
-// "Activities" and "Notes", separated by a subtle sine-wave divider. Only the
-// two family-facing fields are ever shown.
+// Parent/student notes view (N-5) — compact spreadsheet matching the staff side
+// (7/4 feedback): sessions stacked as rows, family-facing fields as columns,
+// sticky header, scrollable, maximizing space for the notes. Only the two
+// family-facing fields (Activities, Notes) are shown. A parents-only "Family
+// reply" column lets a parent respond to a completed session; it is never
+// editable by students and never touches the staff notes columns.
 
-function formatLong(iso: string): string {
+function formatShort(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
+    month: "short",
     day: "numeric",
+    year: "numeric",
   });
 }
 
-// Math-flavored session divider: an actual sine wave (purple) with a cosine
-// wave (taupe) overlaid a quarter-phase ahead. Computed from Math.sin/cos so
-// they read unmistakably as waves. On-brand, playful, still tasteful.
-function MathDivider() {
-  const W = 200;
-  const mid = 20;
-  const amp = 13;
-  const periods = 2;
-  const wave = (phase: number) => {
-    const pts: string[] = [];
-    for (let x = 0; x <= W; x += 4) {
-      const y = mid - amp * Math.sin((x / W) * periods * 2 * Math.PI + phase);
-      pts.push(`${x} ${y.toFixed(1)}`);
-    }
-    return "M" + pts.join(" L");
-  };
+// One session's family-reply cell: an editable textarea for parents (saved on
+// blur or via the button), read-only text for students.
+function FamilyReply({
+  note,
+  canReply,
+  onSaveReply,
+}: {
+  note: SessionNote;
+  canReply: boolean;
+  onSaveReply?: (noteId: string, text: string) => void;
+}) {
+  const [text, setText] = React.useState(note.familyReply ?? "");
+  React.useEffect(() => {
+    setText(note.familyReply ?? "");
+  }, [note.familyReply, note.id]);
+
+  if (!canReply) {
+    return note.familyReply ? (
+      <p className="whitespace-pre-wrap text-sm leading-6 text-black">
+        {note.familyReply}
+      </p>
+    ) : (
+      <span className="text-xs text-[#8b8589]">—</span>
+    );
+  }
+
+  const dirty = text !== (note.familyReply ?? "");
   return (
-    <div aria-hidden className="my-7 flex justify-center">
-      <svg width="200" height="40" viewBox="0 0 200 40" fill="none">
-        {/* sine */}
-        <path d={wave(0)} stroke="#7030A0" strokeWidth="2" strokeLinecap="round" opacity="0.65" />
-        {/* cosine (sine shifted +90°) */}
-        <path d={wave(Math.PI / 2)} stroke="#8b8589" strokeWidth="2" strokeLinecap="round" opacity="0.55" />
-      </svg>
+    <div>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={() => dirty && onSaveReply?.(note.id, text)}
+        placeholder="Add a note back to your tutor…"
+        className="min-h-[84px] w-full resize-y rounded-md border border-border-warm bg-white px-3 py-2 text-sm"
+      />
+      {dirty && (
+        <button
+          type="button"
+          onClick={() => onSaveReply?.(note.id, text)}
+          className="mt-1 rounded-full bg-mathitude-purple px-3 py-1 text-xs font-medium text-white hover:bg-mathitude-purple/90"
+        >
+          Save reply
+        </button>
+      )}
     </div>
   );
 }
@@ -49,54 +71,89 @@ function MathDivider() {
 export function ParentNotesView({
   studentName,
   notes,
+  canReply = false,
+  onSaveReply,
 }: {
   studentName: string;
   notes: SessionNote[]; // most-recent-first, already limited to shared fields
+  canReply?: boolean;
+  onSaveReply?: (noteId: string, text: string) => void;
 }) {
+  const grid = "120px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)";
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <div className="mx-auto max-w-[1152px] px-4 py-8">
       <h1
-        className="text-center text-4xl text-mathitude-purple"
+        className="mb-5 text-center text-4xl text-mathitude-purple"
         style={{ fontFamily: "var(--font-original-surfer)" }}
       >
         {studentName}
       </h1>
 
-      {notes.length === 0 && (
+      {notes.length === 0 ? (
         <p className="mt-10 text-center text-sm text-text-muted">
           No session notes yet.
         </p>
-      )}
-
-      {notes.map((n, i) => (
-        <React.Fragment key={n.id}>
-          {i > 0 && <MathDivider />}
-          <section className="py-8">
-            <h2 className="text-center text-lg font-semibold text-mathitude-purple">
-              {formatLong(n.dateTime)}
-            </h2>
-            {n.groupLabel && (
-              <p className="mt-1 text-center text-xs text-text-muted">
-                {n.groupLabel}
-              </p>
-            )}
-            <div className="mt-5 grid gap-8 sm:grid-cols-2">
-              <div>
-                <h3 className="mb-1.5 text-base font-semibold text-mathitude-purple">
-                  Activities
-                </h3>
-                <RichTextView html={n.sessionActivities ?? ""} />
+      ) : (
+        <div className="overflow-hidden rounded-lg border border-border-warm bg-white">
+          <div className="max-h-[78vh] overflow-auto">
+            {/* Sticky header — Session Date leads, matching the staff view */}
+            <div
+              className="sticky top-0 z-10 grid border-b border-border-warm bg-white"
+              style={{ gridTemplateColumns: grid }}
+            >
+              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[#8b8589]">
+                Session Date
               </div>
-              <div>
-                <h3 className="mb-1.5 text-base font-semibold text-mathitude-purple">
-                  Notes
-                </h3>
-                <RichTextView html={n.publicNotes ?? ""} />
+              <div className="border-l border-border-warm px-3 py-2 text-sm font-semibold text-black">
+                Activities
+              </div>
+              <div className="border-l border-border-warm px-3 py-2 text-sm font-semibold text-black">
+                Notes
+              </div>
+              <div className="border-l border-border-warm px-3 py-2 text-sm font-semibold text-black">
+                Family reply
               </div>
             </div>
-          </section>
-        </React.Fragment>
-      ))}
+            {notes.map((n) => (
+              <div
+                key={n.id}
+                className="grid border-b border-border-warm"
+                style={{ gridTemplateColumns: grid }}
+              >
+                <div className="px-3 py-3">
+                  <div className="text-sm font-medium text-black">
+                    {formatShort(n.dateTime)}
+                  </div>
+                  {n.groupLabel && (
+                    <div className="mt-1 inline-block rounded bg-[#8b8589]/10 px-1.5 py-0.5 text-[10px] text-[#8b8589]">
+                      {n.groupLabel}
+                    </div>
+                  )}
+                </div>
+                <div className="border-l border-border-warm px-3 py-3">
+                  <RichTextView
+                    html={n.sessionActivities ?? ""}
+                    className="text-sm leading-6"
+                  />
+                </div>
+                <div className="border-l border-border-warm px-3 py-3">
+                  <RichTextView
+                    html={n.publicNotes ?? ""}
+                    className="text-sm leading-6"
+                  />
+                </div>
+                <div className="border-l border-border-warm px-3 py-3">
+                  <FamilyReply
+                    note={n}
+                    canReply={canReply}
+                    onSaveReply={onSaveReply}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

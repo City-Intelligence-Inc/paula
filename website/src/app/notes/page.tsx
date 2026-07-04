@@ -7,8 +7,9 @@ import { ParentNotesView } from "@/components/notes/parent-notes-view";
 import {
   DEMO_STUDENTS,
   DEMO_FAMILIES,
-  demoNotesForStudent,
+  DEMO_NOTES,
   studentsVisibleTo,
+  type SessionNote,
 } from "@/lib/session-notes";
 
 // /notes — the family-facing notes page (FEATURE_LIST N-9), matching
@@ -33,7 +34,20 @@ export default function NotesPage() {
 
   const studentId = asRole === "student" ? selfId : childId;
   const student = DEMO_STUDENTS.find((s) => s.id === studentId);
-  const notes = student ? demoNotesForStudent(student.id) : [];
+
+  // Local note state so a parent's reply persists during the demo session.
+  const [allNotes, setAllNotes] = React.useState<SessionNote[]>(DEMO_NOTES);
+  const notes = student
+    ? allNotes
+        .filter((n) => n.studentId === student.id)
+        .sort((a, b) => b.dateTime.localeCompare(a.dateTime))
+    : [];
+
+  function handleReply(noteId: string, text: string) {
+    setAllNotes((prev) =>
+      prev.map((n) => (n.id === noteId ? { ...n, familyReply: text } : n)),
+    );
+  }
 
   return (
     <>
@@ -114,6 +128,8 @@ export default function NotesPage() {
           <ParentNotesView
             studentName={`${student.firstName} ${student.lastName}`}
             notes={notes}
+            canReply={asRole === "parent"}
+            onSaveReply={handleReply}
           />
         ) : (
           <p className="mx-auto max-w-3xl px-4 py-16 text-center text-sm text-text-muted">
