@@ -7,6 +7,7 @@ import {
   CreditCard,
   Clock,
   AlertCircle,
+  CheckCircle2,
   Search,
 } from "lucide-react";
 import {
@@ -81,11 +82,10 @@ function ChargeButton({
     message: string;
   } | null>(null);
 
+  const name = `${student.firstName} ${student.lastName}`;
+
   const handleCharge = async () => {
-    const name = `${student.firstName} ${student.lastName}`;
-    const confirmed = window.confirm(
-      `Charge ${name} $${student.rate}?`
-    );
+    const confirmed = window.confirm(`Charge ${name} $${student.rate}?`);
     if (!confirmed) return;
 
     setCharging(true);
@@ -96,7 +96,7 @@ function ChargeButton({
         method: "POST",
         body: JSON.stringify({
           studentId: student.id,
-          amount: student.rate * 100, // convert to cents
+          amount: Math.round(student.rate * 100), // dollars → cents
           description: `Tutoring session - ${name}`,
         }),
       });
@@ -109,22 +109,29 @@ function ChargeButton({
           message: data.error || "Charge failed.",
         });
       } else {
-        setResult({ type: "success", message: "Charged!" });
+        setResult({
+          type: "success",
+          message: `Charged $${student.rate} to ${name}. It will appear in Stripe with MATHITUDE on the statement.`,
+        });
       }
     } catch {
       setResult({
         type: "error",
-        message: "An unexpected error occurred.",
+        message: "An unexpected error occurred. Please try again.",
       });
     } finally {
+      // Result stays in a modal until the admin dismisses it — no auto-hide,
+      // so an error (e.g. "no card on file") can actually be read + acted on.
       setCharging(false);
-      // Clear the result message after 3 seconds
-      setTimeout(() => setResult(null), 3000);
     }
   };
 
+  const needsCard =
+    result?.type === "error" &&
+    /no (stripe )?customer|no saved card|card on file/i.test(result.message);
+
   return (
-    <div className="flex items-center gap-2">
+    <>
       <Button
         size="sm"
         variant="outline"
@@ -135,18 +142,52 @@ function ChargeButton({
         <DollarSign className="h-3 w-3" />
         {charging ? "Charging..." : "Charge"}
       </Button>
+
       {result && (
-        <span
-          className={`text-xs font-medium ${
-            result.type === "success"
-              ? "text-neutral-600"
-              : "text-red-500"
-          }`}
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setResult(null)}
         >
-          {result.message}
-        </span>
+          <div
+            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+            role="alertdialog"
+            aria-modal="true"
+          >
+            <div className="flex items-start gap-3">
+              {result.type === "success" ? (
+                <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-emerald-500" />
+              ) : (
+                <AlertCircle className="mt-0.5 h-6 w-6 shrink-0 text-red-500" />
+              )}
+              <div className="flex-1">
+                <h3 className="text-base font-semibold text-neutral-900">
+                  {result.type === "success"
+                    ? "Payment charged"
+                    : "Charge didn't go through"}
+                </h3>
+                <p className="mt-1 text-sm text-neutral-600">{result.message}</p>
+                {needsCard && (
+                  <p className="mt-2 text-xs text-neutral-500">
+                    Add a card under this family&apos;s primary payer (open the
+                    family from Families → Payment method), then charge again.
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="mt-5 flex justify-end">
+              <Button
+                size="sm"
+                className="bg-[#7030A0] text-white hover:bg-[#5d288a]"
+                onClick={() => setResult(null)}
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
-    </div>
+    </>
   );
 }
 
