@@ -193,13 +193,15 @@ export const STATEMENT_DESCRIPTOR = "MATHITUDE";
 
 export function buildChargeFields({
   studentId,
-  studentName,
+  firstName,
+  lastName,
   sessionId,
   sessionDate,
   offering = "private-tutoring",
 }: {
   studentId: string;
-  studentName: string;
+  firstName: string;
+  lastName?: string;
   sessionId?: string;
   sessionDate?: string;
   offering?: string;
@@ -212,10 +214,16 @@ export function buildChargeFields({
   // "George C, Mathitude, 7/4/26" — first name + last initial, brand, date.
   // (This is the internal description field, NOT the bank-statement descriptor,
   // which stays hard-locked to MATHITUDE below.)
-  const parts = studentName.trim().split(/\s+/);
-  const firstName = parts[0] || studentName.trim();
-  const lastInitial = parts.length > 1 ? `${parts[parts.length - 1][0].toUpperCase()}` : "";
-  const namePart = lastInitial ? `${firstName} ${lastInitial}` : firstName;
+  //
+  // Take firstName/lastName separately — deriving them by splitting a joined
+  // "First Last" string breaks when firstName has a space (e.g. "Test A
+  // Billing" wrongly became "Test B" by grabbing the LAST word's initial),
+  // which showed the wrong / duplicate student name on charges (QA 2026-07-05).
+  const fn = (firstName || "").trim();
+  const ln = (lastName || "").trim();
+  const studentName = `${fn} ${ln}`.trim() || fn;
+  const lastInitial = ln ? ln[0].toUpperCase() : "";
+  const namePart = lastInitial ? `${fn} ${lastInitial}` : fn;
   let mdy: string;
   if (sessionDate && /^\d{4}-\d{2}-\d{2}/.test(sessionDate)) {
     const [y, m, d] = sessionDate.slice(0, 10).split("-");

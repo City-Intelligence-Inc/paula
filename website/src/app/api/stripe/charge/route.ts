@@ -131,10 +131,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const studentName = `${student.firstName} ${student.lastName}`.trim();
   const fields = buildChargeFields({
     studentId: student.id,
-    studentName,
+    firstName: student.firstName,
+    lastName: student.lastName,
     offering: body.offering,
   });
   const label = (body.label || "").trim().slice(0, 200);

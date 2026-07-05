@@ -675,7 +675,7 @@ export default function AdminPaymentsPage() {
           <div className="hidden sm:grid grid-cols-[1fr_80px_100px_100px_80px_100px] gap-4 px-4 py-2.5 bg-neutral-50 border-b border-[color:var(--color-border-warm)]">
             <SortableHeader sortKey="name" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Student</SortableHeader>
             <SortableHeader sortKey="grade" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Grade</SortableHeader>
-            <SortableHeader sortKey="rate" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Rate/mo</SortableHeader>
+            <SortableHeader sortKey="rate" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Rate/session</SortableHeader>
             <SortableHeader sortKey="balance" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Balance</SortableHeader>
             <SortableHeader sortKey="status" activeKey={billingSort.key} dir={billingSort.dir} onClick={billingSort.toggle}>Status</SortableHeader>
             <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">Action</span>
@@ -699,7 +699,7 @@ export default function AdminPaymentsPage() {
                     {sb.student.firstName} {sb.student.lastName}
                   </p>
                   <p className="text-xs text-neutral-400 sm:hidden">
-                    Grade {sb.student.grade} &middot; ${sb.student.rate}/mo
+                    Grade {sb.student.grade} &middot; ${sb.student.rate}/session
                   </p>
                 </div>
                 <span className="hidden sm:block text-sm text-neutral-600">

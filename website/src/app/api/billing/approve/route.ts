@@ -296,13 +296,11 @@ export async function POST(request: Request) {
         throw new Error("No saved card on file for this payer.");
       }
 
-      const studentName = student
-        ? `${student.firstName} ${student.lastName}`.trim()
-        : attribId;
       const sessionDate = (row.dateTime || "").slice(0, 10);
       const fields = buildChargeFields({
         studentId: attribId,
-        studentName,
+        firstName: student?.firstName || attribId,
+        lastName: student?.lastName,
         sessionId: `${row.studentId}#${row.dateTime}#${row.splitIndex ?? 0}`,
         sessionDate,
       });
