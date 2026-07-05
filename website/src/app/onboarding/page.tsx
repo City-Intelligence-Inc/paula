@@ -155,7 +155,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#FBF7F0", fontFamily: "'Avenir Next', 'Nunito Sans', system-ui, sans-serif" }}>
+    <div className="min-h-screen flex flex-col" style={{ background: "#F3F4F6", fontFamily: "'Avenir Next', 'Nunito Sans', system-ui, sans-serif" }}>
       {/* Top bar */}
       <header className="flex items-center justify-between px-8 py-5 border-b border-[#E8E3D9] bg-white/60 backdrop-blur-sm">
         <span className="text-lg font-semibold tracking-tight" style={{ color: "#7030A0", fontFamily: "var(--font-original-surfer, serif)" }}>
