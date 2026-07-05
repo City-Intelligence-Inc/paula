@@ -28,6 +28,7 @@ import {
   UsersRound,
   BookUser,
   NotebookPen,
+  ChevronDown,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -40,131 +41,69 @@ type NavItem = {
   tour?: string;
 };
 
-const navItems: NavItem[] = [
+type NavGroup = {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: NavItem[];
+};
+
+// Grouped nav (Paula, 2026-07-05): collapsible sections so the sidebar is
+// scannable instead of a flat list of 20+ links. The group holding the current
+// page auto-expands.
+const navGroups: NavGroup[] = [
   {
-    label: "Weekly Schedule",
-    href: "/admin",
+    label: "Sessions",
     icon: Calendar,
+    items: [
+      { label: "Weekly Schedule", href: "/admin", icon: Calendar },
+      { label: "Log session", href: "/admin/sessions/new", icon: FileText },
+      { label: "Session Notes", href: "/staff-log-session", icon: NotebookPen },
+      { label: "Calendar", href: "/admin/calendar", icon: CalendarDays, tour: "calendar" },
+      { label: "Makeups", href: "/admin/makeups", icon: CalendarClock },
+      { label: "Academic Calendar", href: "/admin/academic-calendar", icon: CalendarDays },
+    ],
   },
   {
-    label: "Log session",
-    href: "/admin/sessions/new",
-    icon: FileText,
-  },
-  {
-    label: "Session Notes",
-    href: "/staff-log-session",
-    icon: NotebookPen,
-  },
-  {
-    label: "Families",
-    href: "/admin/families",
+    label: "Families & Students",
     icon: Home,
-    tour: "families",
-  },
-  {
-    label: "Students",
-    href: "/admin/students",
-    icon: Users,
-    tour: "students",
+    items: [
+      { label: "Families", href: "/admin/families", icon: Home, tour: "families" },
+      { label: "Students", href: "/admin/students", icon: Users, tour: "students" },
+    ],
   },
   {
     label: "Tutors",
-    href: "/admin/tutors",
     icon: UserCheck,
-  },
-  {
-    label: "Resources",
-    href: "/admin/resources",
-    icon: BookOpen,
-  },
-  {
-    label: "Equipment",
-    href: "/admin/equipment",
-    icon: Package,
+    items: [
+      { label: "Tutors", href: "/admin/tutors", icon: UserCheck },
+      { label: "Resources", href: "/admin/resources", icon: BookOpen },
+      { label: "Equipment", href: "/admin/equipment", icon: Package },
+    ],
   },
   {
     label: "Payments",
-    href: "/admin/payments",
     icon: CreditCard,
+    items: [
+      { label: "Payments", href: "/admin/payments", icon: CreditCard },
+      { label: "Family Ledger", href: "/admin/ledger", icon: Wallet },
+      { label: "Financials", href: "/admin/financials", icon: DollarSign },
+      { label: "Billing Diagnostics", href: "/admin/billing-diagnostics", icon: Stethoscope },
+    ],
   },
   {
-    label: "Family Ledger",
-    href: "/admin/ledger",
-    icon: Wallet,
-  },
-  {
-    label: "Billing Diagnostics",
-    href: "/admin/billing-diagnostics",
-    icon: Stethoscope,
-  },
-  {
-    label: "Financials",
-    href: "/admin/financials",
-    icon: DollarSign,
-  },
-  {
-    label: "Users",
-    href: "/admin/users",
-    icon: UsersRound,
-  },
-  {
-    label: "Admins",
-    href: "/admin/admins",
-    icon: ShieldCheck,
-  },
-  {
-    label: "Contacts",
-    href: "/admin/contacts",
-    icon: BookUser,
-  },
-  {
-    label: "Consultations",
-    href: "/admin/consultations",
-    icon: Mail,
-    tour: "consultations",
-  },
-  {
-    label: "Notifications",
-    href: "/admin/notifications",
-    icon: Bell,
-    tour: "notifications",
-  },
-  {
-    label: "Calendar",
-    href: "/admin/calendar",
-    icon: CalendarDays,
-    tour: "calendar",
-  },
-  {
-    label: "Makeups",
-    href: "/admin/makeups",
-    icon: CalendarClock,
-  },
-  {
-    label: "Academic Calendar",
-    href: "/admin/academic-calendar",
-    icon: CalendarDays,
-  },
-  {
-    label: "Newsletter",
-    href: "/admin/newsletter",
-    icon: Mail,
-  },
-  {
-    label: "Import",
-    href: "/admin/import",
-    icon: Upload,
-  },
-  {
-    label: "Pages",
-    href: "/admin/pages",
-    icon: FileText,
-  },
-  {
-    label: "Settings",
-    href: "/admin/settings",
+    label: "Admin",
     icon: Settings,
+    items: [
+      { label: "Users", href: "/admin/users", icon: UsersRound },
+      { label: "Admins", href: "/admin/admins", icon: ShieldCheck },
+      { label: "Contacts", href: "/admin/contacts", icon: BookUser },
+      { label: "Consultations", href: "/admin/consultations", icon: Mail, tour: "consultations" },
+      { label: "Notifications", href: "/admin/notifications", icon: Bell, tour: "notifications" },
+      { label: "Newsletter", href: "/admin/newsletter", icon: Mail },
+      { label: "Import", href: "/admin/import", icon: Upload },
+      { label: "Pages", href: "/admin/pages", icon: FileText },
+      { label: "Settings", href: "/admin/settings", icon: Settings },
+    ],
   },
 ];
 
@@ -204,6 +143,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [role, setRole] = useState<string>("admin");
+  // Explicit per-group toggles; a group not in here falls back to "open iff it
+  // holds the active route".
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -222,6 +164,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   const isActive = (href: string) =>
     href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+
+  const activeGroup = navGroups.find((g) =>
+    g.items.some((it) => isActive(it.href)),
+  )?.label;
+  const isGroupOpen = (label: string) => openGroups[label] ?? label === activeGroup;
 
   const sidebar = (
     <div className="flex flex-col h-full">
@@ -248,17 +195,50 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {/* Nav */}
+      {/* Nav — collapsible groups */}
       <ScrollArea className="flex-1 px-3 py-4">
-        <nav className="space-y-1">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.href}
-              item={item}
-              active={isActive(item.href)}
-              onClick={() => setMobileOpen(false)}
-            />
-          ))}
+        <nav className="space-y-2">
+          {navGroups.map((group) => {
+            const open = isGroupOpen(group.label);
+            const groupActive = group.items.some((it) => isActive(it.href));
+            return (
+              <div key={group.label}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setOpenGroups((p) => ({ ...p, [group.label]: !open }))
+                  }
+                  className={`w-full flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                    groupActive
+                      ? "text-mathitude-purple"
+                      : "text-neutral-700 hover:bg-neutral-100"
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <group.icon className="h-4 w-4 shrink-0" />
+                    {group.label}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-neutral-400 transition-transform ${
+                      open ? "" : "-rotate-90"
+                    }`}
+                  />
+                </button>
+                {open && (
+                  <div className="mt-1 space-y-1 pl-3">
+                    {group.items.map((item) => (
+                      <NavLink
+                        key={item.href}
+                        item={item}
+                        active={isActive(item.href)}
+                        onClick={() => setMobileOpen(false)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
       </ScrollArea>
 
