@@ -82,12 +82,33 @@ async function run(force: boolean): Promise<Response> {
   return Response.json({ year, advancedCount: advanced.length, advanced, unchangedCount: unchanged.length });
 }
 
-// Vercel Cron invokes GET with `Authorization: Bearer ${CRON_SECRET}`.
+// Vercel Cron invokes GET on Aug 1. No CRON_SECRET env var required: the
+// GET path is safe unauthenticated because it can ONLY do the exact thing
+// the schedule would do anyway — advance grades, in the first week of
+// August, at most once per year (the marker row in the AWS secrets table is
+// the once-per-year lock; `force` is never honored here). Outside that
+// window, or after the year's run, the request is a no-op. If CRON_SECRET
+// IS set someday, it's enforced as an extra belt.
 export async function GET(request: Request) {
   const secret = (process.env.CRON_SECRET || "").trim();
-  const header = request.headers.get("authorization") || "";
-  if (!secret || header !== `Bearer ${secret}`) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  if (secret) {
+    const header = request.headers.get("authorization") || "";
+    if (header !== `Bearer ${secret}`) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    return run(false);
+  }
+
+  // Schedule-window guard (UTC, matching the vercel.json schedule): the
+  // rollover may only fire Aug 1–7, covering platform retries without
+  // letting a stray request advance grades in, say, March.
+  const now = new Date();
+  const inWindow = now.getUTCMonth() === 7 && now.getUTCDate() <= 7;
+  if (!inWindow) {
+    return Response.json({
+      skipped: true,
+      reason: "Outside the Aug 1–7 rollover window — nothing to do.",
+    });
   }
   return run(false);
 }
