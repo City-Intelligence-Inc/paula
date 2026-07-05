@@ -146,7 +146,13 @@ export async function POST(request: Request) {
       confirm: true,
       description: fields.description,
       metadata: fields.metadata,
-      statement_descriptor_suffix: fields.statement_descriptor,
+      // Full descriptor (not _suffix): the suffix field requires a statement
+      // descriptor PREFIX configured on the Stripe account; without one, Stripe
+      // rejects the PaymentIntent before it's created — the charge "went
+      // pending" on our side but never appeared in Stripe (QA 2026-07-05). The
+      // full field sets the complete bank-statement text to MATHITUDE with no
+      // account prefix required.
+      statement_descriptor: fields.statement_descriptor,
     });
 
     const now = new Date().toISOString();

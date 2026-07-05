@@ -314,7 +314,11 @@ export async function POST(request: Request) {
         confirm: true,
         description: fields.description,
         metadata: { ...fields.metadata, splitLabel: row.splitLabel || "" },
-        statement_descriptor_suffix: fields.statement_descriptor,
+        // Full descriptor, not _suffix — the suffix field needs an account
+        // statement-descriptor prefix or Stripe rejects the PaymentIntent
+        // before creation (charge stuck "pending", nothing in Stripe). QA
+        // 2026-07-05.
+        statement_descriptor: fields.statement_descriptor,
       });
 
       const now = new Date().toISOString();
