@@ -52,8 +52,10 @@ export default function SignUpPage() {
             <p className="mt-2 text-sm text-neutral-500">Join Mathitude in a few seconds</p>
           </div>
 
+          {/* New accounts land on onboarding — the C-1/B-5 card gate. The
+              gate itself forwards to /dashboard once a card is on file. */}
           <SignUp
-            forceRedirectUrl="/dashboard"
+            forceRedirectUrl="/onboarding"
             appearance={{
               variables: {
                 colorPrimary: "#7030A0",

@@ -100,6 +100,26 @@ export default function OnboardingPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.firstName, user?.lastName]);
 
+  // C-1/B-5 card gate routing: invited parents already have their family on
+  // file from /register, so they skip straight to the payment step; anyone
+  // who already has a card on file skips onboarding entirely.
+  useEffect(() => {
+    fetch("/api/onboarding")
+      .then((r) => r.json())
+      .then((j: { parentId?: string | null; hasCard?: boolean; needsInfo?: boolean }) => {
+        if (j.parentId && j.hasCard) {
+          router.replace("/dashboard");
+          return;
+        }
+        if (j.parentId && !j.needsInfo) {
+          setParentId(j.parentId);
+          setStep(1);
+        }
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function submitStep1(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
