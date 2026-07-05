@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useApi } from "@/hooks/use-api";
-import { UserCheck, Mail, Phone, BookOpen, CalendarClock, Copy } from "lucide-react";
+import { UserCheck, Mail, Phone, BookOpen, CalendarClock, Copy, NotebookPen } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { gradeLabel } from "@/lib/grades";
@@ -212,13 +212,20 @@ export default function TutorPortalPage() {
               students here.
             </p>
           ) : null}
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
             <Link
               href="/tutor/resources"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-[#7030A0] hover:text-[#5d288a]"
             >
               <BookOpen className="h-4 w-4" />
               Resource library
+            </Link>
+            <Link
+              href="/staff-log-session"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#7030A0] hover:text-[#5d288a]"
+            >
+              <NotebookPen className="h-4 w-4" />
+              Session Notes
             </Link>
           </div>
         </div>

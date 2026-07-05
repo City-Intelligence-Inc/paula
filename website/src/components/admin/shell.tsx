@@ -28,6 +28,7 @@ import {
   Wallet,
   UsersRound,
   BookUser,
+  NotebookPen,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -50,6 +51,11 @@ const navItems: NavItem[] = [
     label: "Log session",
     href: "/admin/sessions/new",
     icon: FileText,
+  },
+  {
+    label: "Session Notes",
+    href: "/staff-log-session",
+    icon: NotebookPen,
   },
   {
     label: "Families",
