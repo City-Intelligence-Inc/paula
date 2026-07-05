@@ -26,6 +26,7 @@ import {
   Stethoscope,
   Package,
   Wallet,
+  UsersRound,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -101,6 +102,11 @@ const navItems: NavItem[] = [
     label: "Financials",
     href: "/admin/financials",
     icon: DollarSign,
+  },
+  {
+    label: "Users",
+    href: "/admin/users",
+    icon: UsersRound,
   },
   {
     label: "Admins",

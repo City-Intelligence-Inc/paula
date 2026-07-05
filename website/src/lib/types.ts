@@ -53,6 +53,8 @@ export interface Student {
   // adds it when the student is old enough to receive session notes directly.
   // Set via admin student detail page, including inline during a session.
   studentEmail?: string;
+  // Collected on the hidden registration page (C-9). YYYY-MM-DD.
+  birthday?: string;
   // F-1/F-2: files shared with this student's family — links to Drive/Dropbox/
   // etc. (no upload storage; the team already shares via Drive). "family"
   // audience shows on the family's notes page; "staff" stays internal.
