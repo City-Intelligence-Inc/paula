@@ -3,6 +3,7 @@ import { resolveActor } from "@/lib/server/access";
 import {
   listSessionNotes,
   upsertSessionNote,
+  deleteSessionNote,
   type NoteActor,
   type NoteUpsertBody,
 } from "@/lib/server/session-notes-core";
@@ -69,4 +70,18 @@ export async function PUT(
 ) {
   const { id } = await params;
   return write(request, id);
+}
+
+// DELETE /api/students/:id/session-notes?dateTime=… — remove one note.
+// Super admin + tutors (limited-scope tutors: own notes only).
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const { actor, response } = await resolveActor();
+  if (response) return response;
+  const dateTime = new URL(request.url).searchParams.get("dateTime") || "";
+  const r = await deleteSessionNote(toNoteActor(actor!), id, dateTime, deps());
+  return Response.json(r.body, { status: r.status });
 }

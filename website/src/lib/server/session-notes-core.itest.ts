@@ -17,6 +17,8 @@ import { DynamoDBDocumentClient, PutCommand, GetCommand } from "@aws-sdk/lib-dyn
 import {
   listSessionNotes,
   upsertSessionNote,
+  deleteSessionNote,
+  setFamilyReply,
   type NoteActor,
   type NoteDeps,
 } from "./session-notes-core.ts";
@@ -159,5 +161,95 @@ describe("listSessionNotes (read access + scope)", () => {
     const notes = (r.body as { notes: { createdBy: string }[] }).notes;
     assert.equal(notes.length, 1);
     assert.equal(notes[0].createdBy, "lim_uid");
+  });
+});
+
+// ─────────────────────────────────────────────
+// deleteSessionNote — who can delete
+// ─────────────────────────────────────────────
+describe("deleteSessionNote (RBAC + persistence)", () => {
+  test("office staff → 403 (view-only on notes)", async () => {
+    const r = await deleteSessionNote(officeStaff, "stu_robin", "2026-06-20T12:00:00.000Z", deps);
+    assert.equal(r.status, 403);
+  });
+
+  test("parent → 403 (cannot delete via the staff path)", async () => {
+    const r = await deleteSessionNote(parent, "stu_robin", "2026-06-20T12:00:00.000Z", deps);
+    assert.equal(r.status, 403);
+  });
+
+  test("limited tutor cannot delete someone else's note → 403", async () => {
+    const r = await deleteSessionNote(tutorLimited, "stu_class", "2026-06-08T12:00:00.000Z", deps);
+    assert.equal(r.status, 403);
+  });
+
+  test("limited tutor deletes their OWN note → 200 and the row is gone", async () => {
+    const r = await deleteSessionNote(tutorLimited, "stu_class", "2026-06-01T12:00:00.000Z", deps);
+    assert.equal(r.status, 200);
+    const got = await deps.db.send(new GetCommand({
+      TableName: tables.sessions,
+      Key: { studentId: "stu_class", dateTime: "2026-06-01T12:00:00.000Z" },
+    }));
+    assert.equal(got.Item, undefined);
+  });
+
+  test("super admin deletes any note → 200 and the row is gone", async () => {
+    const r = await deleteSessionNote(superAdmin, "stu_robin", "2026-06-20T12:00:00.000Z", deps);
+    assert.equal(r.status, 200);
+    const got = await deps.db.send(new GetCommand({
+      TableName: tables.sessions,
+      Key: { studentId: "stu_robin", dateTime: "2026-06-20T12:00:00.000Z" },
+    }));
+    assert.equal(got.Item, undefined);
+  });
+
+  test("missing note → 404", async () => {
+    const r = await deleteSessionNote(superAdmin, "stu_robin", "1999-01-01T00:00:00.000Z", deps);
+    assert.equal(r.status, 404);
+  });
+});
+
+// ─────────────────────────────────────────────
+// setFamilyReply — N-5 parent reply
+// ─────────────────────────────────────────────
+describe("setFamilyReply (N-5 RBAC + persistence)", () => {
+  const noteDT = "2026-06-21T12:00:00.000Z"; // tutor note on stu_robin from above
+
+  test("parent replies on their own child → 200, persists, staff fields stripped", async () => {
+    const r = await setFamilyReply(parent, ["stu_robin"], "stu_robin", {
+      dateTime: noteDT,
+      familyReply: "Thanks — she loved this session!",
+    }, deps);
+    assert.equal(r.status, 200);
+    const body = r.body as { note: Record<string, unknown> };
+    assert.equal(body.note.familyReply, "Thanks — she loved this session!");
+    assert.equal(body.note.privateNotes, undefined); // stripped for family
+    const got = await deps.db.send(new GetCommand({
+      TableName: tables.sessions,
+      Key: { studentId: "stu_robin", dateTime: noteDT },
+    }));
+    assert.equal(got.Item?.familyReply, "Thanks — she loved this session!");
+    assert.equal(got.Item?.familyReplyBy, "pa");
+  });
+
+  test("parent cannot reply on someone else's child → 403", async () => {
+    const r = await setFamilyReply(parent, ["stu_other"], "stu_robin", {
+      dateTime: noteDT, familyReply: "nope",
+    }, deps);
+    assert.equal(r.status, 403);
+  });
+
+  test("staff cannot write a family reply → 403", async () => {
+    const r = await setFamilyReply(superAdmin, ["stu_robin"], "stu_robin", {
+      dateTime: noteDT, familyReply: "staff reply",
+    }, deps);
+    assert.equal(r.status, 403);
+  });
+
+  test("reply on a missing note → 404", async () => {
+    const r = await setFamilyReply(parent, ["stu_robin"], "stu_robin", {
+      dateTime: "1999-01-01T00:00:00.000Z", familyReply: "x",
+    }, deps);
+    assert.equal(r.status, 404);
   });
 });

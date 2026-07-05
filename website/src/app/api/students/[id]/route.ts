@@ -5,6 +5,7 @@ import {
   forbidden,
   tutorScopeForStudent,
   stripPricingFromStudent,
+  stripContactFromStudent,
 } from "@/lib/server/access";
 import type { Student } from "@/lib/types";
 
@@ -39,7 +40,9 @@ export async function GET(
     if (scope === "none") {
       return forbidden("You are not assigned to this student.");
     }
-    return Response.json({ student: stripPricingFromStudent(student) });
+    return Response.json({
+      student: stripContactFromStudent(stripPricingFromStudent(student)),
+    });
   }
   return forbidden();
 }

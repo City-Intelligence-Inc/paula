@@ -20,6 +20,8 @@ export interface Student {
   firstName: string;
   lastName: string;
   grade: string;
+  // Short school abbreviation (2–5 chars, e.g. "WCS", "PALY") shown in session
+  // rows and the student header. Distinct from schoolLogins (ghost portal creds).
   school?: string;
   status: "active" | "waitlist" | "inactive";
   parentName: string;
@@ -103,6 +105,10 @@ export interface Session {
   noteGroupId?: string; // links the per-student items of one group session
   createdBy?: string; // author id (tutor/staff)
   readyToNotify?: boolean; // Submit sets this; Ari's notifier sends the email
+  // N-5: a parent's reply on a completed session (parents write; staff read).
+  familyReply?: string;
+  familyReplyAt?: string; // ISO timestamp of the last reply edit
+  familyReplyBy?: string; // Clerk user id of the replying parent
   students?: string[]; // for group sessions, list of student IDs
   // Post-session form extensions (5/17 spec):
   offering?: SessionOffering;

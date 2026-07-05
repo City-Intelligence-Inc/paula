@@ -58,6 +58,7 @@ function apiNoteToSessionNote(n: Record<string, unknown>): SessionNote {
     publicNotes: String(n.publicNotes || ""),
     noteGroupId: n.noteGroupId as string | undefined,
     groupLabel: n.groupLabel as string | undefined,
+    familyReply: n.familyReply as string | undefined,
   };
 }
 
@@ -79,6 +80,9 @@ export default function StaffLogSessionPage() {
   const [liveRole, setLiveRole] = React.useState<PortalRole | null>(null);
   const [liveStudents, setLiveStudents] = React.useState<DemoStudent[]>([]);
   const [liveNotes, setLiveNotes] = React.useState<SessionNote[]>([]);
+  // Family live mode: all children's notes from /api/me/notes (filtered per
+  // selected child client-side — the staff per-student endpoint 403s families).
+  const [liveFamilyNotes, setLiveFamilyNotes] = React.useState<SessionNote[]>([]);
   const [liveShortcuts, setLiveShortcuts] = React.useState<MentionShortcut[]>([]);
   const [notesLoading, setNotesLoading] = React.useState(false);
   const [liveSaving, setLiveSaving] = React.useState(false);
@@ -113,6 +117,11 @@ export default function StaffLogSessionPage() {
     DEMO_STUDENTS[0].id,
   );
 
+  // Two single-session layouts to compare (7/4 feedback).
+  const [noteLayout, setNoteLayout] = React.useState<
+    "notes-column" | "notes-fullwidth"
+  >("notes-column");
+
   // ── Fetch role + students when signed in ─────────────────────────────────
   React.useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
@@ -126,8 +135,7 @@ export default function StaffLogSessionPage() {
           isAdmin: boolean;
           isMaster: boolean;
         };
-        const role = ROLE_ALIASES[me.role] ?? "parent";
-        setLiveRole(role);
+        let role = ROLE_ALIASES[me.role] ?? "parent";
 
         // 2. Fetch students based on role.
         let students: DemoStudent[] = [];
@@ -139,7 +147,19 @@ export default function StaffLogSessionPage() {
           const r = await fetchApi("/api/tutor/students");
           const j = await r.json() as { students?: Record<string, unknown>[] };
           students = (j.students || []) as unknown as DemoStudent[];
+        } else {
+          // Family member — children (or self) + all their notes in one call.
+          const r = await fetchApi("/api/me/notes");
+          const j = await r.json() as {
+            role?: string;
+            students?: Record<string, unknown>[];
+            notes?: Record<string, unknown>[];
+          };
+          if (j.role === "student") role = "student";
+          students = (j.students || []) as unknown as DemoStudent[];
+          setLiveFamilyNotes((j.notes || []).map(apiNoteToSessionNote));
         }
+        setLiveRole(role);
         setLiveStudents(students);
         if (students.length) setSelectedStudentId(students[0].id);
 
@@ -161,6 +181,8 @@ export default function StaffLogSessionPage() {
   // ── Fetch notes when selected student changes (live mode) ─────────────────
   React.useEffect(() => {
     if (!isSignedIn || !selectedStudentId || liveStudents.length === 0) return;
+    // Family roles already have every note from /api/me/notes.
+    if (liveRole === "parent" || liveRole === "student") return;
     setNotesLoading(true);
     setLiveError(null);
     fetchApi(`/api/students/${selectedStudentId}/session-notes`)
@@ -172,7 +194,7 @@ export default function StaffLogSessionPage() {
       .catch((e) => setLiveError(String(e)))
       .finally(() => setNotesLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSignedIn, selectedStudentId, liveStudents.length]);
+  }, [isSignedIn, selectedStudentId, liveStudents.length, liveRole]);
 
   // ── Save handler ──────────────────────────────────────────────────────────
   async function handleSave(
@@ -231,6 +253,69 @@ export default function StaffLogSessionPage() {
     });
   }
 
+  // Delete a past session note (super admin + tutors — server re-checks).
+  async function handleDelete(note: SessionNote) {
+    if (isSignedIn) {
+      setLiveError(null);
+      try {
+        const res = await fetchApi(
+          `/api/students/${note.studentId}/session-notes?dateTime=${encodeURIComponent(note.dateTime)}`,
+          { method: "DELETE" },
+        );
+        if (!res.ok) {
+          const j = await res.json() as { error?: string };
+          setLiveError(j.error || "Delete failed");
+          return;
+        }
+        setLiveNotes((prev) => prev.filter((n) => n.id !== note.id));
+      } catch (e) {
+        setLiveError(String(e));
+      }
+      return;
+    }
+    setDemoNotes((prev) => {
+      const updated = prev.filter((n) => n.id !== note.id);
+      try { localStorage.setItem(NOTES_KEY, JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  }
+
+  // N-5: a parent's reply on a completed session.
+  async function handleReply(noteId: string, text: string) {
+    if (isSignedIn) {
+      setLiveError(null);
+      try {
+        const note = liveFamilyNotes.find((n) => n.id === noteId);
+        if (!note) return;
+        const res = await fetchApi(
+          `/api/students/${note.studentId}/session-notes/reply`,
+          {
+            method: "PUT",
+            body: JSON.stringify({ dateTime: note.dateTime, familyReply: text }),
+          },
+        );
+        if (!res.ok) {
+          const j = await res.json() as { error?: string };
+          setLiveError(j.error || "Reply failed to save");
+          return;
+        }
+        setLiveFamilyNotes((prev) =>
+          prev.map((n) => (n.id === noteId ? { ...n, familyReply: text } : n)),
+        );
+      } catch (e) {
+        setLiveError(String(e));
+      }
+      return;
+    }
+    setDemoNotes((prev) => {
+      const updated = prev.map((n) =>
+        n.id === noteId ? { ...n, familyReply: text } : n,
+      );
+      try { localStorage.setItem(NOTES_KEY, JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  }
+
   function handleCreateShortcut(shortcut: string, href: string): MentionShortcut {
     const list = isSignedIn ? liveShortcuts : demoShortcuts;
     const existing = list.find(
@@ -273,12 +358,17 @@ export default function StaffLogSessionPage() {
   const role: PortalRole = isLive ? (liveRole ?? "parent") : demoRole;
   const students: DemoStudent[] = isLive ? liveStudents : demoVisibleStudents;
   const notes: SessionNote[] = React.useMemo(() => {
-    if (isLive) return liveNotes;
+    if (isLive) {
+      if (role === "parent" || role === "student") {
+        return liveFamilyNotes.filter((n) => n.studentId === selectedStudentId);
+      }
+      return liveNotes;
+    }
     return demoNotes
       .filter((n) => n.studentId === selectedStudentId)
       .sort((a, b) => b.dateTime.localeCompare(a.dateTime))
       .map((n) => visibleNote(demoRole, n));
-  }, [isLive, liveNotes, demoNotes, selectedStudentId, demoRole]);
+  }, [isLive, role, liveNotes, liveFamilyNotes, demoNotes, selectedStudentId, demoRole]);
   const shortcuts = isLive ? liveShortcuts : demoShortcuts;
 
   const selStudent = students.find((s) => s.id === selectedStudentId) ?? students[0];
@@ -289,7 +379,7 @@ export default function StaffLogSessionPage() {
     <>
       <Navbar />
       <main className="flex-1 bg-white">
-        <div className="mx-auto max-w-[1152px] px-4 py-8">
+        <div className="mx-auto max-w-[1600px] px-4 py-8">
           <header className="mb-5">
             <h1
               className="text-3xl text-[#7030A0]"
@@ -433,19 +523,51 @@ export default function StaffLogSessionPage() {
               <ParentNotesView
                 studentName={selStudent ? `${selStudent.firstName} ${selStudent.lastName}` : ""}
                 notes={notes}
+                canReply={role === "parent"}
+                onSaveReply={handleReply}
               />
             </>
           ) : (
-            <SessionNotesBoard
-              role={role}
-              students={students}
-              selectedStudentId={selectedStudentId}
-              onSelectStudent={setSelectedStudentId}
-              notes={notes}
-              shortcuts={shortcuts}
-              onSaveNote={handleSave}
-              onCreateShortcut={handleCreateShortcut}
-            />
+            <>
+              {/* Compare the two single-session layouts */}
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                  Note layout
+                </span>
+                {(
+                  [
+                    ["notes-column", "Notes column (V1)"],
+                    ["notes-fullwidth", "Full-width notes (V2)"],
+                  ] as const
+                ).map(([val, label]) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setNoteLayout(val)}
+                    className="rounded-full px-3 py-1 text-xs font-medium ring-1 ring-border-warm transition-colors"
+                    style={
+                      noteLayout === val
+                        ? { backgroundColor: "#7030A0", color: "#fff" }
+                        : { color: "#7030A0" }
+                    }
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <SessionNotesBoard
+                role={role}
+                students={students}
+                selectedStudentId={selectedStudentId}
+                onSelectStudent={setSelectedStudentId}
+                notes={notes}
+                shortcuts={shortcuts}
+                onSaveNote={handleSave}
+                onCreateShortcut={handleCreateShortcut}
+                onDeleteNote={handleDelete}
+                layout={noteLayout}
+              />
+            </>
           )}
         </div>
       </main>

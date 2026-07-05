@@ -106,28 +106,62 @@ export function tutorScopeForStudent(
   return entry?.scope === "limited" ? "limited" : "full";
 }
 
-// Pricing/billing fields a tutor must never see (5/17 Paula — pricing blind
-// to tutors). Master admin + admin keep them.
-export function stripPricingFromStudent<T extends Record<string, unknown>>(
-  student: T,
-): T {
-  const { rate: _r, stripeCustomerId: _s, primaryPayerParentId: _p, ...rest } =
-    student as Record<string, unknown>;
-  void _r;
-  void _s;
-  void _p;
-  return rest as T;
-}
+// Pure field-projection helpers live in field-projection.ts (dependency-free so
+// they're unit-testable under node --test). Re-exported here so existing call
+// sites can keep importing them from access.
+export {
+  stripPricingFromStudent,
+  stripContactFromStudent,
+  stripPricingFromSession,
+} from "./field-projection";
 
-export function stripPricingFromSession<T extends Record<string, unknown>>(
-  session: T,
-): T {
-  const { rate: _r, amountCents: _a, payers: _p, ...rest } =
-    session as Record<string, unknown>;
-  void _r;
-  void _a;
-  void _p;
-  return rest as T;
+// Resolve the students a signed-in family member can see:
+//   parentOf — children in the caregiver's family (parents table match by
+//              clerkUserId or email → familyId → students), plus legacy
+//              students that carry the caregiver's email as parentEmail.
+//   self     — the student themself, when the signed-in email is a student's
+//              own studentEmail (R-7: scoped to exactly their record).
+export async function studentsForFamilyMember(
+  userId: string,
+  email: string,
+): Promise<{ parentOf: Student[]; self: Student | null }> {
+  const e = (email || "").trim().toLowerCase();
+  try {
+    const [parentsRes, studentsRes] = await Promise.all([
+      ddb().send(new ScanCommand({ TableName: Tables.parents })),
+      ddb().send(new ScanCommand({ TableName: Tables.students })),
+    ]);
+    const parents = (parentsRes.Items || []) as {
+      familyId?: string;
+      email?: string;
+      clerkUserId?: string;
+    }[];
+    const students = (studentsRes.Items || []) as Student[];
+
+    const familyIds = new Set(
+      parents
+        .filter(
+          (p) =>
+            p.clerkUserId === userId ||
+            (e && (p.email || "").trim().toLowerCase() === e),
+        )
+        .map((p) => p.familyId)
+        .filter(Boolean) as string[],
+    );
+    const parentOf = students.filter(
+      (s) =>
+        (s.familyId && familyIds.has(s.familyId)) ||
+        (e && (s.parentEmail || "").trim().toLowerCase() === e),
+    );
+    const self =
+      students.find(
+        (s) => e && (s.studentEmail || "").trim().toLowerCase() === e,
+      ) || null;
+    return { parentOf, self };
+  } catch (err) {
+    console.warn("[studentsForFamilyMember] failed:", err);
+    return { parentOf: [], self: null };
+  }
 }
 
 // Gate check: is this email known to the system as a parent (either directly

@@ -10,6 +10,7 @@ import {
   GetCommand,
   QueryCommand,
   PutCommand,
+  DeleteCommand,
   type DynamoDBDocumentClient,
 } from "@aws-sdk/lib-dynamodb";
 import type { Session, Student } from "@/lib/types";
@@ -164,4 +165,89 @@ export async function upsertSessionNote(
     new PutCommand({ TableName: deps.tables.sessions, Item: note }),
   );
   return { status: existing.Item ? 200 : 201, body: { note } };
+}
+
+// Delete a session note. Super admin: any note. Tutor: full-scope tutors can
+// delete any note on their student; limited-scope (class) tutors only their
+// own. Office staff are view-only on notes (same rule as upsert).
+export async function deleteSessionNote(
+  actor: NoteActor,
+  id: string,
+  dateTime: string,
+  deps: NoteDeps,
+): Promise<CoreResult> {
+  const authz = await authorize(actor, id, deps);
+  if ("deny" in authz) return authz.deny;
+  if (!actor.isMaster && actor.role !== "tutor") {
+    return deny(403, "Only tutors and the super admin can delete session notes.");
+  }
+  if (!dateTime) return deny(400, "dateTime is required");
+
+  const existing = await deps.db.send(
+    new GetCommand({
+      TableName: deps.tables.sessions,
+      Key: { studentId: id, dateTime },
+    }),
+  );
+  const note = existing.Item as Session | undefined;
+  if (!note || note.type !== "session-note") {
+    return deny(404, "Session note not found");
+  }
+  if (
+    actor.role === "tutor" &&
+    authz.scope === "limited" &&
+    note.createdBy !== actor.userId
+  ) {
+    return deny(403, "Class instructors can only delete their own notes.");
+  }
+
+  await deps.db.send(
+    new DeleteCommand({
+      TableName: deps.tables.sessions,
+      Key: { studentId: id, dateTime },
+    }),
+  );
+  return { status: 200, body: { deleted: { studentId: id, dateTime } } };
+}
+
+// N-5: a parent's reply on a completed session. Parents may only touch notes
+// on their own children — the route resolves that set (family membership) and
+// passes it in, so the core stays table-agnostic beyond sessions/students.
+export async function setFamilyReply(
+  actor: NoteActor,
+  parentStudentIds: string[],
+  id: string,
+  body: { dateTime?: string; familyReply?: string },
+  deps: NoteDeps,
+): Promise<CoreResult> {
+  if (actor.isAdmin || actor.role === "tutor") {
+    return deny(403, "Replies belong to the family — staff write in the note fields.");
+  }
+  if (!parentStudentIds.includes(id)) {
+    return deny(403, "You can only reply on your own child's sessions.");
+  }
+  const dateTime = body.dateTime || "";
+  if (!dateTime) return deny(400, "dateTime is required");
+
+  const existing = await deps.db.send(
+    new GetCommand({
+      TableName: deps.tables.sessions,
+      Key: { studentId: id, dateTime },
+    }),
+  );
+  const note = existing.Item as Session | undefined;
+  if (!note || note.type !== "session-note") {
+    return deny(404, "Session note not found");
+  }
+
+  const updated: Session = {
+    ...note,
+    familyReply: String(body.familyReply ?? "").slice(0, 4000),
+    familyReplyAt: new Date().toISOString(),
+    familyReplyBy: actor.userId,
+  };
+  await deps.db.send(
+    new PutCommand({ TableName: deps.tables.sessions, Item: updated }),
+  );
+  return { status: 200, body: { note: visibleFor(actor, updated) } };
 }

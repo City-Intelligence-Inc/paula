@@ -1,6 +1,10 @@
 import { ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { currentUser } from "@clerk/nextjs/server";
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
+import {
+  stripPricingFromStudent,
+  stripContactFromStudent,
+} from "@/lib/server/access";
 
 // GET /api/tutor/students
 // Returns every Student whose tutorIds[] includes the signed-in user's
@@ -45,7 +49,10 @@ export async function GET() {
       const an = `${a.lastName || ""} ${a.firstName || ""}`.toLowerCase();
       const bn = `${b.lastName || ""} ${b.firstName || ""}`.toLowerCase();
       return an.localeCompare(bn);
-    });
+    })
+    // R-5: tutors never receive pricing/billing or parent/student contact
+    // channels, even for their own assigned students.
+    .map((s) => stripContactFromStudent(stripPricingFromStudent(s)));
 
   return Response.json({ tutor, students });
 }

@@ -103,6 +103,7 @@ export function RichTextEditor({
   placeholder,
   disabled,
   className,
+  editorMinHeight = "min-h-[52vh]",
   shortcuts = [],
   onCreateShortcut,
 }: {
@@ -111,6 +112,8 @@ export function RichTextEditor({
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  /** Tailwind min-height class for the editable area (shorter when stacked) */
+  editorMinHeight?: string;
   /** N-5: resources offered when the user types `@` */
   shortcuts?: MentionShortcut[];
   /** N-5: called when the user opts to save a new shortcut; returns the saved one */
@@ -265,7 +268,8 @@ export function RichTextEditor({
         onBlur={() => setTimeout(() => setMention(null), 150)}
         data-placeholder={placeholder}
         className={cn(
-          "min-h-[52vh] px-4 py-3 text-[15px] leading-7 text-[#1a1a1a] outline-none",
+          editorMinHeight,
+          "px-4 py-3 text-[15px] leading-7 text-[#1a1a1a] outline-none",
           "[&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1 [&_a]:text-mathitude-purple [&_a]:underline",
           "empty:before:text-zinc-500 empty:before:content-[attr(data-placeholder)]",
         )}

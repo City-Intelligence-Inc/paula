@@ -14,8 +14,13 @@ export const BOOTSTRAP_ADMIN_EMAILS: readonly string[] = (
 
 const ADMIN_EMAILS_KEY = "admin-emails";
 const CACHE_TTL_MS = 30_000;
+// On a lookup miss, re-read from DDB if the cache is older than this — each
+// serverless instance caches independently, so a just-added admin would
+// otherwise be denied for up to CACHE_TTL_MS ("permissions still incoming").
+const MISS_REFRESH_MS = 3_000;
 let cache: {
   value: AdminEntry[];
+  fetchedAt: number;
   expires: number;
 } | null = null;
 
@@ -50,8 +55,8 @@ export function isBootstrapAdmin(email: string): boolean {
 
 // Bootstrap admins are master_admin by default. Portal-added entries
 // inherit whatever role was assigned when added (default: admin).
-async function readAdditional(): Promise<AdminEntry[]> {
-  if (cache && cache.expires > Date.now()) return cache.value;
+async function readAdditional(force = false): Promise<AdminEntry[]> {
+  if (!force && cache && cache.expires > Date.now()) return cache.value;
   let entries: AdminEntry[] = [];
   try {
     const r = await ddb().send(
@@ -80,7 +85,11 @@ async function readAdditional(): Promise<AdminEntry[]> {
   } catch (err) {
     console.warn("[admins.readAdditional] failed:", err);
   }
-  cache = { value: entries, expires: Date.now() + CACHE_TTL_MS };
+  cache = {
+    value: entries,
+    fetchedAt: Date.now(),
+    expires: Date.now() + CACHE_TTL_MS,
+  };
   return entries;
 }
 
@@ -103,21 +112,11 @@ export async function listAllAdmins(): Promise<{
 }
 
 export async function isAdminEmail(email: string): Promise<boolean> {
-  const e = normalize(email);
-  if (!e) return false;
-  if (isBootstrapAdmin(e)) return true;
-  const additional = await readAdditional();
-  return additional.some((a) => a.email === e);
+  return (await getAdminRole(email)) !== null;
 }
 
 export async function isMasterAdminEmail(email: string): Promise<boolean> {
-  const e = normalize(email);
-  if (!e) return false;
-  if (isBootstrapAdmin(e)) return true;
-  const additional = await readAdditional();
-  return additional.some(
-    (a) => a.email === e && a.role === "master_admin",
-  );
+  return (await getAdminRole(email)) === "master_admin";
 }
 
 export async function getAdminRole(email: string): Promise<AdminRole | null> {
@@ -126,7 +125,15 @@ export async function getAdminRole(email: string): Promise<AdminRole | null> {
   if (isBootstrapAdmin(e)) return "master_admin";
   const additional = await readAdditional();
   const found = additional.find((a) => a.email === e);
-  return found?.role || null;
+  if (found) return found.role;
+  // Miss → this instance's cache may predate a just-added admin. Re-read once
+  // (rate-limited so steady parent traffic doesn't bypass the cache) before
+  // denying, so a freshly added admin works on their first request.
+  if (cache && Date.now() - cache.fetchedAt > MISS_REFRESH_MS) {
+    const fresh = await readAdditional(true);
+    return fresh.find((a) => a.email === e)?.role || null;
+  }
+  return null;
 }
 
 async function writeAdditional(
