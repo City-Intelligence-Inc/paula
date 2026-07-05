@@ -1011,7 +1011,7 @@ function FamilyLinkCard({
 }) {
   const fetchApi = useApi();
   const [parents, setParents] = useState<
-    { id: string; label: string; sublabel?: string; familyId: string }[]
+    { id: string; label: string; sublabel?: string; familyId: string; lastName?: string }[]
   >([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -1020,7 +1020,7 @@ function FamilyLinkCard({
     fetchApi("/api/families")
       .then((r) => r.json())
       .then((j) => {
-        const rows: { id: string; label: string; sublabel?: string; familyId: string }[] = [];
+        const rows: { id: string; label: string; sublabel?: string; familyId: string; lastName?: string }[] = [];
         for (const f of j.families || []) {
           for (const p of f.parents || []) {
             rows.push({
@@ -1028,6 +1028,7 @@ function FamilyLinkCard({
               familyId: f.id,
               label: `${p.firstName || ""} ${p.lastName || ""}`.trim() || p.email || p.id,
               sublabel: p.email,
+              lastName: p.lastName || "",
             });
           }
         }
@@ -1036,28 +1037,45 @@ function FamilyLinkCard({
       .catch(() => {});
   }, [fetchApi]);
 
+  // Name the family for display: the linked parents' shared surname
+  // ("Billing family"), falling back to a parent's name, then a generic label.
+  const familyMembers = parents.filter((p) => p.familyId === student.familyId);
+  const surnames = Array.from(
+    new Set(familyMembers.map((p) => p.lastName?.trim()).filter(Boolean))
+  );
+  const familyName = surnames.length
+    ? `${surnames.join(" / ")} family`
+    : familyMembers[0]?.label
+      ? `${familyMembers[0].label}'s family`
+      : "this family";
+  const familyParentNames = familyMembers.map((p) => p.label).join(", ");
+
   return (
     <Card className="border border-neutral-200 rounded-lg overflow-hidden">
       <div className="p-6">
         <h2 className="text-lg font-semibold text-neutral-900 tracking-tight mb-1">
           Family
         </h2>
-        <p className="text-sm text-neutral-500 mb-4">
-          {student.familyId ? (
-            <>
-              Linked to{" "}
-              <a
-                href={`/admin/families/${student.familyId}`}
-                className="text-mathitude-purple hover:underline font-medium"
-              >
-                this family
-              </a>
-              . Search a parent to move the student to a different family.
-            </>
-          ) : (
-            "Not linked to a family yet — search a parent to link."
-          )}
-        </p>
+        {student.familyId ? (
+          <div className="mb-4">
+            <a
+              href={`/admin/families/${student.familyId}`}
+              className="text-base font-semibold text-mathitude-purple hover:underline"
+            >
+              {familyName}
+            </a>
+            {familyParentNames && (
+              <p className="text-sm text-neutral-500 mt-0.5">{familyParentNames}</p>
+            )}
+            <p className="text-sm text-neutral-500 mt-1">
+              Search a parent to move {student.firstName || "the student"} to a different family.
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-neutral-500 mb-4">
+            Not linked to a family yet — search a parent to link.
+          </p>
+        )}
         <div className="max-w-sm">
           <EntitySearch
             placeholder="Search parents…"
