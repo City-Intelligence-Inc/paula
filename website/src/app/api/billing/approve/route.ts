@@ -87,7 +87,9 @@ async function resolveCustomerId(
         TableName: Tables.parents,
         FilterExpression: "familyId = :f",
         ExpressionAttributeValues: { ":f": familyId },
-        Limit: 10,
+        // No Limit: on a filtered Scan it caps rows examined pre-filter, so
+        // Limit:10 dropped the family's payer once the table grew past 10 rows
+        // → false "No Stripe customer on file" (QA 2026-07-05).
       }),
     );
     const parents = (ps.Items || []) as Array<{ id: string; stripeCustomerId?: string }>;

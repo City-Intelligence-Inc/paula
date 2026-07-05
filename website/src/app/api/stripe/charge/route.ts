@@ -71,7 +71,11 @@ export async function POST(request: Request) {
         TableName: Tables.parents,
         FilterExpression: "familyId = :f",
         ExpressionAttributeValues: { ":f": student.familyId },
-        Limit: 10,
+        // NO Limit: on a filtered Scan, Limit caps rows EXAMINED (before the
+        // filter), not rows returned. With Limit:10 and 100+ parents, the
+        // family's payer usually wasn't in the first 10 rows scanned, so this
+        // returned zero and the charge falsely reported "No Stripe customer on
+        // file" even with a card clearly on file (QA 2026-07-05).
       }),
     );
     const parents = (ps.Items || []) as Array<{
