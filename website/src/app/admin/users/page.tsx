@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { gradeShort } from "@/lib/grades";
+import { familyDisplayName, splitFullName } from "@/lib/names";
 
 // R-8: every user in the system, categorized by role, with email invitations
 // (role set at invite time — C-1 tokenized links) and safe offboarding of
@@ -424,7 +425,7 @@ export default function AdminUsersPage() {
                 href={`/admin/families/${p.familyId}`}
                 className="text-xs font-medium text-mathitude-purple hover:underline"
               >
-                Family
+                {familyDisplayName({ id: p.familyId, primary: splitFullName(p.name) })}
               </Link>
             </div>
           ))}

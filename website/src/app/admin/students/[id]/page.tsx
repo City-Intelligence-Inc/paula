@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { Student } from "@/lib/types";
+import { familyDisplayName } from "@/lib/names";
 import { SchoolLoginsPanel } from "@/components/admin/school-logins-panel";
 import { EntitySearch } from "@/components/admin/entity-search";
 import { SharedFilesPanel } from "@/components/shared-files-panel";
@@ -1037,17 +1038,13 @@ function FamilyLinkCard({
       .catch(() => {});
   }, [fetchApi]);
 
-  // Name the family for display: the linked parents' shared surname
-  // ("Billing family"), falling back to a parent's name, then a generic label.
+  // Name the family for display via the shared helper ("Billing family"),
+  // with the linked parent names shown underneath as context.
   const familyMembers = parents.filter((p) => p.familyId === student.familyId);
-  const surnames = Array.from(
-    new Set(familyMembers.map((p) => p.lastName?.trim()).filter(Boolean))
-  );
-  const familyName = surnames.length
-    ? `${surnames.join(" / ")} family`
-    : familyMembers[0]?.label
-      ? `${familyMembers[0].label}'s family`
-      : "this family";
+  const familyName = familyDisplayName({
+    id: student.familyId || "",
+    parents: familyMembers.map((p) => ({ lastName: p.lastName })),
+  });
   const familyParentNames = familyMembers.map((p) => p.label).join(", ");
 
   return (

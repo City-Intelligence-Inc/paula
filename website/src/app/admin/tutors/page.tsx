@@ -6,6 +6,7 @@ import { Plus, Trash2, Mail, Phone, UserCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { familyDisplayName } from "@/lib/names";
 
 interface Tutor {
   id: string;
@@ -503,7 +504,7 @@ export default function TutorsPage() {
                                   href={`/admin/families/${s.familyId}`}
                                   className="text-xs text-[#7030A0] hover:underline underline-offset-2"
                                 >
-                                  Family
+                                  {familyDisplayName({ id: s.familyId, primary: { firstName: s.firstName, lastName: s.lastName } })}
                                 </a>
                               )}
                             </li>

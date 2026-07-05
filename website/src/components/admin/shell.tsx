@@ -18,7 +18,6 @@ import {
   Menu,
   ShieldCheck,
   Home,
-  Inbox,
   UserCheck,
   Bell,
   BookOpen,
@@ -83,12 +82,6 @@ const navItems: NavItem[] = [
     label: "Equipment",
     href: "/admin/equipment",
     icon: Package,
-  },
-  {
-    label: "Billing queue",
-    href: "/admin/billing",
-    icon: Inbox,
-    tour: "billing",
   },
   {
     label: "Payments",

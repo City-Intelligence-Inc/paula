@@ -196,6 +196,145 @@ function ChargeButton({
   );
 }
 
+// Flat-rate / one-off charge — group classes, events, or any custom amount for
+// a student's payer. Moved here from the (removed) Billing queue so Payments is
+// the single place to charge. Bank statement still reads MATHITUDE.
+function FlatRateChargeCard({ onCharged }: { onCharged?: () => void }) {
+  const fetchApi = useApi();
+  const [students, setStudents] = useState<
+    { id: string; firstName: string; lastName: string }[]
+  >([]);
+  const [studentId, setStudentId] = useState("");
+  const [amount, setAmount] = useState("");
+  const [label, setLabel] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(
+    null,
+  );
+
+  useEffect(() => {
+    fetchApi("/api/students")
+      .then((r) => r.json())
+      .then(
+        (j: {
+          students?: { id: string; firstName: string; lastName: string }[];
+        }) => {
+          const list = (j.students || []).slice();
+          list.sort((a, b) =>
+            `${a.firstName} ${a.lastName}`.localeCompare(
+              `${b.firstName} ${b.lastName}`,
+            ),
+          );
+          setStudents(list);
+        },
+      )
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const amountCents = Math.round(Number(amount) * 100);
+  const student = students.find((s) => s.id === studentId);
+  const ready = !!student && amountCents > 0 && label.trim().length > 0;
+
+  async function charge() {
+    if (!ready || !student) return;
+    if (
+      !window.confirm(
+        `Charge ${formatAmount(amountCents)} to ${student.firstName} ${student.lastName}'s payer for "${label.trim()}"?\n\nThis runs a live Stripe charge.`,
+      )
+    )
+      return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      const res = await fetchApi("/api/stripe/charge", {
+        method: "POST",
+        body: JSON.stringify({
+          studentId: student.id,
+          amount: amountCents,
+          offering: "group-class",
+          label: label.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Charge failed");
+      setMessage({
+        ok: true,
+        text: `Charged ${formatAmount(amountCents)} — ${data.status || "succeeded"}.`,
+      });
+      setAmount("");
+      setLabel("");
+      onCharged?.();
+    } catch (err) {
+      setMessage({
+        ok: false,
+        text: err instanceof Error ? err.message : String(err),
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card className="border border-neutral-200 rounded-lg">
+      <CardHeader>
+        <CardTitle className="text-base">Flat-rate / one-off charge</CardTitle>
+        <CardDescription>
+          Group classes, events, or any custom amount. The bank statement always
+          reads MATHITUDE.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <select
+            value={studentId}
+            onChange={(e) => setStudentId(e.target.value)}
+            className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm sm:w-56"
+          >
+            <option value="">Select student…</option>
+            {students.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.firstName} {s.lastName}
+              </option>
+            ))}
+          </select>
+          <input
+            type="number"
+            min="1"
+            step="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Amount ($)"
+            className="rounded-md border border-neutral-200 px-3 py-2 text-sm sm:w-32"
+          />
+          <input
+            type="text"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="What for — e.g. Fall 2026 geometry class (10 weeks)"
+            className="flex-1 rounded-md border border-neutral-200 px-3 py-2 text-sm"
+          />
+          <Button
+            onClick={charge}
+            disabled={busy || !ready}
+            className="bg-mathitude-purple text-white hover:bg-mathitude-purple/90"
+          >
+            <CreditCard className="h-3 w-3" />
+            {busy ? "Charging…" : "Charge"}
+          </Button>
+        </div>
+        {message && (
+          <p
+            className={`text-sm ${message.ok ? "text-emerald-600" : "text-red-600"}`}
+          >
+            {message.text}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function AdminPaymentsPage() {
   const fetchApi = useApi();
   const [students, setStudents] = useState<Student[]>([]);
@@ -553,6 +692,10 @@ export default function AdminPaymentsPage() {
             ))}
           </div>
         </div>
+      </div>
+
+      <div>
+        <FlatRateChargeCard onCharged={loadData} />
       </div>
     </div>
   );
