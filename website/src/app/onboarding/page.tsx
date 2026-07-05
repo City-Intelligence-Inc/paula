@@ -12,6 +12,9 @@ const inputClass =
 const selectClass =
   "w-full border border-[#E8E3D9] rounded-lg px-4 py-3 text-sm text-[#1A1A2E] bg-white focus:outline-none focus:ring-2 focus:ring-[#7030A0]/20 focus:border-[#7030A0] transition-colors appearance-none cursor-pointer";
 
+type StudentDraft = { firstName: string; lastName: string; grade: string; school: string };
+const emptyStudent = (): StudentDraft => ({ firstName: "", lastName: "", grade: "K", school: "" });
+
 const STEPS = [
   { label: "Your info",  sub: "Parent & student details" },
   { label: "Payment",   sub: "Secure card on file" },
@@ -87,11 +90,18 @@ export default function OnboardingPage() {
   const [parentLastName, setParentLastName] = useState("");
   const [parentPhone, setParentPhone] = useState("");
 
-  // Student fields
-  const [studentFirstName, setStudentFirstName] = useState("");
-  const [studentLastName, setStudentLastName] = useState("");
-  const [grade, setGrade] = useState("K");
-  const [school, setSchool] = useState("");
+  // Student fields — a family can enroll one or more children up front.
+  const [students, setStudents] = useState<StudentDraft[]>([emptyStudent()]);
+
+  function updateStudent(i: number, patch: Partial<StudentDraft>) {
+    setStudents((prev) => prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
+  }
+  function addStudent() {
+    setStudents((prev) => [...prev, emptyStudent()]);
+  }
+  function removeStudent(i: number) {
+    setStudents((prev) => prev.filter((_, idx) => idx !== i));
+  }
 
   // Pre-fill parent name from Clerk once loaded
   useEffect(() => {
@@ -137,10 +147,12 @@ export default function OnboardingPage() {
           parentFirstName: parentFirstName.trim(),
           parentLastName: parentLastName.trim(),
           parentPhone: parentPhone.trim(),
-          studentFirstName,
-          studentLastName,
-          grade,
-          school,
+          students: students.map((s) => ({
+            firstName: s.firstName.trim(),
+            lastName: s.lastName.trim(),
+            grade: s.grade,
+            school: s.school.trim(),
+          })),
         }),
       });
       const json = await res.json();
@@ -209,42 +221,61 @@ export default function OnboardingPage() {
                 {/* Divider between sections */}
                 <div className="border-t border-[#E8E3D9]" />
 
-                {/* Student section */}
-                <div className="px-6 pt-5 pb-6 space-y-4">
-                  <SectionDivider title="Your child" />
+                {/* Student section — one or more children */}
+                <div className="px-6 pt-5 pb-6 space-y-5">
+                  {students.map((s, i) => (
+                    <div key={i} className="space-y-4">
+                      <div className="flex items-center gap-3 py-1">
+                        <div className="flex-1 h-px bg-[#E8E3D9]" />
+                        <span className="text-xs font-semibold text-[#A8A29E] uppercase tracking-widest">
+                          {students.length === 1 ? "Your child" : `Child ${i + 1}`}
+                        </span>
+                        {i > 0 && (
+                          <button type="button" onClick={() => removeStudent(i)} className="text-xs font-medium text-[#A8A29E] hover:text-[#B0263C] transition-colors">
+                            Remove
+                          </button>
+                        )}
+                        <div className="flex-1 h-px bg-[#E8E3D9]" />
+                      </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label>First name</Label>
-                      <input type="text" required value={studentFirstName} onChange={(e) => setStudentFirstName(e.target.value)} className={inputClass} placeholder="First" />
-                    </div>
-                    <div>
-                      <Label>Last name</Label>
-                      <input type="text" required value={studentLastName} onChange={(e) => setStudentLastName(e.target.value)} className={inputClass} placeholder="Last" />
-                    </div>
-                  </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>First name</Label>
+                          <input type="text" required value={s.firstName} onChange={(e) => updateStudent(i, { firstName: e.target.value })} className={inputClass} placeholder="First" />
+                        </div>
+                        <div>
+                          <Label>Last name</Label>
+                          <input type="text" required value={s.lastName} onChange={(e) => updateStudent(i, { lastName: e.target.value })} className={inputClass} placeholder="Last" />
+                        </div>
+                      </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label>Grade</Label>
-                      <div className="relative">
-                        <select value={grade} onChange={(e) => setGrade(e.target.value)} className={selectClass}>
-                          {GRADE_OPTIONS.map((g) => (
-                            <option key={g} value={g}>{gradeLabel(g)}</option>
-                          ))}
-                        </select>
-                        <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
-                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
-                            <path d="M1 1l5 5 5-5" stroke="#6B6F76" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>Grade</Label>
+                          <div className="relative">
+                            <select value={s.grade} onChange={(e) => updateStudent(i, { grade: e.target.value })} className={selectClass}>
+                              {GRADE_OPTIONS.map((g) => (
+                                <option key={g} value={g}>{gradeLabel(g)}</option>
+                              ))}
+                            </select>
+                            <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+                              <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                                <path d="M1 1l5 5 5-5" stroke="#6B6F76" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <Label>School</Label>
+                          <input type="text" required value={s.school} onChange={(e) => updateStudent(i, { school: e.target.value })} className={inputClass} placeholder="e.g. Lincoln Elementary" />
                         </div>
                       </div>
                     </div>
-                    <div>
-                      <Label>School</Label>
-                      <input type="text" required value={school} onChange={(e) => setSchool(e.target.value)} className={inputClass} placeholder="e.g. Lincoln Elementary" />
-                    </div>
-                  </div>
+                  ))}
+
+                  <button type="button" onClick={addStudent} className="flex items-center gap-1.5 text-sm font-semibold text-[#7030A0] hover:text-[#5B2680] transition-colors">
+                    <span className="text-base leading-none">+</span> Add another child
+                  </button>
                 </div>
 
                 {error && (

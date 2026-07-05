@@ -129,10 +129,18 @@ export async function POST(request: Request) {
     return Response.json({ parentId: existingParentId }, { status: 200 });
   }
 
+  type StudentInput = {
+    firstName?: string;
+    lastName?: string;
+    grade?: string;
+    school?: string;
+  };
   let body: {
     parentFirstName?: string;
     parentLastName?: string;
     parentPhone?: string;
+    students?: StudentInput[];
+    // Legacy single-student payload (pre multi-child onboarding).
     studentFirstName?: string;
     studentLastName?: string;
     grade?: string;
@@ -144,17 +152,25 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  if (!body.studentFirstName?.trim() || !body.studentLastName?.trim()) {
-    return Response.json({ error: "Student first and last name required" }, { status: 400 });
+  // Normalize to a list: accept the new `students` array, fall back to the
+  // legacy single-student fields, then drop any blank rows.
+  const studentInputs: StudentInput[] = (
+    body.students?.length
+      ? body.students
+      : [{ firstName: body.studentFirstName, lastName: body.studentLastName, grade: body.grade, school: body.school }]
+  ).filter((s) => s.firstName?.trim() && s.lastName?.trim());
+
+  if (studentInputs.length === 0) {
+    return Response.json({ error: "At least one student's first and last name is required" }, { status: 400 });
   }
 
   const now = new Date().toISOString();
   const suffix = Math.random().toString(36).slice(2, 6);
-  const slug = slugify(`${body.studentFirstName}_${body.studentLastName}`) || `s_${Date.now()}`;
+  const firstStudent = studentInputs[0];
+  const slug = slugify(`${firstStudent.firstName}_${firstStudent.lastName}`) || `s_${Date.now()}`;
 
   const familyId = `fam_${slug}_${suffix}`;
   const parentId = `par_${slug}_${suffix}`;
-  const studentId = `stu_${slug}_${suffix}`;
 
   const parentFirstName = body.parentFirstName?.trim() || clerkUser.firstName || email.split("@")[0];
   const parentLastName = body.parentLastName?.trim() || clerkUser.lastName || "";
@@ -186,38 +202,50 @@ export async function POST(request: Request) {
     updatedAt: now,
   };
 
-  const student = {
-    id: studentId,
-    familyId,
-    firstName: body.studentFirstName.trim(),
-    lastName: body.studentLastName.trim(),
-    grade: body.grade || "K",
-    ...(body.school?.trim() ? { school: body.school.trim() } : {}),
-    status: "active",
-    sessionType: "individual",
-    rate: 0,
-    parentName,
-    parentEmail: email,
-    parentPhone: body.parentPhone?.trim() || "",
-    tutorIds: [],
-    createdAt: now,
-    updatedAt: now,
-  };
+  const students = studentInputs.map((s, i) => {
+    const sSlug =
+      slugify(`${s.firstName}_${s.lastName}`) || `s_${Date.now()}_${i}`;
+    return {
+      // Unique per student — the shared suffix + a per-student slug/index keeps
+      // siblings from colliding on a shared last name.
+      id: `stu_${sSlug}_${suffix}${i > 0 ? `_${i}` : ""}`,
+      familyId,
+      firstName: s.firstName!.trim(),
+      lastName: s.lastName!.trim(),
+      grade: s.grade || "K",
+      ...(s.school?.trim() ? { school: s.school.trim() } : {}),
+      status: "active",
+      sessionType: "individual",
+      rate: 0,
+      parentName,
+      parentEmail: email,
+      parentPhone: body.parentPhone?.trim() || "",
+      tutorIds: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+  });
 
   try {
     await Promise.all([
       ddb().send(new PutCommand({ TableName: Tables.families, Item: family })),
       ddb().send(new PutCommand({ TableName: Tables.parents, Item: parent })),
-      ddb().send(new PutCommand({ TableName: Tables.students, Item: student })),
+      ...students.map((student) =>
+        ddb().send(new PutCommand({ TableName: Tables.students, Item: student }))
+      ),
     ]);
 
+    const studentLine = (s: (typeof students)[number]) =>
+      `${s.firstName} ${s.lastName}, Grade ${s.grade}${s.school ? `, ${s.school}` : ""}`;
+    const label = students.length === 1 ? "Student" : "Students";
     sendAdminNotification({
       subject: "New family self-enrolled",
       html: `<p>A family completed the onboarding flow and is now in the system.</p>
 <p><strong>Parent:</strong> ${parentName} (${email})</p>
-<p><strong>Student:</strong> ${student.firstName} ${student.lastName}, Grade ${student.grade}${student.school ? `, ${student.school}` : ""}</p>
+<p><strong>${label}:</strong></p>
+<ul>${students.map((s) => `<li>${studentLine(s)}</li>`).join("")}</ul>
 <p>Their account is live — they may still need a rate and tutor assignment before sessions begin.</p>`,
-      text: `New family self-enrolled.\n\nParent: ${parentName} (${email})\nStudent: ${student.firstName} ${student.lastName}, Grade ${student.grade}\n\nSet their rate and tutor in the admin portal.`,
+      text: `New family self-enrolled.\n\nParent: ${parentName} (${email})\n${label}:\n${students.map((s) => `  - ${studentLine(s)}`).join("\n")}\n\nSet their rate and tutor in the admin portal.`,
     }).catch(() => {});
 
     return Response.json({ parentId }, { status: 201 });
