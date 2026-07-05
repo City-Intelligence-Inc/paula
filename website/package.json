@@ -10,7 +10,9 @@
     "test": "node --test 'src/**/*.test.ts'",
     "test:integration": "node --test 'src/**/*.itest.ts'",
     "db:local": "node scripts/dynalite-server.mjs",
-    "db:setup": "node scripts/create-local-tables.mjs && node scripts/seed-local.mjs"
+    "db:setup": "node scripts/create-local-tables.mjs && node scripts/seed-local.mjs",
+    "demos": "node scripts/record-demos.mjs",
+    "demos:auth": "node scripts/demos-auth.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1019.0",
@@ -42,6 +44,7 @@
     "dynalite": "^4.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "playwright": "^1.61.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
