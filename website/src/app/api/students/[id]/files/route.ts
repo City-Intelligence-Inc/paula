@@ -3,8 +3,10 @@ import { ddb, Tables } from "@/lib/server/ddb";
 import {
   resolveActor,
   forbidden,
+  studentsForFamilyMember,
   tutorScopeForStudent,
 } from "@/lib/server/access";
+import { notifyAction } from "@/lib/server/notify";
 import type { Actor } from "@/lib/server/access";
 import type { SharedFile, Student } from "@/lib/types";
 
@@ -65,8 +67,28 @@ export async function POST(
   const { id } = await params;
   const { actor, response } = await resolveActor();
   if (response) return response;
-  const authz = await authorizeStaffOrTutor(actor!, id);
-  if ("response" in authz) return authz.response;
+  // Staff/tutors add links with either audience. Family members may add
+  // family-audience entries for their own student (N-6 comment uploads).
+  let familyUpload = false;
+  let authz = await authorizeStaffOrTutor(actor!, id);
+  if ("response" in authz) {
+    if (actor!.isAdmin || actor!.role === "tutor") return authz.response;
+    const { parentOf, self } = await studentsForFamilyMember(
+      actor!.userId,
+      actor!.email,
+    );
+    const mine = parentOf.some((s) => s.id === id) || self?.id === id;
+    if (!mine) return authz.response;
+    const r = await ddb().send(
+      new GetCommand({ TableName: Tables.students, Key: { id } }),
+    );
+    const student = r.Item as Student | undefined;
+    if (!student) {
+      return Response.json({ error: "Student not found" }, { status: 404 });
+    }
+    authz = { student };
+    familyUpload = true;
+  }
 
   let body: { name?: string; url?: string; audience?: string };
   try {
@@ -79,9 +101,9 @@ export async function POST(
   if (!name || !url) {
     return Response.json({ error: "name and url are required" }, { status: 400 });
   }
-  if (!/^https?:\/\//i.test(url)) {
+  if (!/^(https?|s3):\/\//i.test(url)) {
     return Response.json(
-      { error: "url must start with http:// or https://" },
+      { error: "url must start with http://, https://, or s3://" },
       { status: 400 },
     );
   }
@@ -90,15 +112,28 @@ export async function POST(
     id: `f_${Date.now().toString(36)}`,
     name,
     url,
-    audience: body.audience === "staff" ? "staff" : "family",
+    audience: familyUpload
+      ? "family"
+      : body.audience === "staff"
+        ? "staff"
+        : "family",
     addedBy: actor!.userId,
     addedByName: actor!.tutor
       ? `${actor!.tutor.firstName} ${actor!.tutor.lastName}`.trim()
-      : actor!.email || "Staff",
+      : actor!.email || (familyUpload ? "Family" : "Staff"),
     createdAt: new Date().toISOString(),
   };
   const files = [...(authz.student.sharedFiles || []), file];
   await writeFiles(id, files);
+
+  // F-1: uploads/links trigger an automated notification to the Mathitude
+  // team (logged + emailed via Resend). Best-effort.
+  notifyAction({
+    kind: "file.shared",
+    summary: `${file.addedByName} shared a file for ${authz.student.firstName} ${authz.student.lastName}: ${file.name}`,
+    details: { studentId: id, fileId: file.id, audience: file.audience, storage: url.startsWith("s3://") ? "s3" : "link" },
+  }).catch(() => {});
+
   return Response.json({ file, files }, { status: 201 });
 }
 

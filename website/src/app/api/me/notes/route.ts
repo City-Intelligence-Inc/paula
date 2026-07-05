@@ -21,10 +21,18 @@ function safeStudent(s: Student) {
     school: s.school,
     familyId: s.familyId,
     // F-2: only family-audience links reach the family; who added them and
-    // any staff-only links stay internal.
+    // any staff-only links stay internal. S3-stored files are rewritten to
+    // the streaming proxy so the raw AWS URL never reaches the browser.
     sharedFiles: (s.sharedFiles || [])
       .filter((f) => f.audience === "family")
-      .map((f) => ({ id: f.id, name: f.name, url: f.url, createdAt: f.createdAt })),
+      .map((f) => ({
+        id: f.id,
+        name: f.name,
+        url: f.url.startsWith("s3://")
+          ? `/api/files/object?sid=${encodeURIComponent(s.id)}&fid=${encodeURIComponent(f.id)}`
+          : f.url,
+        createdAt: f.createdAt,
+      })),
   };
 }
 

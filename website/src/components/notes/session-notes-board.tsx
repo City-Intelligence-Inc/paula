@@ -504,6 +504,7 @@ export function SessionNotesBoard({
               <CommentThread
                 comments={pastNote.comments}
                 canComment={!!onAddComment}
+                attachStudentId={pastNote.studentId}
                 onAddComment={
                   onAddComment ? (text) => onAddComment(pastNote, text) : undefined
                 }

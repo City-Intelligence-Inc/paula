@@ -156,6 +156,7 @@ export function ParentNotesView({
                   <CommentThread
                     comments={n.comments}
                     canComment={canComment}
+                    attachStudentId={n.studentId}
                     onAddComment={
                       onAddComment ? (text) => onAddComment(n.id, text) : undefined
                     }
