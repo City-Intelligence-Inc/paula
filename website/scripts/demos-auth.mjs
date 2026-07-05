@@ -13,8 +13,10 @@ import { createInterface } from "node:readline";
 
 const kind = process.argv[2] === "parent" ? "parent" : "admin";
 const here = dirname(fileURLToPath(import.meta.url));
-const dest = join(here, "demos", `auth-${kind}.json`);
 const BASE = process.env.DEMO_BASE || "https://website-sage-three-98.vercel.app";
+// localhost sessions get their own file so they never clobber the prod one.
+const suffix = /localhost|127\.0\.0\.1/.test(BASE) ? ".local" : "";
+const dest = join(here, "demos", `auth-${kind}${suffix}.json`);
 
 const browser = await chromium.launch({ headless: false });
 const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });

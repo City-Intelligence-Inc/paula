@@ -27,11 +27,14 @@ share links mapped to tracker row IDs. Work from `website/` in this repo.
      Enter — then re-invoke you. Record whatever is possible meanwhile
      (public scenarios always work).
 
-3. **Record.** `npm run demos` (or `npm run demos -- --only <IDs>` when asked
-   for specific rows). The recorder is read-only by design: it dismisses all
-   confirm() dialogs and scenarios never submit mutating forms. Keep it that
-   way — never "fix" a scenario by making it click through a confirmation on
-   the live site.
+3. **Record.** Three tiers (see scripts/demos/README.md):
+   - `npm run demos` — read-only tours; dialogs auto-dismissed.
+   - `npm run demos -- --tasks` — full workflows on prod, but ONLY via
+     self-created, self-deleted demo data with assertions on every step.
+     Ask Ari before running these (they write to production, briefly).
+   - Sandbox-only scenarios (real charges, copy-week, grade rollover) run
+     ONLY against `npm run sandbox` + `--base http://localhost:3000`; the
+     runner refuses them elsewhere. Never weaken that guard.
 
 4. **Verify before uploading.** Every expected `scripts/demos/out/<ID>.webm`
    exists and is > 100 KB (a tiny file usually means a blank page — replay

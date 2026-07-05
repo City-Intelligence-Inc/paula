@@ -531,3 +531,180 @@ export const TASK_SCENARIOS = [
     },
   },
 ];
+
+// ─────────────────────────────────────────────────────────────────────────
+// SANDBOX-ONLY scenarios — the destructive flows that must never run on
+// production, filmed for real against the local sandbox stack
+// (`npm run sandbox`, Stripe SANDBOX keys, throwaway in-memory data).
+// The runner refuses these unless --base points at localhost.
+
+async function firstStudent(page) {
+  const j = await api(page, "/api/students");
+  const s = (j.students || []).find((x) => x.status === "active") || (j.students || [])[0];
+  if (!s) throw new Error("sandbox has no seeded students");
+  return s;
+}
+
+const lastWeekDate = (offsetDays) => {
+  const d = new Date();
+  d.setDate(d.getDate() - d.getDay() + 1 - 7 + offsetDays); // last week's Mon + offset
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
+export const SANDBOX_SCENARIOS = [
+  {
+    id: "D-2-sandbox",
+    title: "SANDBOX: Copy last week actually duplicates the schedule",
+    auth: "admin",
+    task: true,
+    sandboxOnly: true,
+    run: async (page, base) => {
+      await page.goto(`${base}/admin`);
+      await page.waitForLoadState("networkidle");
+      const stu = await firstStudent(page);
+
+      // Put three sessions on last week so there is something to copy.
+      for (const [i, time] of [["0", "10:00"], ["2", "15:30"], ["4", "13:00"]].entries()) {
+        await api(page, "/api/sessions", {
+          method: "POST",
+          body: {
+            studentId: stu.id,
+            date: lastWeekDate(Number(time[0] ?? 0) || [0, 2, 4][i]),
+            time: time[1] || time,
+            duration: 60,
+            type: "individual",
+            status: "completed",
+          },
+        });
+      }
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await pause(2000);
+
+      // THE click — allowed here, this is the sandbox.
+      await page.getByRole("button", { name: /copy last week/i }).click();
+      await mustSee(page, "copied");
+      await pause(2500);
+
+      // Idempotence, on camera: click again → nothing new.
+      await page.getByRole("button", { name: /copy last week/i }).click();
+      await mustSee(page, "already on the books");
+      await pause(3000);
+    },
+  },
+  {
+    id: "BILLING-sandbox",
+    title: "SANDBOX: card save → 45-min session → billing queue → live (sandbox) charge → history",
+    auth: "admin",
+    task: true,
+    sandboxOnly: true,
+    run: async (page, base) => {
+      // B-5: save a card through the real Stripe (sandbox) Elements form.
+      const stu = await firstStudent(page);
+      await api(page, `/api/students/${stu.id}`, { method: "PUT", body: { rate: 100 } });
+      const famId = stu.familyId;
+      if (!famId) throw new Error("seeded student has no family");
+      await page.goto(`${base}/admin/families/${famId}`);
+      await page.waitForLoadState("networkidle");
+      await pause(1500);
+
+      await page.getByRole("button", { name: /add card/i }).first().click();
+      const stripeFrame = page.frameLocator("iframe[name^='__privateStripeFrame']").first();
+      await stripeFrame.locator("[name='cardnumber']").fill("4242424242424242");
+      await stripeFrame.locator("[name='exp-date']").fill("12/34");
+      await stripeFrame.locator("[name='cvc']").fill("123");
+      await attempt(() => stripeFrame.locator("[name='postal']").fill("94301", { timeout: 3000 }));
+      await pause(1000);
+      await page.getByRole("button", { name: /save card/i }).first().click();
+      await mustSee(page, "Card on file", 30000);
+      await pause(2000);
+
+      // B-2: a 45-minute session bills 0.75 × $100.
+      await api(page, "/api/sessions", {
+        method: "POST",
+        body: {
+          studentId: stu.id,
+          date: new Date().toISOString().slice(0, 10),
+          time: "09:00",
+          duration: 45,
+          type: "individual",
+          status: "completed",
+        },
+      });
+      await page.goto(`${base}/admin/billing`);
+      await page.waitForLoadState("networkidle");
+      await mustSee(page, "$75");
+      await pause(2500);
+
+      // Approve → real charge against the Stripe SANDBOX (B-3: descriptor
+      // is locked to MATHITUDE server-side).
+      const row = page.locator("tr", { hasText: "$75" }).first();
+      await attempt(() => row.locator("input[type='checkbox']").first().check({ timeout: 4000 }));
+      await page.getByRole("button", { name: /approve|charge/i }).first().click();
+      await pause(6000); // Stripe round-trip on camera
+
+      // B-6: the payment shows in history.
+      await page.goto(`${base}/admin/payments`);
+      await page.waitForLoadState("networkidle");
+      await mustSee(page, "$75");
+      await pause(3000);
+    },
+  },
+  {
+    id: "N-6-sandbox",
+    title: "SANDBOX: post a session-note comment for real",
+    auth: "admin",
+    task: true,
+    sandboxOnly: true,
+    run: async (page, base) => {
+      const stu = await firstStudent(page);
+      await page.goto(`${base}/admin`);
+      await page.waitForLoadState("networkidle");
+      // A completed session note to talk under.
+      await api(page, `/api/students/${stu.id}/session-notes`, {
+        method: "POST",
+        body: {
+          date: new Date().toISOString().slice(0, 10),
+          time: "16:00",
+          duration: 60,
+          sessionActivities: "Fractions with pattern blocks",
+          publicNotes: "Great focus today — nailed equivalent fractions.",
+        },
+        allowFail: true, // shape differs per deployment; the comment API is the star
+      });
+      await page.goto(`${base}/staff-log-session?studentId=${stu.id}`);
+      await page.waitForLoadState("networkidle");
+      await pause(2000);
+      const toggle = page.locator("text=/^Comments/").first();
+      await toggle.scrollIntoViewIfNeeded();
+      await toggle.click();
+      await page
+        .locator("textarea[placeholder='Add a comment…']")
+        .first()
+        .fill("Parents: he asked to do more of these — sending a worksheet Friday.");
+      await page.getByRole("button", { name: /^post$/i }).first().click();
+      await mustSee(page, "sending a worksheet Friday");
+      await pause(3000);
+    },
+  },
+  {
+    id: "C-6-sandbox",
+    title: "SANDBOX: August-1 grade rollover, on camera",
+    auth: "admin",
+    task: true,
+    sandboxOnly: true,
+    run: async (page, base) => {
+      await page.goto(`${base}/admin/students`);
+      await page.waitForLoadState("networkidle");
+      await pause(2500); // grades before
+
+      await api(page, "/api/cron/advance-grades", {
+        method: "POST",
+        body: { force: true },
+      });
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await pause(3500); // grades after — every active student one step up
+    },
+  },
+];

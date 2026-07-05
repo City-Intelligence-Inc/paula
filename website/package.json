@@ -12,7 +12,8 @@
     "db:local": "node scripts/dynalite-server.mjs",
     "db:setup": "node scripts/create-local-tables.mjs && node scripts/seed-local.mjs",
     "demos": "node scripts/record-demos.mjs",
-    "demos:auth": "node scripts/demos-auth.mjs"
+    "demos:auth": "node scripts/demos-auth.mjs",
+    "sandbox": "node scripts/sandbox.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1019.0",

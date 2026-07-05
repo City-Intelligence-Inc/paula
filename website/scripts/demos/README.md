@@ -25,6 +25,35 @@ recorder, verifies output, uploads to Drive, and returns a paste-ready
 row-ID → link table. It will still ask you to run step 1 once, since Clerk
 sign-in needs a human.
 
+## Full-action videos
+
+Two tiers beyond the read-only tours:
+
+**Task videos (prod-safe):** `npm run demos -- --tasks` performs real
+workflows on the live site using only demo data it creates and hard-deletes
+before the recording ends (invite lifecycle, invite→registration→offboard,
+deposit drawdown, contact lifecycle). Every step is asserted — a FAILED row
+in `manifest.csv` is a genuine regression (this caught a real prod bug in
+the student hard-delete on 2026-07-05).
+
+**Sandbox videos (everything else):** the destructive flows — actually
+copying a week, actually charging a card, running the grade rollover — are
+`sandboxOnly` and the runner refuses them on any non-localhost base. Film
+them against the sandbox stack (modeled on Stripe's sandbox guidance):
+
+```bash
+# one time: real env, then swap in Stripe SANDBOX keys (Dashboard → Sandboxes)
+cd website && npx vercel env pull .env.local   # then edit the two Stripe keys
+
+npm run sandbox                                # dynalite + seeded data + next dev :3000
+DEMO_BASE=http://localhost:3000 npm run demos:auth      # sign in once (saved separately)
+npm run demos -- --tasks --base http://localhost:3000   # records EVERYTHING incl. sandbox-only
+```
+
+`sandbox.mjs` refuses to start if `.env.local` still holds a live Stripe
+key, and all data lives in-memory under a `mathitude-sandbox` prefix — gone
+on Ctrl-C, no way to touch production tables.
+
 ## Guarantees
 
 - **Read-only:** scenarios navigate, scroll, hover, and type into forms but

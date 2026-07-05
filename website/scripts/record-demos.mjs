@@ -17,7 +17,7 @@ import { chromium } from "playwright";
 import { existsSync, mkdirSync, renameSync, writeFileSync, readdirSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { SCENARIOS, TASK_SCENARIOS } from "./demos/scenarios.mjs";
+import { SCENARIOS, TASK_SCENARIOS, SANDBOX_SCENARIOS } from "./demos/scenarios.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const demosDir = join(here, "demos");
@@ -30,9 +30,14 @@ const onlyIdx = args.indexOf("--only");
 const ONLY = onlyIdx >= 0 ? new Set(args[onlyIdx + 1].split(",").map((s) => s.trim())) : null;
 // Full-task scenarios perform real (self-cleaning) workflows — opt-in only.
 const WITH_TASKS = args.includes("--tasks");
-const ALL_SCENARIOS = WITH_TASKS ? [...SCENARIOS, ...TASK_SCENARIOS] : SCENARIOS;
+const IS_LOCAL = /localhost|127\.0\.0\.1/.test(BASE);
+const ALL_SCENARIOS = WITH_TASKS
+  ? [...SCENARIOS, ...TASK_SCENARIOS, ...SANDBOX_SCENARIOS]
+  : SCENARIOS;
 
-const authFile = (kind) => join(demosDir, `auth-${kind}.json`);
+// Sessions are cookie/domain scoped — localhost auth lives in its own file
+// so sandbox runs never reuse (or clobber) the production session.
+const authFile = (kind) => join(demosDir, IS_LOCAL ? `auth-${kind}.local.json` : `auth-${kind}.json`);
 
 mkdirSync(outDir, { recursive: true });
 
@@ -43,6 +48,13 @@ const notes = new Map();
 
 for (const s of ALL_SCENARIOS) {
   if (ONLY && !ONLY.has(s.id)) continue;
+
+  // Destructive flows are sandbox-only: hard refusal on any non-local base.
+  if (s.sandboxOnly && !IS_LOCAL) {
+    console.log(`SKIP ${s.id} — sandbox-only (run \`npm run sandbox\`, then pass --base http://localhost:3000)`);
+    notes.set(s.id, "skipped: sandbox-only, refused on non-local base");
+    continue;
+  }
 
   if (s.auth && !existsSync(authFile(s.auth))) {
     console.log(`SKIP ${s.id} — needs ${s.auth} auth (run: npm run demos:auth${s.auth === "parent" ? " -- parent" : ""})`);
@@ -82,7 +94,7 @@ for (const s of ALL_SCENARIOS) {
 await browser.close();
 
 const manifest = [["row_id", "title", "file", "status"]];
-for (const s of [...SCENARIOS, ...TASK_SCENARIOS]) {
+for (const s of [...SCENARIOS, ...TASK_SCENARIOS, ...SANDBOX_SCENARIOS]) {
   const onDisk = existsSync(join(outDir, `${s.id}.webm`));
   manifest.push([
     s.id,
