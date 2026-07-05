@@ -26,8 +26,36 @@ export function ScrollAnimations() {
       }),
       { threshold: 0.06, rootMargin: "0px 0px -30px 0px" }
     );
-    document.querySelectorAll("[data-reveal]").forEach((el) => revealObs.observe(el));
-    cleanups.push(() => revealObs.disconnect());
+    // Fully-clipped reveal variants can never observe themselves: "word"
+    // spans sit translated 115% inside overflow-hidden wrappers and "clip"
+    // headlines are clip-pathed to nothing, so their intersection rect is
+    // always ZERO and the reveal never fires (headlines stayed invisible —
+    // the CTA "black box" bug). Observe the nearest UN-clipped ancestor and
+    // reveal them when it scrolls in; everything else observes itself.
+    const wordHosts = new Map<Element, HTMLElement[]>();
+    document.querySelectorAll<HTMLElement>("[data-reveal]").forEach((el) => {
+      const kind = el.dataset.reveal;
+      if (kind === "word" || kind === "clip") {
+        const host =
+          el.parentElement?.closest("h1, h2, h3, h4, p, section, div, footer") ||
+          el.parentElement ||
+          el;
+        if (!wordHosts.has(host)) wordHosts.set(host, []);
+        wordHosts.get(host)!.push(el);
+      } else {
+        revealObs.observe(el);
+      }
+    });
+    const wordObs = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        for (const w of wordHosts.get(e.target) || []) w.classList.add("revealed");
+        wordObs.unobserve(e.target);
+      }),
+      { threshold: 0.06, rootMargin: "0px 0px -30px 0px" }
+    );
+    wordHosts.forEach((_, host) => wordObs.observe(host));
+    cleanups.push(() => { revealObs.disconnect(); wordObs.disconnect(); });
 
     // ── 2b. Hero photos: auto-reveal without observer ──
     // Photos sit below the initial fold, so the observer never fires on load.
