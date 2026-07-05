@@ -100,9 +100,9 @@ export default function GroupCampsPage() {
                   How to book
                 </h2>
                 <p className="mt-2 text-black leading-relaxed">
-                  Reach out with your group size, grade levels, availability,
-                  and any themes or goals you have in mind. Mathitude will
-                  follow up to design a class that fits your group.
+                  Send your group size, grade levels, availability, and any
+                  themes or goals. Mathitude designs a class that fits your
+                  group.
                 </p>
                 <p className="mt-5 text-base text-neutral-800 leading-relaxed border-l-2 border-[#7030A0]/30 pl-4">
                   <span className="font-medium">Summer or school break?</span>{" "}

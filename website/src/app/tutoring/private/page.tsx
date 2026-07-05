@@ -125,7 +125,7 @@ export default function PrivateTutoringPage() {
                 Ready to get started?
               </h2>
               <p className="mt-4 text-white/80 max-w-xl mx-auto leading-relaxed">
-                Reach out and let&apos;s talk about your student&apos;s goals.
+                Tell us about your student&apos;s goals.
               </p>
               <div className="mt-10">
                 <Link

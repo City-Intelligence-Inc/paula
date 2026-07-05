@@ -70,9 +70,8 @@ export function CtaBanner() {
               data-delay="5"
               className="mt-6 text-base sm:text-lg text-white/70 leading-relaxed max-w-xl"
             >
-              Mathitude reads every inquiry. Tell us what you&apos;re hoping
-              for, and we&apos;ll reply with the right next step for your
-              student.
+              Tell us about your student. Paula replies with a concrete
+              next step.
             </p>
           </div>
 
@@ -88,12 +87,6 @@ export function CtaBanner() {
             >
               Request a free consultation
               <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
-            <Link
-              href="/tutoring"
-              className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors min-h-[44px]"
-            >
-              Or start by exploring tutoring &rarr;
             </Link>
           </div>
         </div>

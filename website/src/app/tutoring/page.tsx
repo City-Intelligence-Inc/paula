@@ -145,8 +145,8 @@ export default function TutoringHubPage() {
                 Not sure which fits?
               </h2>
               <p className="mt-4 text-white/80 max-w-xl mx-auto leading-relaxed">
-                Reach out and Mathitude will help you figure out the right path
-                for your student, family, or school.
+                Tell us about your student, family, or school — Mathitude
+                will map the right path.
               </p>
               <div className="mt-10">
                 <Link

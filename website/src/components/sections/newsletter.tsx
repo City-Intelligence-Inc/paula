@@ -40,7 +40,7 @@ export function Newsletter() {
               data-reveal
               className="text-xs font-medium tracking-[0.22em] text-[#7030A0] uppercase mb-5"
             >
-              Stay close
+              From the studio
             </p>
             <h2
               data-reveal="clip"
@@ -54,8 +54,8 @@ export function Newsletter() {
               data-delay="3"
               className="mt-5 text-base sm:text-lg text-black leading-relaxed"
             >
-              New math festivals, new workbooks, new ways to bring
-              Mathitude home. No spam, ever. Unsubscribe in one click.
+              New math festivals, new workbooks, and what&apos;s coming
+              next. Unsubscribe anytime.
             </p>
           </div>
 

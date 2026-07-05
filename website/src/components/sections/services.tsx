@@ -148,8 +148,7 @@ export function Services() {
               Not sure which fits? Mathitude will help you figure it out.
             </p>
             <p className="mt-1 text-sm text-[#6b6f76]">
-              No commitment. Just a conversation about what you&apos;re hoping
-              for.
+              One conversation, and you&apos;ll know the right fit.
             </p>
           </div>
           <Link
