@@ -47,7 +47,7 @@ export async function GET() {
         email: "",
         phone: undefined,
         log: [],
-        mailchimpError: undefined,
+        mailingListError: undefined,
       }));
   }
 

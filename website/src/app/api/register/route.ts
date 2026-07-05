@@ -282,7 +282,7 @@ export async function POST(request: Request) {
   }
 
   // C-2: registrations flow into the Contacts database too (lead → customer),
-  // keeping Mailchimp in sync.
+  // keeping the Resend mailing list in sync.
   if (invite.role === "parent") {
     upsertContact({
       email: invite.email,

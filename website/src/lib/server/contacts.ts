@@ -9,9 +9,11 @@ import { ddb, Tables } from "@/lib/server/ddb";
 // from. Each contact carries a log: the original inquiry contents and every
 // staff response, so the whole relationship reads in one place (C-4).
 //
-// Mailchimp: every upsert is mirrored to the configured audience
-// (MAILCHIMP_API_KEY + MAILCHIMP_AUDIENCE_ID). Best-effort — a Mailchimp
-// outage never blocks a lead from being recorded.
+// Mailing list: every upsert is mirrored to a Resend Audience
+// (RESEND_API_KEY — already used for all transactional email — plus
+// RESEND_AUDIENCE_ID). Best-effort — a Resend outage never blocks a lead
+// from being recorded. Broadcasts to the list are sent from the Resend
+// dashboard.
 
 export interface ContactLogEntry {
   at: string; // ISO timestamp
@@ -30,8 +32,8 @@ export interface Contact {
   familyId?: string;
   studentInfo?: string; // student names/grades, free-form from the inquiry
   log: ContactLogEntry[];
-  mailchimpSyncedAt?: string;
-  mailchimpError?: string;
+  mailingListSyncedAt?: string;
+  mailingListError?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -103,13 +105,14 @@ export async function upsertContact(input: {
         updatedAt: now,
       };
 
-  // Mirror to Mailchimp before persisting so the sync status lands on the row.
-  const sync = await pushToMailchimp(contact);
+  // Mirror to the Resend audience before persisting so the sync status lands
+  // on the row.
+  const sync = await pushToResendAudience(contact);
   if (sync.ok) {
-    contact.mailchimpSyncedAt = now;
-    delete contact.mailchimpError;
+    contact.mailingListSyncedAt = now;
+    delete contact.mailingListError;
   } else if (sync.error) {
-    contact.mailchimpError = sync.error;
+    contact.mailingListError = sync.error;
   }
 
   await ddb().send(
@@ -136,51 +139,44 @@ export async function appendContactLog(
   return updated;
 }
 
-// ---- Mailchimp ----
-// PUT (upsert) the member by md5(email) into the configured audience.
-// status_if_new "subscribed" matches the inquiry form's fine print ("by
-// submitting you are joining our mailing list" — Paula 7/1).
-async function pushToMailchimp(
+// ---- Resend Audience ----
+// Add the contact to the configured Resend audience. Subscribed-by-default
+// matches the inquiry form's fine print ("by submitting you are joining our
+// mailing list" — Paula 7/1); Resend handles unsubscribe links on
+// broadcasts. An already-existing contact counts as synced.
+async function pushToResendAudience(
   contact: Contact,
 ): Promise<{ ok: boolean; error?: string }> {
-  const apiKey = (process.env.MAILCHIMP_API_KEY || "").trim();
-  const listId = (process.env.MAILCHIMP_AUDIENCE_ID || "").trim();
-  if (!apiKey || !listId) {
+  const apiKey = (process.env.RESEND_API_KEY || "").trim();
+  const audienceId = (process.env.RESEND_AUDIENCE_ID || "").trim();
+  if (!apiKey || !audienceId) {
     return { ok: false }; // not configured — silently skip, no error recorded
   }
-  const dc = apiKey.split("-").pop();
-  if (!dc || !dc.startsWith("us")) {
-    return { ok: false, error: "MAILCHIMP_API_KEY missing -usN datacenter suffix" };
-  }
-  const memberHash = createHash("md5")
-    .update(contact.email.toLowerCase())
-    .digest("hex");
   const [firstName, ...rest] = (contact.name || "").split(" ");
   try {
     const res = await fetch(
-      `https://${dc}.api.mailchimp.com/3.0/lists/${listId}/members/${memberHash}`,
+      `https://api.resend.com/audiences/${audienceId}/contacts`,
       {
-        method: "PUT",
+        method: "POST",
         headers: {
-          Authorization: `Basic ${Buffer.from(`anystring:${apiKey}`).toString("base64")}`,
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email_address: contact.email,
-          status_if_new: "subscribed",
-          merge_fields: {
-            FNAME: firstName || "",
-            LNAME: rest.join(" "),
-            ...(contact.phone ? { PHONE: contact.phone } : {}),
-          },
+          email: contact.email,
+          first_name: firstName || "",
+          last_name: rest.join(" "),
+          unsubscribed: false,
         }),
       },
     );
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      return { ok: false, error: `Mailchimp ${res.status}: ${body.slice(0, 200)}` };
+    if (res.ok) return { ok: true };
+    const body = await res.text().catch(() => "");
+    // Duplicate contact = already on the list — that's a successful sync.
+    if (res.status === 409 || /already exists/i.test(body)) {
+      return { ok: true };
     }
-    return { ok: true };
+    return { ok: false, error: `Resend ${res.status}: ${body.slice(0, 200)}` };
   } catch (err) {
     return { ok: false, error: String(err) };
   }

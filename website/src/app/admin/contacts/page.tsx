@@ -28,8 +28,8 @@ interface Contact {
   familyId?: string;
   studentInfo?: string;
   log: LogEntry[];
-  mailchimpSyncedAt?: string;
-  mailchimpError?: string;
+  mailingListSyncedAt?: string;
+  mailingListError?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -186,7 +186,8 @@ export default function ContactsPage() {
           </h1>
           <p className="text-sm text-neutral-500 mt-1">
             Every lead and customer. Inquiries land here automatically and sync
-            to Mailchimp; approve a lead to send their portal invitation.
+            to the Resend mailing list; approve a lead to send their portal
+            invitation.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -270,11 +271,11 @@ export default function ContactsPage() {
                   <Badge className="bg-neutral-100 text-neutral-600 border-neutral-200">
                     {SOURCE_LABEL[c.source]}
                   </Badge>
-                  {c.mailchimpSyncedAt ? (
-                    <span className="text-xs text-emerald-700">Mailchimp ✓</span>
-                  ) : c.mailchimpError ? (
-                    <span className="text-xs text-amber-600" title={c.mailchimpError}>
-                      Mailchimp ⚠
+                  {c.mailingListSyncedAt ? (
+                    <span className="text-xs text-emerald-700">Mailing list ✓</span>
+                  ) : c.mailingListError ? (
+                    <span className="text-xs text-amber-600" title={c.mailingListError}>
+                      Mailing list ⚠
                     </span>
                   ) : null}
                   <span className="text-xs text-neutral-400">{fmt(c.updatedAt)}</span>
