@@ -69,6 +69,7 @@ export default function ContactsPage() {
   const [listConfigured, setListConfigured] = useState<boolean | null>(null);
   const [listBusy, setListBusy] = useState(false);
   const [listMsg, setListMsg] = useState<string | null>(null);
+  const [listKey, setListKey] = useState("");
 
   const load = useCallback(() => {
     fetchApi("/api/admin/contacts")
@@ -96,6 +97,7 @@ export default function ContactsPage() {
       const res = await fetchApi("/api/admin/mailing-list/setup", {
         method: "POST",
         body: JSON.stringify({
+          ...(listKey.trim() ? { apiKey: listKey.trim() } : {}),
           seedEmails: [
             { email: "phamilton@mathitude.com", name: "Paula Hamilton" },
             { email: "sbell@mathitude.com", name: "Sara Bell" },
@@ -110,6 +112,7 @@ export default function ContactsPage() {
       setListMsg(
         `Mailing list ${j.created ? "created" : "verified"} — ${j.seeded} team member${j.seeded === 1 ? "" : "s"} seeded, ${j.resynced} contact${j.resynced === 1 ? "" : "s"} re-synced.`,
       );
+      setListKey("");
       load();
     } catch (err) {
       setListMsg(err instanceof Error ? err.message : String(err));
@@ -254,14 +257,30 @@ export default function ContactsPage() {
               One click creates the Resend audience and adds the team (Paula,
               Sara, Nikki, Ari) plus every existing contact.
             </p>
-            <Button
-              onClick={setupMailingList}
-              disabled={listBusy}
-              className="bg-mathitude-purple text-white hover:bg-mathitude-purple/90"
-            >
-              {listBusy ? "Setting up…" : "Set up mailing list"}
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="password"
+                value={listKey}
+                onChange={(e) => setListKey(e.target.value)}
+                placeholder="Full-access Resend key (re_…)"
+                className="rounded-md border border-neutral-300 px-3 py-2 text-sm w-64"
+              />
+              <Button
+                onClick={setupMailingList}
+                disabled={listBusy}
+                className="bg-mathitude-purple text-white hover:bg-mathitude-purple/90"
+              >
+                {listBusy ? "Setting up…" : "Set up mailing list"}
+              </Button>
+            </div>
           </div>
+          <p className="mt-2 text-xs text-neutral-500">
+            The server&apos;s email key is sending-only, so managing the
+            audience needs a <span className="font-medium">full-access</span>{" "}
+            key: resend.com → API Keys → Create → Permission &ldquo;Full
+            access&rdquo;. Pasted once, stored encrypted server-side, never
+            shown again.
+          </p>
           {listMsg && <p className="mt-2 text-sm text-neutral-600">{listMsg}</p>}
         </Card>
       )}

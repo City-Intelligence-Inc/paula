@@ -2,6 +2,8 @@ import { resolveActor, forbidden } from "@/lib/server/access";
 import {
   getResendAudienceId,
   setResendAudienceId,
+  getResendAudienceKey,
+  setResendAudienceKey,
   upsertContact,
   listContacts,
 } from "@/lib/server/contacts";
@@ -35,18 +37,34 @@ export async function POST(request: Request) {
     return forbidden("Only the super admin can set up the mailing list.");
   }
 
-  const apiKey = (process.env.RESEND_API_KEY || "").trim();
-  if (!apiKey) {
-    return Response.json(
-      { error: "RESEND_API_KEY is not configured on the server." },
-      { status: 503 },
-    );
-  }
-
-  let body: { seedEmails?: { email: string; name?: string }[] } = {};
+  let body: {
+    seedEmails?: { email: string; name?: string }[];
+    apiKey?: string;
+  } = {};
   try {
     body = (await request.json()) as typeof body;
   } catch {} // empty body is fine
+
+  // The env key is sending-only; audience management needs a full-access key
+  // pasted once by the super admin. Stored in the secrets table (encrypted
+  // at rest), never echoed back.
+  if (body.apiKey?.trim()) {
+    if (!body.apiKey.trim().startsWith("re_")) {
+      return Response.json(
+        { error: "That doesn't look like a Resend API key (re_…)." },
+        { status: 400 },
+      );
+    }
+    await setResendAudienceKey(body.apiKey, actor!.email || actor!.userId);
+  }
+
+  const apiKey = await getResendAudienceKey();
+  if (!apiKey) {
+    return Response.json(
+      { error: "No Resend API key available on the server." },
+      { status: 503 },
+    );
+  }
 
   // 1. Ensure the audience exists.
   let audienceId = await getResendAudienceId();

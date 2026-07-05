@@ -148,6 +148,50 @@ export async function appendContactLog(
 const AUDIENCE_ROW_ID = "resend-audience";
 const AUDIENCE_CACHE_MS = 60_000;
 let audienceCache: { value: string; expires: number } | null = null;
+let keyCache: { value: string; expires: number } | null = null;
+
+// The env RESEND_API_KEY is sending-only (can't manage audiences/contacts).
+// A full-access key, pasted once by the super admin via the mailing-list
+// setup UI, lives in the same secrets row and wins for audience operations.
+export async function getResendAudienceKey(): Promise<string> {
+  if (keyCache && keyCache.expires > Date.now()) return keyCache.value;
+  try {
+    const r = await ddb().send(
+      new GetCommand({
+        TableName: Tables.secrets,
+        Key: { id: AUDIENCE_ROW_ID },
+      }),
+    );
+    const stored = ((r.Item as { apiKey?: string } | undefined)?.apiKey || "").trim();
+    const key = stored || (process.env.RESEND_API_KEY || "").trim();
+    keyCache = { value: key, expires: Date.now() + AUDIENCE_CACHE_MS };
+    return key;
+  } catch {
+    return (process.env.RESEND_API_KEY || "").trim();
+  }
+}
+
+export async function setResendAudienceKey(
+  apiKey: string,
+  updatedBy: string,
+): Promise<void> {
+  const existing = await ddb().send(
+    new GetCommand({ TableName: Tables.secrets, Key: { id: AUDIENCE_ROW_ID } }),
+  );
+  await ddb().send(
+    new PutCommand({
+      TableName: Tables.secrets,
+      Item: {
+        ...(existing.Item || {}),
+        id: AUDIENCE_ROW_ID,
+        apiKey: apiKey.trim(),
+        updatedAt: new Date().toISOString(),
+        updatedBy,
+      },
+    }),
+  );
+  keyCache = null;
+}
 
 export async function getResendAudienceId(): Promise<string> {
   const env = (process.env.RESEND_AUDIENCE_ID || "").trim();
@@ -195,8 +239,10 @@ export async function setResendAudienceId(
 async function pushToResendAudience(
   contact: Contact,
 ): Promise<{ ok: boolean; error?: string }> {
-  const apiKey = (process.env.RESEND_API_KEY || "").trim();
-  const audienceId = await getResendAudienceId();
+  const [apiKey, audienceId] = await Promise.all([
+    getResendAudienceKey(),
+    getResendAudienceId(),
+  ]);
   if (!apiKey || !audienceId) {
     return { ok: false }; // not configured — silently skip, no error recorded
   }
