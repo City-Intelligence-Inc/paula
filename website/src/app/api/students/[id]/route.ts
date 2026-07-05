@@ -63,6 +63,10 @@ const editableFields = [
   "classCapacity",
   "primaryPayerParentId",
   "studentEmail",
+  // C-7: relink a student to a family (via the parent-search autocomplete on
+  // the student page) + registration-collected birthday.
+  "familyId",
+  "birthday",
 ] as const;
 
 type Editable = (typeof editableFields)[number];

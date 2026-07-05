@@ -1,6 +1,7 @@
 import { GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables } from "@/lib/server/ddb";
 import { addAdminEmail } from "@/lib/server/admins";
+import { upsertContact } from "@/lib/server/contacts";
 import { notifyAction } from "@/lib/server/notify";
 import {
   consumeInvite,
@@ -278,6 +279,22 @@ export async function POST(request: Request) {
       },
       { status: 500 },
     );
+  }
+
+  // C-2: registrations flow into the Contacts database too (lead → customer),
+  // keeping Mailchimp in sync.
+  if (invite.role === "parent") {
+    upsertContact({
+      email: invite.email,
+      name: `${firstName} ${lastName}`.trim(),
+      phone: body.phone,
+      source: "registration",
+      logEntry: {
+        by: "registration",
+        kind: "system",
+        text: `Completed registration (${children.length} child${children.length === 1 ? "" : "ren"}).`,
+      },
+    }).catch(() => {});
   }
 
   notifyAction({

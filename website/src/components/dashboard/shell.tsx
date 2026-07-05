@@ -8,6 +8,7 @@ import {
   BookOpen,
   Calendar,
   CreditCard,
+  FileSignature,
   FolderOpen,
   Newspaper,
   LayoutDashboard,
@@ -40,6 +41,11 @@ const navItems = [
     label: "Billing",
     href: "/dashboard/billing",
     icon: CreditCard,
+  },
+  {
+    label: "Contract",
+    href: "/dashboard/contract",
+    icon: FileSignature,
   },
   {
     label: "Resources",

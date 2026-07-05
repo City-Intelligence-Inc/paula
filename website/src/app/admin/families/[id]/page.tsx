@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Mail, Phone, CreditCard, Plus, UserCheck, Trash2, X } from "lucide-react";
 import { PaymentMethodsPanel } from "@/components/stripe/payment-methods-panel";
+import { EntitySearch } from "@/components/admin/entity-search";
 import { SaveCardForm } from "@/components/stripe/save-card-form";
 import type { Family, Parent, Session, Student, GuardianRelationship } from "@/lib/types";
 import {
@@ -421,6 +422,8 @@ export default function FamilyDetailPage({
         </div>
       )}
 
+      <ContractCard family={family} onSaved={(f) => setFamily(f)} />
+
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-neutral-900">Students</h2>
@@ -429,6 +432,13 @@ export default function FamilyDetailPage({
             onAdded={(s) => setStudents((prev) => [...prev, s])}
           />
         </div>
+        {/* C-8: attach an existing student by instant search (multi-sibling
+            households — no duplicate student rows). */}
+        <AttachStudentSearch
+          familyId={family.id}
+          excludeIds={students.map((s) => s.id)}
+          onAttached={(s) => setStudents((prev) => [...prev, s])}
+        />
         {students.length === 0 ? (
           <p className="text-sm text-neutral-400">No students linked yet.</p>
         ) : (
@@ -906,6 +916,133 @@ function ParentPaymentBlock({ parent }: { parent: Parent }) {
           Stripe customer. The panel listens to the card-saved event and
           will re-fetch from Stripe on its own. */}
       <PaymentMethodsPanel parentId={parent.id} />
+    </div>
+  );
+}
+
+// C-10: where the family's signed contract lives (S3 URL or share link).
+// Parents view it read-only at /dashboard/contract; S3 objects are streamed
+// server-side so the raw AWS URL never reaches their browser.
+function ContractCard({
+  family,
+  onSaved,
+}: {
+  family: Family;
+  onSaved: (f: Family) => void;
+}) {
+  const fetchApi = useApi();
+  const [url, setUrl] = useState(family.contractUrl || "");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  async function save() {
+    setSaving(true);
+    setSaved(false);
+    try {
+      const res = await fetchApi(`/api/families/${family.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ contractUrl: url }),
+      });
+      const j = await res.json();
+      if (res.ok && j.family) {
+        onSaved(j.family as Family);
+        setSaved(true);
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div>
+      <h2 className="text-lg font-semibold text-neutral-900 mb-3">
+        Signed contract
+      </h2>
+      <Card className="border border-neutral-200 rounded-lg p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            value={url}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              setSaved(false);
+            }}
+            placeholder="s3://bucket/contracts/family.pdf or https://…"
+            className="flex-1 min-w-[280px] rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          />
+          <Button size="sm" onClick={save} disabled={saving || url === (family.contractUrl || "")}>
+            {saving ? "Saving…" : "Save"}
+          </Button>
+          {saved && <span className="text-xs text-emerald-700">Saved</span>}
+        </div>
+        <p className="text-xs text-neutral-400 mt-2">
+          Parents see a &ldquo;Contract&rdquo; tab on their dashboard once this
+          is set.
+        </p>
+      </Card>
+    </div>
+  );
+}
+
+// C-8: instant student search → attach an existing student row to this
+// family (moves the student's familyId; never duplicates the student).
+function AttachStudentSearch({
+  familyId,
+  excludeIds,
+  onAttached,
+}: {
+  familyId: string;
+  excludeIds: string[];
+  onAttached: (s: Student) => void;
+}) {
+  const fetchApi = useApi();
+  const [all, setAll] = useState<Student[]>([]);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    fetchApi("/api/students")
+      .then((r) => r.json())
+      .then((j) => setAll((j.students as Student[]) || []))
+      .catch(() => {});
+  }, [fetchApi]);
+
+  const excluded = new Set(excludeIds);
+  const items = all
+    .filter((s) => !excluded.has(s.id))
+    .map((s) => ({
+      id: s.id,
+      label: `${s.firstName} ${s.lastName}`.trim(),
+      sublabel: `Grade ${s.grade}${s.familyId ? " · already in a family" : ""}`,
+    }));
+
+  return (
+    <div className="mb-3 max-w-sm">
+      <EntitySearch
+        placeholder="Attach an existing student…"
+        items={items}
+        disabled={busy}
+        onSelect={async (item) => {
+          const student = all.find((s) => s.id === item.id);
+          if (!student) return;
+          if (
+            student.familyId &&
+            !window.confirm(
+              `${item.label} is already linked to another family. Move them to this one?`,
+            )
+          )
+            return;
+          setBusy(true);
+          try {
+            const res = await fetchApi(`/api/students/${item.id}`, {
+              method: "PUT",
+              body: JSON.stringify({ familyId }),
+            });
+            const j = await res.json();
+            if (res.ok && j.student) onAttached(j.student as Student);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      />
     </div>
   );
 }

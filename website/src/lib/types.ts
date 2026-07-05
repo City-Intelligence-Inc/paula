@@ -240,6 +240,9 @@ export interface Family {
   depositCents?: number;
   depositReceivedAt?: string; // ISO timestamp the deposit was recorded
   depositNote?: string;
+  // C-10: the family's signed contract PDF (S3 URL or share link). Parents
+  // view it via /api/me/contract, which streams S3 objects server-side.
+  contractUrl?: string;
   createdAt: string;
   updatedAt: string;
 }

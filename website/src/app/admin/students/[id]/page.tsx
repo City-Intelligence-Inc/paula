@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { Student } from "@/lib/types";
 import { SchoolLoginsPanel } from "@/components/admin/school-logins-panel";
+import { EntitySearch } from "@/components/admin/entity-search";
 import { SharedFilesPanel } from "@/components/shared-files-panel";
 import { GRADE_OPTIONS as gradeOptions, gradeLabel } from "@/lib/grades";
 
@@ -649,6 +650,14 @@ export default function StudentDetailPage({
         </div>
       </Card>
 
+      {/* C-7: link this student to a family by searching parents instantly.
+          Students and parents are separate entities joined by familyId —
+          relinking here moves the student, never duplicates anyone. */}
+      <FamilyLinkCard
+        student={student}
+        onLinked={(s) => setStudent(s)}
+      />
+
       {/* Primary payer — only shown when this student is part of a multi-parent family */}
       {familyParents.length > 1 && (
         <Card className="border border-neutral-200 rounded-lg overflow-hidden">
@@ -978,5 +987,101 @@ export default function StudentDetailPage({
       {/* School portal logins (ghost-student access) — admin only */}
       <SchoolLoginsPanel studentId={student.id} />
     </div>
+  );
+}
+
+
+// C-7: instant parent search → link this student to that parent's family.
+function FamilyLinkCard({
+  student,
+  onLinked,
+}: {
+  student: Student;
+  onLinked: (s: Student) => void;
+}) {
+  const fetchApi = useApi();
+  const [parents, setParents] = useState<
+    { id: string; label: string; sublabel?: string; familyId: string }[]
+  >([]);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchApi("/api/families")
+      .then((r) => r.json())
+      .then((j) => {
+        const rows: { id: string; label: string; sublabel?: string; familyId: string }[] = [];
+        for (const f of j.families || []) {
+          for (const p of f.parents || []) {
+            rows.push({
+              id: p.id,
+              familyId: f.id,
+              label: `${p.firstName || ""} ${p.lastName || ""}`.trim() || p.email || p.id,
+              sublabel: p.email,
+            });
+          }
+        }
+        setParents(rows);
+      })
+      .catch(() => {});
+  }, [fetchApi]);
+
+  return (
+    <Card className="border border-neutral-200 rounded-lg overflow-hidden">
+      <div className="p-6">
+        <h2 className="text-lg font-semibold text-neutral-900 tracking-tight mb-1">
+          Family
+        </h2>
+        <p className="text-sm text-neutral-500 mb-4">
+          {student.familyId ? (
+            <>
+              Linked to{" "}
+              <a
+                href={`/admin/families/${student.familyId}`}
+                className="text-mathitude-purple hover:underline font-medium"
+              >
+                this family
+              </a>
+              . Search a parent to move the student to a different family.
+            </>
+          ) : (
+            "Not linked to a family yet — search a parent to link."
+          )}
+        </p>
+        <div className="max-w-sm">
+          <EntitySearch
+            placeholder="Search parents…"
+            items={parents}
+            disabled={busy}
+            onSelect={async (item) => {
+              const row = parents.find((p) => p.id === item.id);
+              if (!row) return;
+              if (row.familyId === student.familyId) {
+                setMsg("Already linked to that family.");
+                return;
+              }
+              setBusy(true);
+              setMsg(null);
+              try {
+                const res = await fetchApi(`/api/students/${student.id}`, {
+                  method: "PUT",
+                  body: JSON.stringify({ familyId: row.familyId }),
+                });
+                const j = await res.json();
+                if (res.ok && j.student) {
+                  onLinked(j.student as Student);
+                  setMsg(`Linked to ${item.label}'s family.`);
+                } else {
+                  setMsg(j.error || "Could not link family");
+                }
+              } finally {
+                setBusy(false);
+              }
+            }}
+          />
+        </div>
+        {msg && <p className="text-xs text-neutral-500 mt-2">{msg}</p>}
+      </div>
+    </Card>
   );
 }

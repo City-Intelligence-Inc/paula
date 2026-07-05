@@ -50,6 +50,7 @@ interface PutBody {
   primaryPayerId?: string;
   depositCents?: number; // B-4 ledger: upfront deposit for the academic year
   depositNote?: string;
+  contractUrl?: string; // C-10: signed contract PDF location
 }
 
 // PUT /api/families/[id]
@@ -93,6 +94,10 @@ export async function PUT(
   if (typeof body.depositNote === "string") {
     sets.push("depositNote = :dn");
     values[":dn"] = body.depositNote.trim();
+  }
+  if (typeof body.contractUrl === "string") {
+    sets.push("contractUrl = :cu");
+    values[":cu"] = body.contractUrl.trim();
   }
 
   if (sets.length === 1) {

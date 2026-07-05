@@ -27,6 +27,7 @@ import {
   Package,
   Wallet,
   UsersRound,
+  BookUser,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -112,6 +113,11 @@ const navItems: NavItem[] = [
     label: "Admins",
     href: "/admin/admins",
     icon: ShieldCheck,
+  },
+  {
+    label: "Contacts",
+    href: "/admin/contacts",
+    icon: BookUser,
   },
   {
     label: "Consultations",

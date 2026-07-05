@@ -2,6 +2,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "crypto";
 import { sendAdminNotification } from "@/lib/server/notify";
+import { upsertContact } from "@/lib/server/contacts";
 
 const ddb = DynamoDBDocumentClient.from(
   new DynamoDBClient({ region: process.env.AWS_REGION || "us-west-2" }),
@@ -89,6 +90,23 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
+
+  // C-2/C-3: every inquiry lands in the Contacts database (and is mirrored
+  // to Mailchimp — the form's fine print covers the mailing-list opt-in).
+  // The full inquiry contents go into the contact's log (C-4). Deliberately
+  // does NOT create a user profile or grant site access.
+  upsertContact({
+    email,
+    name,
+    phone: body.phone?.trim(),
+    source: "inquiry",
+    studentInfo,
+    logEntry: {
+      by: "inquiry-form",
+      kind: "inquiry",
+      text: `Interest: ${item.offering}. Student: ${studentInfo}\n\n${message}`,
+    },
+  }).catch((err) => console.warn("[consultations] contact upsert failed:", err));
 
   // Notify Paula + Ari via Resend (defaults to both per
   // ADMIN_NOTIFICATION_EMAIL). Best-effort — never blocks the public
