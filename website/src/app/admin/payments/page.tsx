@@ -9,6 +9,9 @@ import {
   AlertCircle,
   CheckCircle2,
   Search,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 import {
   Card,
@@ -193,6 +196,92 @@ function ChargeButton({
         </div>
       )}
     </>
+  );
+}
+
+// Inline editable per-session rate, right in the Payments table. Saves to the
+// student record (PUT /api/students/:id) and refreshes so the change sticks.
+function RateCell({
+  student,
+  onSaved,
+}: {
+  student: Student;
+  onSaved?: () => void;
+}) {
+  const fetchApi = useApi();
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(String(student.rate ?? ""));
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    const rate = parseFloat(value);
+    if (isNaN(rate) || rate < 0) return;
+    setSaving(true);
+    try {
+      const res = await fetchApi(`/api/students/${student.id}`, {
+        method: "PUT",
+        body: JSON.stringify({ rate }),
+      });
+      if (res.ok) {
+        setEditing(false);
+        onSaved?.();
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setValue(String(student.rate ?? ""));
+          setEditing(true);
+        }}
+        title="Click to edit rate"
+        className="hidden sm:flex items-center gap-1 text-sm text-neutral-600 hover:text-mathitude-purple group"
+      >
+        ${student.rate ?? 0}
+        <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-100" />
+      </button>
+    );
+  }
+
+  return (
+    <div className="hidden sm:flex items-center gap-1">
+      <span className="text-sm text-neutral-500">$</span>
+      <input
+        type="number"
+        min="0"
+        step="0.01"
+        autoFocus
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") save();
+          if (e.key === "Escape") setEditing(false);
+        }}
+        className="w-16 rounded border border-neutral-300 px-1.5 py-0.5 text-sm focus:outline-none focus:ring-2 focus:ring-mathitude-purple/30"
+      />
+      <button
+        type="button"
+        onClick={save}
+        disabled={saving}
+        title="Save rate"
+        className="text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
+      >
+        <Check className="h-3.5 w-3.5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setEditing(false)}
+        title="Cancel"
+        className="text-neutral-400 hover:text-neutral-600"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </div>
   );
 }
 
@@ -616,9 +705,7 @@ export default function AdminPaymentsPage() {
                 <span className="hidden sm:block text-sm text-neutral-600">
                   {sb.student.grade}
                 </span>
-                <span className="hidden sm:block text-sm text-neutral-600">
-                  ${sb.student.rate}
-                </span>
+                <RateCell student={sb.student} onSaved={loadData} />
                 <span
                   className={`hidden sm:block text-sm font-medium ${
                     sb.balance > 0 ? "text-red-600" : "text-neutral-400"
