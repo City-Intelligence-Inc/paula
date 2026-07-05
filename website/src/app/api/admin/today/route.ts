@@ -1,5 +1,6 @@
 import { ScanCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireAdmin } from "@/lib/server/ddb";
+import { expandSessionToChargeRows } from "@/lib/billing";
 
 // Today endpoint — answers "what do I need to do today?" in one round trip.
 // Pulls sessions for today + this-week revenue + open consultations +
@@ -131,32 +132,29 @@ export async function GET() {
       }
     }
 
-    // Unbilled completed sessions: completed but no payment row exists.
-    const paymentKey = new Set(
-      payments.map((p) => `${p.studentId}|${p.createdAt}`),
-    );
+    // Unbilled = exactly what the billing queue would charge: sessions in a
+    // chargeable status ("completed", or "failed" awaiting retry — approve
+    // flips successes to "billed"), amounts via the same split expansion the
+    // queue uses, so this card never disagrees with /admin/billing.
     let unbilledCents = 0;
     let unbilledCount = 0;
     // Need a wider session scan for this — pull all sessions, not just today.
     const allSessions = await ddb().send(
       new ScanCommand({ TableName: Tables.sessions, Limit: 2000 }),
     );
-    const completed = ((allSessions.Items || []) as Session[]).filter(
-      (s) => s.status === "completed" && s.type !== "note",
+    const chargeable = ((allSessions.Items || []) as Session[]).filter(
+      (s) =>
+        (s.status === "completed" || s.status === "failed") &&
+        s.type !== "note" &&
+        s.type !== "session-note",
     );
-    for (const s of completed) {
-      const key = `${s.studentId}|${s.dateTime}`;
-      if (!paymentKey.has(key)) {
-        const fromRow =
-          typeof s.amountCents === "number"
-            ? s.amountCents
-            : (s.rate || 0) > 1000
-              ? s.rate || 0
-              : (s.rate || 0) * 100;
-        const rate = fromRow || (studentById.get(s.studentId)?.rate || 0) * 100;
-        unbilledCents += rate;
-        unbilledCount += 1;
-      }
+    for (const s of chargeable) {
+      const rows = expandSessionToChargeRows(
+        s as unknown as import("@/lib/types").Session,
+        studentById.get(s.studentId)?.rate || 0,
+      );
+      unbilledCents += rows.reduce((sum, r) => sum + r.amountCents, 0);
+      unbilledCount += 1;
     }
 
     const consultations = consultRes.Items || [];

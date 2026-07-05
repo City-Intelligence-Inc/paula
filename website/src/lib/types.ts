@@ -265,6 +265,10 @@ export interface Parent {
   email: string;
   phone?: string;
   stripeCustomerId?: string;
+  // B-5 gate marker: set by finalize-new-card once a card is actually saved.
+  // stripeCustomerId alone means a save STARTED (stamped at setup-intent),
+  // so it can't be the gate signal.
+  cardOnFile?: boolean;
   clerkUserId?: string;
   // Relationship to the children in the family. Defaults to "parent" for
   // backwards-compatibility with rows that pre-date this field. "parent"

@@ -1,4 +1,4 @@
-import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
 import { sendAdminNotification } from "@/lib/server/notify";
 import { enforceSingleCardForCustomer, getStripe } from "@/lib/server/stripe";
@@ -92,6 +92,25 @@ export async function POST(request: Request) {
     customerId,
     paymentMethodId,
   );
+
+  // B-5 gate marker: the parent now verifiably has a card on file. The
+  // dashboard's server-side card gate reads this (stripeCustomerId alone is
+  // stamped when a save merely STARTS, so it can't be the gate signal).
+  try {
+    await c.send(
+      new UpdateCommand({
+        TableName: Tables.parents,
+        Key: { id: parent.id },
+        UpdateExpression: "SET cardOnFile = :t, updatedAt = :n",
+        ExpressionAttributeValues: {
+          ":t": true,
+          ":n": new Date().toISOString(),
+        },
+      }),
+    );
+  } catch (err) {
+    console.warn("[finalize-new-card] cardOnFile stamp failed:", err);
+  }
 
   // Admin notification: per Paula's 5/17 note ("Can we get some sort of
   // notification sent to the admin email with the last 4 digits of the card?").

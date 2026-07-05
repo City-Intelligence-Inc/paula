@@ -1,4 +1,5 @@
-import { requireUser } from "@/lib/server/ddb";
+import { ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { ddb, Tables, requireUser } from "@/lib/server/ddb";
 import { notifyAction } from "@/lib/server/notify";
 import { ensureDefaultCard, getStripe } from "@/lib/server/stripe";
 
@@ -29,6 +30,37 @@ export async function DELETE(
 
     if (customerId) {
       await ensureDefaultCard(stripe, customerId);
+
+      // B-5 gate marker: if this was the customer's last card, clear
+      // cardOnFile on the matching parent so the dashboard gate re-engages.
+      try {
+        const remaining = await stripe.paymentMethods.list({
+          customer: customerId,
+          type: "card",
+          limit: 1,
+        });
+        if (remaining.data.length === 0) {
+          const ps = await ddb().send(
+            new ScanCommand({
+              TableName: Tables.parents,
+              FilterExpression: "stripeCustomerId = :c",
+              ExpressionAttributeValues: { ":c": customerId },
+            }),
+          );
+          for (const p of (ps.Items || []) as { id: string }[]) {
+            await ddb().send(
+              new UpdateCommand({
+                TableName: Tables.parents,
+                Key: { id: p.id },
+                UpdateExpression: "SET cardOnFile = :f",
+                ExpressionAttributeValues: { ":f": false },
+              }),
+            );
+          }
+        }
+      } catch (err) {
+        console.warn("[payment-methods.delete] cardOnFile clear failed:", err);
+      }
     }
 
     await notifyAction({

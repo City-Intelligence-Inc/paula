@@ -57,6 +57,9 @@ export default function FamilyDetailPage({
   const [savingStudentPayer, setSavingStudentPayer] = useState<string | null>(null);
   const [sessions, setSessions] = useState<(Session & { studentName: string })[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [payments, setPayments] = useState<
+    { studentId: string; createdAt: string; amount: number; paymentStatus: string; description?: string }[]
+  >([]);
   const [inviting, setInviting] = useState<string | null>(null);
   const [inviteMsg, setInviteMsg] = useState<{ parentId: string; text: string; ok: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -146,6 +149,30 @@ export default function FamilyDetailPage({
       .finally(() => {
         if (!cancelled) setSessionsLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [students.map((s) => s.id).join(",")]);
+
+  // C-8: this family's charge history — Stripe charges recorded against any
+  // of its students. Fetched once; filtered client-side by student id.
+  useEffect(() => {
+    if (students.length === 0) return;
+    const ids = new Set(students.map((s) => s.id));
+    let cancelled = false;
+    fetchApi("/api/payments")
+      .then((r) => r.json())
+      .then((j: { payments?: typeof payments }) => {
+        if (cancelled) return;
+        setPayments(
+          (j.payments || [])
+            .filter((p) => ids.has(p.studentId))
+            .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+            .slice(0, 30),
+        );
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -584,6 +611,49 @@ export default function FamilyDetailPage({
           </Card>
         )}
       </div>
+
+      {payments.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold text-neutral-900 mb-3">
+            Charge history
+          </h2>
+          <Card className="py-0 overflow-hidden border border-neutral-200 rounded-lg">
+            <div className="divide-y divide-neutral-100 max-h-96 overflow-y-auto">
+              {payments.map((p) => (
+                <div
+                  key={`${p.studentId}#${p.createdAt}`}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm"
+                >
+                  <span className="w-24 shrink-0 text-neutral-600">
+                    {new Date(p.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                  <span className="flex-1 truncate text-neutral-900">
+                    {p.description || "Charge"}
+                  </span>
+                  <Badge
+                    className={
+                      p.paymentStatus === "paid"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : p.paymentStatus === "failed" || p.paymentStatus === "overdue"
+                          ? "bg-red-50 text-red-600 border-red-200"
+                          : "bg-neutral-100 text-neutral-600 border-neutral-200"
+                    }
+                  >
+                    {p.paymentStatus}
+                  </Badge>
+                  <span className="w-20 shrink-0 text-right font-medium text-neutral-900">
+                    ${(p.amount / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

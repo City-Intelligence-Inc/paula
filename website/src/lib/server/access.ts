@@ -10,10 +10,15 @@
 //   parent                → signed-in but neither of the above
 //
 // Endpoints call resolveActor() then authorize with the small helpers below.
-import { ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { currentUser } from "@clerk/nextjs/server";
 import { ddb, Tables, requireUser, currentUserEmail } from "./ddb";
 import { isAdminEmail, isMasterAdminEmail } from "./admins";
+import {
+  getStripe,
+  isStripeConfigured,
+  resolveDefaultPaymentMethod,
+} from "./stripe";
 import type { Student, Tutor, Session, TutorScope } from "@/lib/types";
 
 export type ActorRole = "master_admin" | "admin" | "tutor" | "parent";
@@ -115,22 +120,39 @@ export {
   stripPricingFromSession,
 } from "./field-projection";
 
+// Every email on the signed-in Clerk account, lowercased (R-2: parents and
+// students may have multiple email addresses linked to one user account).
+// Always includes the passed-in email as a fallback when Clerk is unreachable.
+export async function allUserEmails(email: string): Promise<Set<string>> {
+  const emails = new Set<string>();
+  const e = (email || "").trim().toLowerCase();
+  if (e) emails.add(e);
+  try {
+    const cu = await currentUser().catch(() => null);
+    for (const addr of cu?.emailAddresses || []) {
+      if (addr.emailAddress) emails.add(addr.emailAddress.toLowerCase());
+    }
+  } catch {}
+  return emails;
+}
+
 // Resolve the students a signed-in family member can see:
 //   parentOf — children in the caregiver's family (parents table match by
-//              clerkUserId or email → familyId → students), plus legacy
-//              students that carry the caregiver's email as parentEmail.
-//   self     — the student themself, when the signed-in email is a student's
+//              clerkUserId or any linked email → familyId → students), plus
+//              legacy students that carry a linked email as parentEmail.
+//   self     — the student themself, when a linked email is a student's
 //              own studentEmail (R-7: scoped to exactly their record).
 export async function studentsForFamilyMember(
   userId: string,
   email: string,
 ): Promise<{ parentOf: Student[]; self: Student | null }> {
-  const e = (email || "").trim().toLowerCase();
   try {
-    const [parentsRes, studentsRes] = await Promise.all([
+    const [emails, parentsRes, studentsRes] = await Promise.all([
+      allUserEmails(email),
       ddb().send(new ScanCommand({ TableName: Tables.parents })),
       ddb().send(new ScanCommand({ TableName: Tables.students })),
     ]);
+    const has = (v?: string) => !!v && emails.has(v.trim().toLowerCase());
     const parents = (parentsRes.Items || []) as {
       familyId?: string;
       email?: string;
@@ -140,27 +162,105 @@ export async function studentsForFamilyMember(
 
     const familyIds = new Set(
       parents
-        .filter(
-          (p) =>
-            p.clerkUserId === userId ||
-            (e && (p.email || "").trim().toLowerCase() === e),
-        )
+        .filter((p) => p.clerkUserId === userId || has(p.email))
         .map((p) => p.familyId)
         .filter(Boolean) as string[],
     );
     const parentOf = students.filter(
       (s) =>
-        (s.familyId && familyIds.has(s.familyId)) ||
-        (e && (s.parentEmail || "").trim().toLowerCase() === e),
+        (s.familyId && familyIds.has(s.familyId)) || has(s.parentEmail),
     );
-    const self =
-      students.find(
-        (s) => e && (s.studentEmail || "").trim().toLowerCase() === e,
-      ) || null;
+    const self = students.find((s) => has(s.studentEmail)) || null;
     return { parentOf, self };
   } catch (err) {
     console.warn("[studentsForFamilyMember] failed:", err);
     return { parentOf: [], self: null };
+  }
+}
+
+// B-5/C-1 "subscription-style gate": does this family member's family have a
+// card on file? The signal is `cardOnFile` (stamped by finalize-new-card when
+// a card is actually saved — stripeCustomerId alone only means a save
+// STARTED). Parents from before that marker existed get one live Stripe
+// lookup; a found card stamps `cardOnFile` so the check never repeats
+// (self-healing, no legacy lockout). Returns the matched parent id so the
+// gate screen can save a card against the right record.
+export async function familyCardStatus(
+  userId: string,
+  email: string,
+): Promise<{ hasCard: boolean; parentId: string | null; isFamilyMember: boolean }> {
+  try {
+    const [emails, parentsRes] = await Promise.all([
+      allUserEmails(email),
+      ddb().send(new ScanCommand({ TableName: Tables.parents })),
+    ]);
+    const has = (v?: string) => !!v && emails.has(v.trim().toLowerCase());
+    const parents = (parentsRes.Items || []) as {
+      id: string;
+      familyId?: string;
+      email?: string;
+      clerkUserId?: string;
+      stripeCustomerId?: string;
+      cardOnFile?: boolean;
+    }[];
+    const mine = parents.filter((p) => p.clerkUserId === userId || has(p.email));
+    const { parentOf, self } = await studentsForFamilyMember(userId, email);
+    // Students (R-7) never manage cards — the gate doesn't apply to them.
+    if (mine.length === 0 && !!self && parentOf.length === 0) {
+      return { hasCard: true, parentId: null, isFamilyMember: true };
+    }
+    if (mine.length === 0 && parentOf.length === 0) {
+      return { hasCard: true, parentId: null, isFamilyMember: false };
+    }
+    const familyIds = new Set(
+      mine.map((p) => p.familyId).filter(Boolean) as string[],
+    );
+    const familyParents = parents.filter(
+      (p) => (p.familyId && familyIds.has(p.familyId)) || mine.includes(p),
+    );
+
+    if (familyParents.some((p) => p.cardOnFile === true)) {
+      return { hasCard: true, parentId: mine[0]?.id ?? null, isFamilyMember: true };
+    }
+
+    // Legacy rows: card saved before the cardOnFile marker existed. One live
+    // Stripe lookup per parent, stamped on success so it never runs again.
+    const candidates = familyParents.filter(
+      (p) => p.stripeCustomerId && p.cardOnFile === undefined,
+    );
+    if (candidates.length > 0 && (await isStripeConfigured())) {
+      const stripe = await getStripe();
+      for (const p of candidates) {
+        const pm = await resolveDefaultPaymentMethod(
+          stripe,
+          p.stripeCustomerId!,
+        ).catch(() => null);
+        if (pm) {
+          ddb()
+            .send(
+              new UpdateCommand({
+                TableName: Tables.parents,
+                Key: { id: p.id },
+                UpdateExpression: "SET cardOnFile = :t",
+                ExpressionAttributeValues: { ":t": true },
+              }),
+            )
+            .catch(() => {});
+          return { hasCard: true, parentId: mine[0]?.id ?? null, isFamilyMember: true };
+        }
+      }
+    }
+
+    // Legacy student-level Stripe customer (pre-family imports) — trust it.
+    if (parentOf.some((s) => !!s.stripeCustomerId)) {
+      return { hasCard: true, parentId: mine[0]?.id ?? null, isFamilyMember: true };
+    }
+
+    return { hasCard: false, parentId: mine[0]?.id ?? null, isFamilyMember: true };
+  } catch (err) {
+    // Fail open — an infra hiccup must not lock families out of the portal.
+    console.warn("[familyCardStatus] failed:", err);
+    return { hasCard: true, parentId: null, isFamilyMember: true };
   }
 }
 
