@@ -204,7 +204,7 @@ function ContactForm() {
           onChange={handleChange}
           required
           className="w-full h-11 px-4 text-sm border border-neutral-200 rounded-md bg-white text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-300"
-          placeholder="Grade, school, or anything else useful"
+          placeholder="Student name(s) and grade(s) — e.g. Maya, 4th grade"
         />
       </div>
 
@@ -229,6 +229,8 @@ function ContactForm() {
 
       <p className="text-xs text-neutral-500">
         Fields marked <span className="text-[color:var(--color-state-error)]">*</span> are required.
+        By submitting this form you&apos;re also joining the Mathitude mailing
+        list — unsubscribe anytime.
       </p>
 
       {error && (

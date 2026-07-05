@@ -251,10 +251,13 @@ export default function OnboardingPage() {
               <div className="px-6 py-6">
                 <SaveCardForm parentId={parentId ?? undefined} hideHeader fullWidth onSuccess={() => setStep(2)} />
               </div>
+              {/* B-5: card capture is a gate at registration — no skip.
+                  Saving the card advances via SaveCardForm's onSuccess. */}
               <div className="px-6 pb-6 pt-0">
-                <button onClick={() => setStep(2)} className="w-full py-2 text-xs text-[#A8A29E] hover:text-[#6B6F76] transition-colors">
-                  I&apos;ll add a card later
-                </button>
+                <p className="w-full py-2 text-xs text-[#A8A29E] text-center">
+                  A card on file is required to complete registration —
+                  you&apos;re only charged after a session happens.
+                </p>
               </div>
             </div>
           )}
