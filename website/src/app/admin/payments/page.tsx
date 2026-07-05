@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useApi } from "@/hooks/use-api";
 import {
   DollarSign,
@@ -71,9 +71,11 @@ function formatAmount(cents: number): string {
 function ChargeButton({
   student,
   disabled,
+  onCharged,
 }: {
   student: Student;
   disabled: boolean;
+  onCharged?: () => void;
 }) {
   const fetchApi = useApi();
   const [charging, setCharging] = useState(false);
@@ -113,6 +115,9 @@ function ChargeButton({
           type: "success",
           message: `Charged $${student.rate} to ${name}. It will appear in Stripe with MATHITUDE on the statement.`,
         });
+        // Refresh so the row status flips to Paid + the payment lands in
+        // history (the page loaded once on mount and never refetched).
+        onCharged?.();
       }
     } catch {
       setResult({
@@ -200,8 +205,8 @@ export default function AdminPaymentsPage() {
   const billingSort = useSort<BillingSortKey>("name");
   const paymentSort = useSort<PaymentSortKey>("date", "desc");
 
-  useEffect(() => {
-    Promise.all([
+  const loadData = useCallback(() => {
+    return Promise.all([
       fetchApi("/api/students").then((res) => res.json()),
       fetchApi("/api/payments").then((res) => res.json()),
     ])
@@ -212,6 +217,10 @@ export default function AdminPaymentsPage() {
       })
       .catch(() => setLoading(false));
   }, [fetchApi]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   if (loading) {
     return (
@@ -486,6 +495,7 @@ export default function AdminPaymentsPage() {
                 <ChargeButton
                   student={sb.student}
                   disabled={sb.latestStatus === "paid"}
+                  onCharged={loadData}
                 />
               </div>
             ))}

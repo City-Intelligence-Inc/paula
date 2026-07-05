@@ -208,9 +208,23 @@ export function buildChargeFields({
   metadata: Record<string, string>;
   statement_descriptor: string;
 } {
-  const description = sessionDate
-    ? `Mathitude tutoring — ${studentName} (${sessionDate})`
-    : `Mathitude tutoring — ${studentName}`;
+  // Description shown in the Stripe dashboard + our payment history. Format:
+  // "George C, Mathitude, 7/4/26" — first name + last initial, brand, date.
+  // (This is the internal description field, NOT the bank-statement descriptor,
+  // which stays hard-locked to MATHITUDE below.)
+  const parts = studentName.trim().split(/\s+/);
+  const firstName = parts[0] || studentName.trim();
+  const lastInitial = parts.length > 1 ? `${parts[parts.length - 1][0].toUpperCase()}` : "";
+  const namePart = lastInitial ? `${firstName} ${lastInitial}` : firstName;
+  let mdy: string;
+  if (sessionDate && /^\d{4}-\d{2}-\d{2}/.test(sessionDate)) {
+    const [y, m, d] = sessionDate.slice(0, 10).split("-");
+    mdy = `${Number(m)}/${Number(d)}/${y.slice(2)}`;
+  } else {
+    const now = new Date();
+    mdy = `${now.getMonth() + 1}/${now.getDate()}/${String(now.getFullYear()).slice(2)}`;
+  }
+  const description = `${namePart}, Mathitude, ${mdy}`;
   const metadata: Record<string, string> = {
     studentId,
     studentName,
