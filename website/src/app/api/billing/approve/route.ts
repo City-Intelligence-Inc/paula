@@ -117,7 +117,9 @@ async function resolveCustomerId(
 export async function POST(request: Request) {
   const { actor, response } = await resolveActor();
   if (response) return response;
-  if (!actor!.isAdmin) return forbidden("Admin access required.");
+  // R-4: office staff see billing (B-6) but never run charges — only the
+  // super admin (master) executes the billing run.
+  if (!actor!.isMaster) return forbidden("Only the super admin can run charges.");
 
   if (!(await isStripeConfigured())) {
     return Response.json(

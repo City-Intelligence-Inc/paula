@@ -1,9 +1,11 @@
 import {
+  DeleteCommand,
   GetCommand,
   QueryCommand,
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser, requireAdmin } from "@/lib/server/ddb";
+import { resolveActor, forbidden } from "@/lib/server/access";
 
 export async function GET(
   _request: Request,
@@ -117,4 +119,76 @@ export async function PUT(
     }),
   );
   return Response.json({ family: out.Attributes });
+}
+
+// DELETE /api/families/[id] — R-8 hard offboarding, super admin only.
+// Refuses while any students are still attached (delete or move them first
+// so nothing is orphaned silently). Removes the family row + its caregiver
+// rows. Stripe customers are left in Stripe — they're payment records.
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { actor, response } = await resolveActor();
+  if (response) return response;
+  if (!actor!.isMaster) {
+    return forbidden("Only the super admin can delete a family.");
+  }
+
+  const { id } = await params;
+  const c = ddb();
+
+  const [familyRes, studentsRes, parentsRes] = await Promise.all([
+    c.send(new GetCommand({ TableName: Tables.families, Key: { id } })),
+    c.send(
+      new QueryCommand({
+        TableName: Tables.students,
+        IndexName: "by-family",
+        KeyConditionExpression: "familyId = :f",
+        ExpressionAttributeValues: { ":f": id },
+      }),
+    ),
+    c.send(
+      new QueryCommand({
+        TableName: Tables.parents,
+        IndexName: "by-family",
+        KeyConditionExpression: "familyId = :f",
+        ExpressionAttributeValues: { ":f": id },
+      }),
+    ),
+  ]);
+
+  if (!familyRes.Item) {
+    return Response.json({ error: "Family not found" }, { status: 404 });
+  }
+  const students = studentsRes.Items || [];
+  if (students.length > 0) {
+    return Response.json(
+      {
+        error: `This family still has ${students.length} student${students.length === 1 ? "" : "s"}. Delete or move them first.`,
+      },
+      { status: 409 },
+    );
+  }
+
+  try {
+    for (const p of (parentsRes.Items || []) as { id: string }[]) {
+      await c.send(
+        new DeleteCommand({ TableName: Tables.parents, Key: { id: p.id } }),
+      );
+    }
+    await c.send(
+      new DeleteCommand({ TableName: Tables.families, Key: { id } }),
+    );
+    return Response.json({
+      ok: true,
+      deletedParents: (parentsRes.Items || []).length,
+    });
+  } catch (err) {
+    console.error("[DELETE /api/families/:id] failed:", err);
+    return Response.json(
+      { error: "Delete failed", detail: String(err) },
+      { status: 500 },
+    );
+  }
 }

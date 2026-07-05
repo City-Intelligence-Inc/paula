@@ -23,6 +23,7 @@ import type { Student } from "@/lib/types";
 import { SchoolLoginsPanel } from "@/components/admin/school-logins-panel";
 import { EntitySearch } from "@/components/admin/entity-search";
 import { SharedFilesPanel } from "@/components/shared-files-panel";
+import { DangerDelete } from "@/components/admin/danger-delete";
 import { GRADE_OPTIONS as gradeOptions, gradeLabel } from "@/lib/grades";
 
 interface SessionNote {
@@ -986,6 +987,15 @@ export default function StudentDetailPage({
 
       {/* School portal logins (ghost-student access) — admin only */}
       <SchoolLoginsPanel studentId={student.id} />
+
+      {/* R-8 hard offboarding — super admin only, typed confirmation */}
+      <DangerDelete
+        entityLabel="student"
+        confirmPhrase={`${student.firstName} ${student.lastName}`}
+        description="Permanently removes this student and every session/note row. Payment records are kept (financial history). Prefer setting status to Inactive unless the record really must go."
+        endpoint={`/api/students/${student.id}`}
+        onDeleted={() => router.push("/admin/students")}
+      />
     </div>
   );
 }

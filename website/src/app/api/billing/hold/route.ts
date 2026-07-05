@@ -13,7 +13,8 @@ import type { Session } from "@/lib/types";
 export async function POST(request: Request) {
   const { actor, response } = await resolveActor();
   if (response) return response;
-  if (!actor!.isAdmin) return forbidden("Admin access required.");
+  // Hold changes what the billing run charges → master-only, like approve.
+  if (!actor!.isMaster) return forbidden("Only the super admin can hold or release sessions.");
 
   let body: { studentId?: string; dateTime?: string; hold?: boolean };
   try {

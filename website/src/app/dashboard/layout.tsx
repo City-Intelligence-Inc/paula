@@ -36,13 +36,22 @@ export default async function DashboardLayout({
       redirect("/onboarding");
     }
 
-    // B-5/C-1 subscription-style gate, enforced server-side: a family with no
-    // card on file gets the save-card screen instead of the portal. Covers
-    // the tokenized-invite path too (which has no card step of its own).
-    if (!isTutor && cardStatus.isFamilyMember && !cardStatus.hasCard) {
+    // B-5/C-1 "Contract & Credit Card Gate", enforced server-side: a family
+    // with an unaccepted contract or no card on file gets the gate screens
+    // instead of the portal. Covers the tokenized-invite path too (which has
+    // no card step of its own).
+    if (
+      !isTutor &&
+      cardStatus.isFamilyMember &&
+      (!cardStatus.hasCard || cardStatus.needsContract)
+    ) {
       return (
         <DashboardShell isAdmin={false}>
-          <CardGate parentId={cardStatus.parentId ?? undefined} />
+          <CardGate
+            parentId={cardStatus.parentId ?? undefined}
+            needsContract={cardStatus.needsContract}
+            needsCard={!cardStatus.hasCard}
+          />
         </DashboardShell>
       );
     }

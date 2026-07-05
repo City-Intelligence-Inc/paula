@@ -1,4 +1,10 @@
-import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  BatchWriteCommand,
+  GetCommand,
+  QueryCommand,
+  UpdateCommand,
+  DeleteCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables } from "@/lib/server/ddb";
 import {
   resolveActor,
@@ -123,6 +129,73 @@ export async function PUT(
     console.error("[PUT /api/students/:id] failed:", err);
     return Response.json(
       { error: "Update failed", detail: String(err) },
+      { status: 500 },
+    );
+  }
+}
+
+// DELETE /api/students/:id — R-8 hard offboarding, super admin only.
+// Cascades to the student's session rows (schedule + notes). Payment rows
+// are deliberately RETAINED — they are financial records. Prefer setting
+// status to "inactive" (PUT) unless the record really must go.
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { actor, response } = await resolveActor();
+  if (response) return response;
+  if (!actor!.isMaster) {
+    return forbidden("Only the super admin can delete a student.");
+  }
+
+  const { id } = await params;
+  const c = ddb();
+  const existing = await c.send(
+    new GetCommand({ TableName: Tables.students, Key: { id } }),
+  );
+  if (!existing.Item) {
+    return Response.json({ error: "Student not found" }, { status: 404 });
+  }
+
+  try {
+    // Cascade sessions (paged batch deletes of up to 25 keys).
+    let deletedSessions = 0;
+    let lastKey: Record<string, unknown> | undefined;
+    do {
+      const page = await c.send(
+        new QueryCommand({
+          TableName: Tables.sessions,
+          KeyConditionExpression: "studentId = :sid",
+          ExpressionAttributeValues: { ":sid": id },
+          ProjectionExpression: "studentId, dateTime",
+          ExclusiveStartKey: lastKey,
+        }),
+      );
+      const keys = (page.Items || []) as { studentId: string; dateTime: string }[];
+      for (let i = 0; i < keys.length; i += 25) {
+        await c.send(
+          new BatchWriteCommand({
+            RequestItems: {
+              [Tables.sessions]: keys.slice(i, i + 25).map((k) => ({
+                DeleteRequest: { Key: { studentId: k.studentId, dateTime: k.dateTime } },
+              })),
+            },
+          }),
+        );
+      }
+      deletedSessions += keys.length;
+      lastKey = page.LastEvaluatedKey;
+    } while (lastKey);
+
+    await c.send(
+      new DeleteCommand({ TableName: Tables.students, Key: { id } }),
+    );
+
+    return Response.json({ ok: true, deletedSessions });
+  } catch (err) {
+    console.error("[DELETE /api/students/:id] failed:", err);
+    return Response.json(
+      { error: "Delete failed", detail: String(err) },
       { status: 500 },
     );
   }

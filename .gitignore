@@ -4,3 +4,7 @@
 /books/
 !website/public/books/
 .vercel
+
+# Terraform
+**/.terraform/
+*.tfvars

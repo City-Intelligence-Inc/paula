@@ -243,6 +243,11 @@ export interface Family {
   // C-10: the family's signed contract PDF (S3 URL or share link). Parents
   // view it via /api/me/contract, which streams S3 objects server-side.
   contractUrl?: string;
+  // C-1 "Contract Gate": when a contract is on file and not yet accepted,
+  // the portal gate makes the parent read + accept it before entering.
+  contractAcceptedAt?: string;
+  contractAcceptedBy?: string; // Clerk user id
+  contractAcceptedByName?: string;
   createdAt: string;
   updatedAt: string;
 }

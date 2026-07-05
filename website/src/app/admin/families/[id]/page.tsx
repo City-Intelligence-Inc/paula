@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useApi } from "@/hooks/use-api";
 import { client } from "@/lib/api";
@@ -11,6 +12,7 @@ import { ArrowLeft, Mail, Phone, CreditCard, Plus, UserCheck, Trash2, X } from "
 import { PaymentMethodsPanel } from "@/components/stripe/payment-methods-panel";
 import { EntitySearch } from "@/components/admin/entity-search";
 import { SaveCardForm } from "@/components/stripe/save-card-form";
+import { DangerDelete } from "@/components/admin/danger-delete";
 import type { Family, Parent, Session, Student, GuardianRelationship } from "@/lib/types";
 import {
   familyDisplayName,
@@ -47,6 +49,7 @@ export default function FamilyDetailPage({
 }) {
   const { id } = use(params);
   const fetchApi = useApi();
+  const router = useRouter();
   const [family, setFamily] = useState<Family | null>(null);
   const [parents, setParents] = useState<Parent[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -612,6 +615,21 @@ export default function FamilyDetailPage({
         )}
       </div>
 
+      {/* R-8 hard offboarding — super admin only; blocked while students remain */}
+      <DangerDelete
+        entityLabel="family"
+        confirmPhrase={familyDisplayName({
+          id: family.id,
+          parents,
+          primary: parents.find((p) => p.id === family.primaryPayerId) || parents[0],
+        })}
+        description="Permanently removes this family and its caregiver records. Stripe customers and payment history are retained. Students must be deleted or moved to another family first."
+        endpoint={`/api/families/${family.id}`}
+        onDeleted={() => router.push("/admin/families")}
+        disabled={students.length > 0}
+        disabledReason={`Blocked: ${students.length} student${students.length === 1 ? "" : "s"} still attached — offboard them from their student pages first.`}
+      />
+
       {payments.length > 0 && (
         <div>
           <h2 className="text-lg font-semibold text-neutral-900 mb-3">
@@ -1046,8 +1064,24 @@ function ContractCard({
         </div>
         <p className="text-xs text-neutral-400 mt-2">
           Parents see a &ldquo;Contract&rdquo; tab on their dashboard once this
-          is set.
+          is set — and must read + accept it before entering the portal.
         </p>
+        {family.contractUrl &&
+          (family.contractAcceptedAt ? (
+            <p className="mt-2 text-xs text-emerald-700">
+              Accepted by {family.contractAcceptedByName || "a parent"} on{" "}
+              {new Date(family.contractAcceptedAt).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-amber-700">
+              Not yet accepted — the portal gate is holding this family until
+              a parent agrees.
+            </p>
+          ))}
       </Card>
     </div>
   );

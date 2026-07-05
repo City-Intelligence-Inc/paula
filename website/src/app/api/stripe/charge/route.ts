@@ -18,10 +18,11 @@ interface Body {
 }
 
 export async function POST(request: Request) {
-  // Charging is admin-only — tutors must never trigger or see charges.
+  // Charging is master-only (R-4): office staff view billing but never
+  // trigger charges; tutors see nothing billing-shaped at all.
   const { actor, response } = await resolveActor();
   if (response) return response;
-  if (!actor!.isAdmin) return forbidden("Admin access required.");
+  if (!actor!.isMaster) return forbidden("Only the super admin can run charges.");
 
   let body: Body;
   try {

@@ -10,7 +10,7 @@
 //   parent                → signed-in but neither of the above
 //
 // Endpoints call resolveActor() then authorize with the small helpers below.
-import { ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { currentUser } from "@clerk/nextjs/server";
 import { ddb, Tables, requireUser, currentUserEmail } from "./ddb";
 import { isAdminEmail, isMasterAdminEmail } from "./admins";
@@ -188,7 +188,14 @@ export async function studentsForFamilyMember(
 export async function familyCardStatus(
   userId: string,
   email: string,
-): Promise<{ hasCard: boolean; parentId: string | null; isFamilyMember: boolean }> {
+): Promise<{
+  hasCard: boolean;
+  parentId: string | null;
+  isFamilyMember: boolean;
+  // C-1 contract gate: true when the family has a contract on file that no
+  // parent has accepted yet. Families without a contract skip this step.
+  needsContract: boolean;
+}> {
   try {
     const [emails, parentsRes] = await Promise.all([
       allUserEmails(email),
@@ -205,12 +212,12 @@ export async function familyCardStatus(
     }[];
     const mine = parents.filter((p) => p.clerkUserId === userId || has(p.email));
     const { parentOf, self } = await studentsForFamilyMember(userId, email);
-    // Students (R-7) never manage cards — the gate doesn't apply to them.
+    // Students (R-7) never manage cards or accept contracts — no gate.
     if (mine.length === 0 && !!self && parentOf.length === 0) {
-      return { hasCard: true, parentId: null, isFamilyMember: true };
+      return { hasCard: true, parentId: null, isFamilyMember: true, needsContract: false };
     }
     if (mine.length === 0 && parentOf.length === 0) {
-      return { hasCard: true, parentId: null, isFamilyMember: false };
+      return { hasCard: true, parentId: null, isFamilyMember: false, needsContract: false };
     }
     const familyIds = new Set(
       mine.map((p) => p.familyId).filter(Boolean) as string[],
@@ -219,8 +226,22 @@ export async function familyCardStatus(
       (p) => (p.familyId && familyIds.has(p.familyId)) || mine.includes(p),
     );
 
+    // C-1 contract gate: on file but not yet accepted by anyone in the family.
+    let needsContract = false;
+    const familyId =
+      [...familyIds][0] || parentOf.find((s) => s.familyId)?.familyId;
+    if (familyId) {
+      const fr = await ddb().send(
+        new GetCommand({ TableName: Tables.families, Key: { id: familyId } }),
+      );
+      const fam = fr.Item as
+        | { contractUrl?: string; contractAcceptedAt?: string }
+        | undefined;
+      needsContract = !!fam?.contractUrl && !fam?.contractAcceptedAt;
+    }
+
     if (familyParents.some((p) => p.cardOnFile === true)) {
-      return { hasCard: true, parentId: mine[0]?.id ?? null, isFamilyMember: true };
+      return { hasCard: true, parentId: mine[0]?.id ?? null, isFamilyMember: true, needsContract };
     }
 
     // Legacy rows: card saved before the cardOnFile marker existed. One live
@@ -246,21 +267,21 @@ export async function familyCardStatus(
               }),
             )
             .catch(() => {});
-          return { hasCard: true, parentId: mine[0]?.id ?? null, isFamilyMember: true };
+          return { hasCard: true, parentId: mine[0]?.id ?? null, isFamilyMember: true, needsContract };
         }
       }
     }
 
     // Legacy student-level Stripe customer (pre-family imports) — trust it.
     if (parentOf.some((s) => !!s.stripeCustomerId)) {
-      return { hasCard: true, parentId: mine[0]?.id ?? null, isFamilyMember: true };
+      return { hasCard: true, parentId: mine[0]?.id ?? null, isFamilyMember: true, needsContract };
     }
 
-    return { hasCard: false, parentId: mine[0]?.id ?? null, isFamilyMember: true };
+    return { hasCard: false, parentId: mine[0]?.id ?? null, isFamilyMember: true, needsContract };
   } catch (err) {
     // Fail open — an infra hiccup must not lock families out of the portal.
     console.warn("[familyCardStatus] failed:", err);
-    return { hasCard: true, parentId: null, isFamilyMember: true };
+    return { hasCard: true, parentId: null, isFamilyMember: true, needsContract: false };
   }
 }
 

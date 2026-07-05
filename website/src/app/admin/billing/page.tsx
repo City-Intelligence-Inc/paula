@@ -206,6 +206,17 @@ export default function AdminBillingPage() {
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState(14);
   const [truncated, setTruncated] = useState(false);
+  // R-4/B-6: office staff view the queue and history but never charge —
+  // actions are master-only (also enforced server-side).
+  const [isMaster, setIsMaster] = useState(false);
+
+  useEffect(() => {
+    fetchApi("/api/me/is-admin")
+      .then((r) => r.json())
+      .then((j: { isMaster?: boolean }) => setIsMaster(!!j.isMaster))
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const rowKey = (r: QueueRow) => `${r.studentId}#${r.dateTime}#${r.splitIndex ?? 0}`;
 
@@ -327,6 +338,18 @@ export default function AdminBillingPage() {
         </p>
       </div>
 
+      {!isMaster && (
+        <Card className="py-3 border border-neutral-200 rounded-lg bg-neutral-50">
+          <CardContent className="flex flex-wrap items-center gap-3">
+            <ShieldCheck className="h-5 w-5 text-mathitude-purple shrink-0" />
+            <p className="text-sm text-neutral-600">
+              <span className="font-medium">View only.</span> Running charges,
+              holds, and flat-rate billing is reserved for the super admin.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="py-3 border border-neutral-200 rounded-lg bg-neutral-50">
         <CardContent className="flex flex-wrap items-center gap-3">
           <ShieldCheck className="h-5 w-5 text-mathitude-purple shrink-0" />
@@ -405,17 +428,19 @@ export default function AdminBillingPage() {
               : "Select all"}
           </Button>
         </div>
-        <Button
-          onClick={approveSelected}
-          disabled={charging || selectedRows.length === 0}
-          data-tour="approve-billing"
-          className="bg-mathitude-purple text-white hover:bg-mathitude-purple/90"
-        >
-          <CreditCard className="h-3 w-3" />
-          {charging
-            ? "Charging…"
-            : `Approve & charge ${selectedRows.length || ""}`.trim()}
-        </Button>
+        {isMaster && (
+          <Button
+            onClick={approveSelected}
+            disabled={charging || selectedRows.length === 0}
+            data-tour="approve-billing"
+            className="bg-mathitude-purple text-white hover:bg-mathitude-purple/90"
+          >
+            <CreditCard className="h-3 w-3" />
+            {charging
+              ? "Charging…"
+              : `Approve & charge ${selectedRows.length || ""}`.trim()}
+          </Button>
+        )}
       </div>
 
       {error && (
@@ -561,14 +586,16 @@ export default function AdminBillingPage() {
                           on hold
                         </Badge>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => toggleHold(r)}
-                        disabled={charging}
-                        className="ml-2 text-[11px] text-neutral-400 underline underline-offset-2 hover:text-[#7030A0] align-middle"
-                      >
-                        {onHold ? "Release" : "Hold"}
-                      </button>
+                      {isMaster && (
+                        <button
+                          type="button"
+                          onClick={() => toggleHold(r)}
+                          disabled={charging}
+                          className="ml-2 text-[11px] text-neutral-400 underline underline-offset-2 hover:text-[#7030A0] align-middle"
+                        >
+                          {onHold ? "Release" : "Hold"}
+                        </button>
+                      )}
                     </p>
                     {isRetry && r.lastBillingError && (
                       <p className="text-xs text-red-500 truncate max-w-md">
@@ -610,7 +637,7 @@ export default function AdminBillingPage() {
         </div>
       </Card>
 
-      <FlatRateChargeCard />
+      {isMaster && <FlatRateChargeCard />}
     </div>
   );
 }
