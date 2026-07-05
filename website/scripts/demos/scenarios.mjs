@@ -10,6 +10,10 @@
 
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Best-effort interaction: a demo must never die because a hover/click
+// target moved — the page footage is the deliverable.
+const attempt = (fn) => fn().catch(() => {});
+
 // Slow, watchable scrolling — demos are for humans.
 async function drift(page, px = 600, step = 24) {
   for (let y = 0; y < px; y += step) {
@@ -120,11 +124,11 @@ export const SCENARIOS = [
       await page.goto(`${base}/admin`);
       await page.waitForLoadState("networkidle");
       await pause(1500);
-      const btn = page.locator("text=Copy last week").first();
-      if (await btn.count()) {
-        await btn.scrollIntoViewIfNeeded();
-        await btn.hover(); // hover only — clicking would duplicate the week
-      }
+      const btn = page.getByRole("button", { name: /copy last week/i }).first();
+      await attempt(async () => {
+        await btn.scrollIntoViewIfNeeded({ timeout: 5000 });
+        await btn.hover({ timeout: 5000 }); // hover only — clicking would duplicate the week
+      });
       await pause(2000);
       await drift(page, 500);
       await pause(1000);
@@ -150,12 +154,12 @@ export const SCENARIOS = [
       await page.goto(`${base}/admin/contacts`);
       await page.waitForLoadState("networkidle");
       await pause(1500);
-      const row = page.locator("button:has-text('@')").first();
-      const anyRow = (await row.count()) ? row : page.locator("main button").first();
-      if (await anyRow.count()) {
-        await anyRow.click(); // expand profile log — read-only
+      await attempt(async () => {
+        // Expand the first contact's profile log — read-only.
+        const row = page.locator("button:has-text('@')").first();
+        await row.click({ timeout: 5000 });
         await pause(2000);
-      }
+      });
       await drift(page, 500);
       await pause(1500);
     },

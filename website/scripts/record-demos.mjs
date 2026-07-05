@@ -34,14 +34,16 @@ const authFile = (kind) => join(demosDir, `auth-${kind}.json`);
 mkdirSync(outDir, { recursive: true });
 
 const browser = await chromium.launch();
-const manifest = [["row_id", "title", "file", "status"]];
+// Per-run notes (failures/skips). The manifest itself is rebuilt from disk at
+// the end so partial --only runs never clobber earlier recordings' rows.
+const notes = new Map();
 
 for (const s of SCENARIOS) {
   if (ONLY && !ONLY.has(s.id)) continue;
 
   if (s.auth && !existsSync(authFile(s.auth))) {
     console.log(`SKIP ${s.id} — needs ${s.auth} auth (run: npm run demos:auth${s.auth === "parent" ? " -- parent" : ""})`);
-    manifest.push([s.id, s.title, "", `skipped: no ${s.auth} auth`]);
+    notes.set(s.id, `skipped: no ${s.auth} auth`);
     continue;
   }
 
@@ -65,17 +67,26 @@ for (const s of SCENARIOS) {
     renameSync(join(workDir, video), dest);
     rmSync(workDir, { recursive: true, force: true });
     console.log("ok");
-    manifest.push([s.id, s.title, `${s.id}.webm`, "recorded"]);
   } catch (err) {
     await context.close().catch(() => {});
     rmSync(workDir, { recursive: true, force: true });
     console.log(`FAILED: ${String(err).split("\n")[0]}`);
-    manifest.push([s.id, s.title, "", `failed: ${String(err).split("\n")[0].replace(/,/g, ";")}`]);
+    notes.set(s.id, `failed: ${String(err).split("\n")[0]}`);
   }
 }
 
 await browser.close();
 
+const manifest = [["row_id", "title", "file", "status"]];
+for (const s of SCENARIOS) {
+  const onDisk = existsSync(join(outDir, `${s.id}.webm`));
+  manifest.push([
+    s.id,
+    s.title,
+    onDisk ? `${s.id}.webm` : "",
+    onDisk ? "recorded" : notes.get(s.id) || "not recorded",
+  ]);
+}
 writeFileSync(
   join(outDir, "manifest.csv"),
   manifest.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n") + "\n",
