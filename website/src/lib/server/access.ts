@@ -84,11 +84,39 @@ async function findTutor(userId: string, email: string): Promise<Tutor | null> {
     }
     const r = await ddb().send(new ScanCommand({ TableName: Tables.tutors }));
     const tutors = (r.Items as Tutor[]) || [];
-    return (
-      tutors.find((t) => t.clerkUserId === userId) ||
-      tutors.find((t) => t.email && emails.has(t.email.toLowerCase())) ||
-      null
+
+    const byClerk = tutors.find((t) => t.clerkUserId === userId);
+    if (byClerk) return byClerk;
+
+    const byEmail = tutors.find(
+      (t) => t.email && emails.has(t.email.toLowerCase()),
     );
+    if (byEmail) {
+      // #8: a brand-new tutor is only matchable by email until someone writes
+      // the Clerk link (nothing did automatically). currentUser() emails can
+      // lag on the very first request after sign-up, so a tutor looked
+      // unrecognized until a sign-out/sign-in refreshed the session. Persist
+      // the link on first successful email match, so every later request
+      // resolves by the reliable auth() userId — no refresh needed.
+      // Best-effort; mirrors the parent self-heal in /api/onboarding.
+      if (byEmail.clerkUserId !== userId) {
+        ddb()
+          .send(
+            new UpdateCommand({
+              TableName: Tables.tutors,
+              Key: { id: byEmail.id },
+              UpdateExpression: "SET clerkUserId = :c, updatedAt = :u",
+              ExpressionAttributeValues: {
+                ":c": userId,
+                ":u": new Date().toISOString(),
+              },
+            }),
+          )
+          .catch(() => {});
+      }
+      return byEmail;
+    }
+    return null;
   } catch (err) {
     console.warn("[findTutor] failed:", err);
     return null;

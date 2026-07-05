@@ -1,6 +1,29 @@
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
+import { clerkClient } from "@clerk/nextjs/server";
 import { ddb, Tables } from "@/lib/server/ddb";
 import { getInviteByToken, inviteIsActive } from "@/lib/server/invites";
+
+// #7: does this email already have a Clerk login? If so the register page
+// should send them to sign-in, not through "create your login" (a dead end —
+// Clerk rejects sign-up for an existing email). getUserList matches emails by
+// case-insensitive partial match, so we confirm an exact address hit.
+// Best-effort: any Clerk error falls back to the normal register flow.
+async function emailHasAccount(email: string): Promise<boolean> {
+  const target = email.trim().toLowerCase();
+  if (!target) return false;
+  try {
+    const client = await clerkClient();
+    const list = await client.users.getUserList({ emailAddress: [target] });
+    return (list.data || []).some((u) =>
+      (u.emailAddresses || []).some(
+        (e) => e.emailAddress.trim().toLowerCase() === target,
+      ),
+    );
+  } catch (err) {
+    console.warn("[register/validate] Clerk lookup failed:", err);
+    return false;
+  }
+}
 
 // GET /api/register/validate?token=… — public. Tells the hidden registration
 // page whether the token is live and what to prefill. The email in the
@@ -50,6 +73,7 @@ export async function GET(request: Request) {
     firstName: invite.firstName || "",
     lastName: invite.lastName || "",
     familyId: invite.familyId || null,
+    alreadyRegistered: await emailHasAccount(invite.email),
     prefill: { ...consultationPrefill, ...(invite.prefill || {}) },
   });
 }

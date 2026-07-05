@@ -19,6 +19,7 @@ interface ValidateResponse {
   firstName?: string;
   lastName?: string;
   familyId?: string | null;
+  alreadyRegistered?: boolean;
   prefill?: Record<string, string>;
 }
 
@@ -80,9 +81,9 @@ function RegisterForm() {
   const router = useRouter();
   const token = params.get("token") || "";
 
-  const [state, setState] = useState<"loading" | "invalid" | "form" | "done">(
-    "loading",
-  );
+  const [state, setState] = useState<
+    "loading" | "invalid" | "existing" | "form" | "done"
+  >("loading");
   const [reason, setReason] = useState<string | undefined>();
   const [info, setInfo] = useState<ValidateResponse | null>(null);
 
@@ -109,6 +110,12 @@ function RegisterForm() {
           return;
         }
         setInfo(j);
+        // #7: this email already has a login — don't walk them into account
+        // creation (Clerk would reject it). Send them to sign-in instead.
+        if (j.alreadyRegistered) {
+          setState("existing");
+          return;
+        }
         // Prefill what we know from the invite / original inquiry.
         if (j.firstName) setFirstName(j.firstName);
         if (j.lastName) setLastName(j.lastName);
@@ -131,6 +138,29 @@ function RegisterForm() {
     );
   }
   if (state === "invalid") return <InvalidToken reason={reason} />;
+  if (state === "existing") {
+    return (
+      <div className="max-w-md mx-auto py-24 px-6 text-center">
+        <h1 className="text-2xl font-semibold text-neutral-900">
+          You already have an account
+        </h1>
+        <p className="text-sm text-neutral-500 mt-3">
+          There&apos;s already a login for{" "}
+          <span className="font-medium">{info?.email}</span>. No need to
+          register again — just sign in.
+        </p>
+        <Link
+          href="/sign-in"
+          className="mt-6 inline-block rounded-full bg-[#7030A0] px-6 py-2.5 text-sm font-semibold text-white"
+        >
+          Go to sign in
+        </Link>
+        <p className="text-xs text-neutral-400 mt-4">
+          Forgot your password? You can reset it from the sign-in page.
+        </p>
+      </div>
+    );
+  }
   if (state === "done") {
     return (
       <div className="max-w-md mx-auto py-24 px-6 text-center">
