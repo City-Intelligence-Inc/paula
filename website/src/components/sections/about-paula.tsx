@@ -28,7 +28,7 @@ export function AboutPaula() {
           <div
             data-reveal="left"
             data-tilt
-            className="relative max-w-[340px]"
+            className="relative max-w-[420px]"
             style={{ willChange: "transform" }}
           >
             <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100 rounded-lg">
