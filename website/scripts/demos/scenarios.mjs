@@ -414,40 +414,78 @@ export const TASK_SCENARIOS = [
   },
   {
     id: "B-4-full",
-    title: "FULL TASK: record a $500 deposit, watch the drawdown, restore",
+    title: "FULL TASK: deposit drawdown on a self-created demo family",
     auth: "admin",
     task: true,
+    // Touches ONLY data it creates: demo student + family + two sessions,
+    // deposit recorded, drawdown shown, then the whole tree is hard-deleted
+    // (student delete cascades the sessions; family delete removes the rest).
     run: async (page, base) => {
       await page.goto(`${base}/admin/ledger`);
       await page.waitForLoadState("networkidle");
-      const ledger = await api(page, "/api/admin/ledger");
-      const fam = (ledger.families || [])[0];
-      if (!fam) throw new Error("no families in the ledger to demo on");
-      const original = fam.depositCents || 0;
-      await pause(1500);
 
-      // Record the deposit through the UI.
-      const cell = page
-        .locator("tbody tr")
-        .first()
-        .locator("button")
-        .first();
-      await cell.click();
-      const input = page.locator("tbody input").first();
-      await input.fill("500");
+      // Pre-clean leftovers from an aborted run, then create the demo tree.
+      const famsPre = await api(page, "/api/families");
+      for (const f of famsPre.families || []) {
+        if ((f.students || []).some((s) => s.lastName === "LedgerDemo")) {
+          for (const s of f.students || []) {
+            await api(page, `/api/students/${s.id}`, { method: "DELETE", allowFail: true });
+          }
+          await api(page, `/api/families/${f.id}`, { method: "DELETE", allowFail: true });
+        }
+      }
+      const madeStudent = await api(page, "/api/students", {
+        method: "POST",
+        body: {
+          firstName: "Demo",
+          lastName: "LedgerDemo",
+          grade: "4",
+          status: "active",
+          parentName: "Demo Parent",
+          parentEmail: DEMO.familyEmail,
+          parentPhone: "",
+          sessionType: "individual",
+          rate: 100,
+        },
+      });
+      const studentId = madeStudent.student?.id || madeStudent.id;
+      const stu = await api(page, `/api/students/${studentId}`);
+      const familyId = stu.student?.familyId;
+      if (!familyId) throw new Error("demo student has no familyId");
+
+      // Two completed sessions this academic year → real drawdown rows.
+      for (const [date, dur] of [
+        ["2026-06-24", 60],
+        ["2026-07-01", 90],
+      ]) {
+        await api(page, "/api/sessions", {
+          method: "POST",
+          body: { studentId, date, time: "15:00", duration: dur, type: "individual", status: "completed" },
+        });
+      }
+
+      // Record the $500 deposit through the ledger UI on OUR demo row.
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await mustSee(page, "LedgerDemo");
+      const row = page.locator("tr", { hasText: "LedgerDemo" }).first();
+      await row.scrollIntoViewIfNeeded();
+      await pause(1000);
+      await row.locator("button").first().click();
+      await page.locator("tbody input").first().fill("500");
       await page.getByRole("button", { name: /^save$/i }).first().click();
       await mustSee(page, "$500");
       await pause(1500);
 
-      // Expand the drawdown detail.
-      await page.locator("tbody tr").first().click();
-      await pause(3000);
+      // Expand: the two sessions show, first fully covered by the deposit.
+      await row.click();
+      await mustSee(page, "covered by deposit");
+      await pause(3500);
 
-      // Restore the family's original deposit.
-      await api(page, `/api/families/${fam.familyId}`, {
-        method: "PUT",
-        body: { depositCents: original },
-      });
+      // Tear the whole demo tree down (student delete cascades sessions).
+      await api(page, `/api/students/${studentId}`, { method: "DELETE" });
+      await api(page, `/api/families/${familyId}`, { method: "DELETE" });
+      await api(page, `/api/admin/contacts?email=${encodeURIComponent(DEMO.familyEmail)}`, { method: "DELETE", allowFail: true });
       await page.reload();
       await page.waitForLoadState("networkidle");
       await pause(2000);

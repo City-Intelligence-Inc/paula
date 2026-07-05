@@ -167,7 +167,11 @@ export async function DELETE(
           TableName: Tables.sessions,
           KeyConditionExpression: "studentId = :sid",
           ExpressionAttributeValues: { ":sid": id },
-          ProjectionExpression: "studentId, dateTime",
+          // dateTime is a DynamoDB reserved keyword — must be aliased or the
+          // whole cascade throws ValidationException (caught by the e2e demo
+          // run 7/5; a bare "studentId, dateTime" projection 500s).
+          ProjectionExpression: "studentId, #dt",
+          ExpressionAttributeNames: { "#dt": "dateTime" },
           ExclusiveStartKey: lastKey,
         }),
       );
