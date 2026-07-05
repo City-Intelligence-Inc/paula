@@ -92,7 +92,7 @@ export async function POST(request: Request) {
   }
 
   // C-2/C-3: every inquiry lands in the Contacts database (and is mirrored
-  // to the Resend mailing list — the form's fine print covers the mailing-list opt-in).
+  // to the mailing list — the form's fine print covers the mailing-list opt-in).
   // The full inquiry contents go into the contact's log (C-4). Deliberately
   // does NOT create a user profile or grant site access.
   upsertContact({

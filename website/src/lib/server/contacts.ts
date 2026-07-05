@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables } from "@/lib/server/ddb";
 
@@ -9,11 +9,12 @@ import { ddb, Tables } from "@/lib/server/ddb";
 // from. Each contact carries a log: the original inquiry contents and every
 // staff response, so the whole relationship reads in one place (C-4).
 //
-// Mailing list: every upsert is mirrored to a Resend Audience
-// (RESEND_API_KEY — already used for all transactional email — plus
-// RESEND_AUDIENCE_ID). Best-effort — a Resend outage never blocks a lead
-// from being recorded. Broadcasts to the list are sent from the Resend
-// dashboard.
+// Mailing list: this table IS the list — no external audience to sync.
+// Everyone is subscribed unless `unsubscribed` (the inquiry form's fine
+// print covers the opt-in — Paula 7/1). Broadcasts loop through subscribed
+// contacts via /api/admin/mailing-list/broadcast using the same sending
+// key as all transactional email; each message carries a tokenized
+// one-click unsubscribe link.
 
 export interface ContactLogEntry {
   at: string; // ISO timestamp
@@ -32,8 +33,11 @@ export interface Contact {
   familyId?: string;
   studentInfo?: string; // student names/grades, free-form from the inquiry
   log: ContactLogEntry[];
-  mailingListSyncedAt?: string;
-  mailingListError?: string;
+  unsubscribed?: boolean;
+  unsubscribedAt?: string;
+  // Random token proving an unsubscribe link was minted by us — the public
+  // unsubscribe route requires email + matching token.
+  unsubToken?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -86,6 +90,7 @@ export async function upsertContact(input: {
         phone: input.phone?.trim() || existing.phone,
         familyId: input.familyId || existing.familyId,
         studentInfo: input.studentInfo?.trim() || existing.studentInfo,
+        unsubToken: existing.unsubToken || randomBytes(16).toString("base64url"),
         log: input.logEntry
           ? [...existing.log, { ...input.logEntry, at: now }]
           : existing.log,
@@ -100,25 +105,42 @@ export async function upsertContact(input: {
         source: input.source || "manual",
         familyId: input.familyId,
         studentInfo: input.studentInfo?.trim() || undefined,
+        unsubToken: randomBytes(16).toString("base64url"),
         log: input.logEntry ? [{ ...input.logEntry, at: now }] : [],
         createdAt: now,
         updatedAt: now,
       };
 
-  // Mirror to the Resend audience before persisting so the sync status lands
-  // on the row.
-  const sync = await pushToResendAudience(contact);
-  if (sync.ok) {
-    contact.mailingListSyncedAt = now;
-    delete contact.mailingListError;
-  } else if (sync.error) {
-    contact.mailingListError = sync.error;
-  }
-
   await ddb().send(
     new PutCommand({ TableName: Tables.bookings, Item: contact }),
   );
   return contact;
+}
+
+// One-click unsubscribe: flips the flag when the token matches. Returns the
+// contact on success, null when the email/token pair doesn't check out.
+export async function unsubscribeContact(
+  email: string,
+  token: string,
+): Promise<Contact | null> {
+  const existing = await getContactByEmail(email);
+  if (!existing || !token || existing.unsubToken !== token) return null;
+  if (existing.unsubscribed) return existing;
+  const now = new Date().toISOString();
+  const updated: Contact = {
+    ...existing,
+    unsubscribed: true,
+    unsubscribedAt: now,
+    log: [
+      ...existing.log,
+      { at: now, by: "unsubscribe-link", kind: "system", text: "Unsubscribed from the mailing list." },
+    ],
+    updatedAt: now,
+  };
+  await ddb().send(
+    new PutCommand({ TableName: Tables.bookings, Item: updated }),
+  );
+  return updated;
 }
 
 export async function appendContactLog(
@@ -139,139 +161,3 @@ export async function appendContactLog(
   return updated;
 }
 
-// ---- Resend Audience ----
-// The audience ID lives in the DDB secrets table (row "resend-audience"),
-// same pattern as the Stripe keys — created once via the master-only
-// /api/admin/mailing-list/setup route, no env var required. An env override
-// (RESEND_AUDIENCE_ID) still wins if set.
-
-const AUDIENCE_ROW_ID = "resend-audience";
-const AUDIENCE_CACHE_MS = 60_000;
-let audienceCache: { value: string; expires: number } | null = null;
-let keyCache: { value: string; expires: number } | null = null;
-
-// The env RESEND_API_KEY is sending-only (can't manage audiences/contacts).
-// A full-access key, pasted once by the super admin via the mailing-list
-// setup UI, lives in the same secrets row and wins for audience operations.
-export async function getResendAudienceKey(): Promise<string> {
-  if (keyCache && keyCache.expires > Date.now()) return keyCache.value;
-  try {
-    const r = await ddb().send(
-      new GetCommand({
-        TableName: Tables.secrets,
-        Key: { id: AUDIENCE_ROW_ID },
-      }),
-    );
-    const stored = ((r.Item as { apiKey?: string } | undefined)?.apiKey || "").trim();
-    const key = stored || (process.env.RESEND_API_KEY || "").trim();
-    keyCache = { value: key, expires: Date.now() + AUDIENCE_CACHE_MS };
-    return key;
-  } catch {
-    return (process.env.RESEND_API_KEY || "").trim();
-  }
-}
-
-export async function setResendAudienceKey(
-  apiKey: string,
-  updatedBy: string,
-): Promise<void> {
-  const existing = await ddb().send(
-    new GetCommand({ TableName: Tables.secrets, Key: { id: AUDIENCE_ROW_ID } }),
-  );
-  await ddb().send(
-    new PutCommand({
-      TableName: Tables.secrets,
-      Item: {
-        ...(existing.Item || {}),
-        id: AUDIENCE_ROW_ID,
-        apiKey: apiKey.trim(),
-        updatedAt: new Date().toISOString(),
-        updatedBy,
-      },
-    }),
-  );
-  keyCache = null;
-}
-
-export async function getResendAudienceId(): Promise<string> {
-  const env = (process.env.RESEND_AUDIENCE_ID || "").trim();
-  if (env) return env;
-  if (audienceCache && audienceCache.expires > Date.now()) {
-    return audienceCache.value;
-  }
-  try {
-    const r = await ddb().send(
-      new GetCommand({
-        TableName: Tables.secrets,
-        Key: { id: AUDIENCE_ROW_ID },
-      }),
-    );
-    const id = ((r.Item as { audienceId?: string } | undefined)?.audienceId || "").trim();
-    audienceCache = { value: id, expires: Date.now() + AUDIENCE_CACHE_MS };
-    return id;
-  } catch {
-    return "";
-  }
-}
-
-export async function setResendAudienceId(
-  audienceId: string,
-  updatedBy: string,
-): Promise<void> {
-  await ddb().send(
-    new PutCommand({
-      TableName: Tables.secrets,
-      Item: {
-        id: AUDIENCE_ROW_ID,
-        audienceId,
-        updatedAt: new Date().toISOString(),
-        updatedBy,
-      },
-    }),
-  );
-  audienceCache = null;
-}
-
-// Add the contact to the configured Resend audience. Subscribed-by-default
-// matches the inquiry form's fine print ("by submitting you are joining our
-// mailing list" — Paula 7/1); Resend handles unsubscribe links on
-// broadcasts. An already-existing contact counts as synced.
-async function pushToResendAudience(
-  contact: Contact,
-): Promise<{ ok: boolean; error?: string }> {
-  const [apiKey, audienceId] = await Promise.all([
-    getResendAudienceKey(),
-    getResendAudienceId(),
-  ]);
-  if (!apiKey || !audienceId) {
-    return { ok: false }; // not configured — silently skip, no error recorded
-  }
-  const [firstName, ...rest] = (contact.name || "").split(" ");
-  try {
-    const res = await fetch(
-      `https://api.resend.com/audiences/${audienceId}/contacts`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: contact.email,
-          first_name: firstName || "",
-          last_name: rest.join(" "),
-          unsubscribed: false,
-        }),
-      },
-    );
-    if (res.ok) return { ok: true };
-    const body = await res.text().catch(() => "");
-    // Duplicate contact = already on the list — that's a successful sync.
-    if (res.status === 409 || /already exists/i.test(body)) {
-      return { ok: true };
-    }
-    return { ok: false, error: `Resend ${res.status}: ${body.slice(0, 200)}` };
-  } catch (err) {
-    return { ok: false, error: String(err) };
-  }
-}

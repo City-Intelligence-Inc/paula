@@ -28,8 +28,7 @@ interface Contact {
   familyId?: string;
   studentInfo?: string;
   log: LogEntry[];
-  mailingListSyncedAt?: string;
-  mailingListError?: string;
+  unsubscribed?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,13 +62,15 @@ export default function ContactsPage() {
   const [addName, setAddName] = useState("");
   const [addEmail, setAddEmail] = useState("");
   const [addPhone, setAddPhone] = useState("");
-  // Mailing-list bootstrap: creates the Resend audience server-side (where
-  // the API key lives), stores its id in the secrets table, and seeds the
-  // team so a first broadcast has recipients.
-  const [listConfigured, setListConfigured] = useState<boolean | null>(null);
-  const [listBusy, setListBusy] = useState(false);
-  const [listMsg, setListMsg] = useState<string | null>(null);
-  const [listKey, setListKey] = useState("");
+  // Broadcast composer: the contacts table IS the mailing list — sending
+  // loops through subscribed contacts server-side (master only).
+  const [bcOpen, setBcOpen] = useState(false);
+  const [bcSubject, setBcSubject] = useState("");
+  const [bcMessage, setBcMessage] = useState("");
+  const [bcBusy, setBcBusy] = useState(false);
+  const [bcMsg, setBcMsg] = useState<string | null>(null);
+  const [subscribers, setSubscribers] = useState<number | null>(null);
+  const [isMaster, setIsMaster] = useState(false);
 
   const load = useCallback(() => {
     fetchApi("/api/admin/contacts")
@@ -83,41 +84,45 @@ export default function ContactsPage() {
   useEffect(load, [load]);
 
   useEffect(() => {
-    fetchApi("/api/admin/mailing-list/setup")
+    fetchApi("/api/admin/mailing-list/broadcast")
       .then((r) => r.json())
-      .then((j: { configured?: boolean }) => setListConfigured(!!j.configured))
+      .then((j: { subscribers?: number }) =>
+        setSubscribers(typeof j.subscribers === "number" ? j.subscribers : null),
+      )
+      .catch(() => {});
+    fetchApi("/api/me/is-admin")
+      .then((r) => r.json())
+      .then((j: { isMaster?: boolean }) => setIsMaster(!!j.isMaster))
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function setupMailingList() {
-    setListBusy(true);
-    setListMsg(null);
+  async function sendBroadcast() {
+    if (!bcSubject.trim() || !bcMessage.trim()) return;
+    const confirmed = window.confirm(
+      `Send "${bcSubject.trim()}" to ${subscribers ?? "all"} subscribed contact${subscribers === 1 ? "" : "s"}?`,
+    );
+    if (!confirmed) return;
+    setBcBusy(true);
+    setBcMsg(null);
     try {
-      const res = await fetchApi("/api/admin/mailing-list/setup", {
+      const res = await fetchApi("/api/admin/mailing-list/broadcast", {
         method: "POST",
-        body: JSON.stringify({
-          ...(listKey.trim() ? { apiKey: listKey.trim() } : {}),
-          seedEmails: [
-            { email: "phamilton@mathitude.com", name: "Paula Hamilton" },
-            { email: "sbell@mathitude.com", name: "Sara Bell" },
-            { email: "stardroplin@stanford.edu", name: "Nikki Lin" },
-            { email: "ari@coframe.com", name: "Ari Choudhary" },
-          ],
-        }),
+        body: JSON.stringify({ subject: bcSubject.trim(), message: bcMessage.trim() }),
       });
       const j = await res.json();
-      if (!res.ok) throw new Error(j.error || "Setup failed");
-      setListConfigured(true);
-      setListMsg(
-        `Mailing list ${j.created ? "created" : "verified"} — ${j.seeded} team member${j.seeded === 1 ? "" : "s"} seeded, ${j.resynced} contact${j.resynced === 1 ? "" : "s"} re-synced.`,
+      if (!res.ok) throw new Error(j.error || "Send failed");
+      setBcMsg(
+        j.failures?.length
+          ? `Sent to ${j.sent}/${j.total} — some batches failed: ${j.failures[0]}`
+          : `Sent to ${j.sent} subscriber${j.sent === 1 ? "" : "s"}.`,
       );
-      setListKey("");
-      load();
+      setBcSubject("");
+      setBcMessage("");
     } catch (err) {
-      setListMsg(err instanceof Error ? err.message : String(err));
+      setBcMsg(err instanceof Error ? err.message : String(err));
     } finally {
-      setListBusy(false);
+      setBcBusy(false);
     }
   }
 
@@ -231,8 +236,8 @@ export default function ContactsPage() {
             Contacts
           </h1>
           <p className="text-sm text-neutral-500 mt-1">
-            Every lead and customer. Inquiries land here automatically and sync
-            to the Resend mailing list; approve a lead to send their portal
+            Every lead and customer — this is also the mailing list. Inquiries
+            land here automatically; approve a lead to send their portal
             invitation.
           </p>
         </div>
@@ -249,44 +254,52 @@ export default function ContactsPage() {
         </div>
       </div>
 
-      {listConfigured === false && (
-        <Card className="p-4 border-amber-200 bg-amber-50/50">
+      {isMaster && (
+        <Card className="p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-neutral-700">
-              <span className="font-medium">Mailing list not set up yet.</span>{" "}
-              One click creates the Resend audience and adds the team (Paula,
-              Sara, Nikki, Ari) plus every existing contact.
+              <span className="font-medium">Mailing list</span>
+              {subscribers !== null && (
+                <span className="text-neutral-500">
+                  {" "}
+                  — {subscribers} subscribed contact{subscribers === 1 ? "" : "s"}
+                </span>
+              )}
+              <span className="text-neutral-500">
+                . Every contact below is on the list unless they unsubscribe.
+              </span>
             </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <input
-                type="password"
-                value={listKey}
-                onChange={(e) => setListKey(e.target.value)}
-                placeholder="Full-access Resend key (re_…)"
-                className="rounded-md border border-neutral-300 px-3 py-2 text-sm w-64"
-              />
-              <Button
-                onClick={setupMailingList}
-                disabled={listBusy}
-                className="bg-mathitude-purple text-white hover:bg-mathitude-purple/90"
-              >
-                {listBusy ? "Setting up…" : "Set up mailing list"}
-              </Button>
-            </div>
+            <Button variant="outline" onClick={() => setBcOpen(!bcOpen)}>
+              {bcOpen ? "Close" : "Send a broadcast"}
+            </Button>
           </div>
-          <p className="mt-2 text-xs text-neutral-500">
-            The server&apos;s email key is sending-only, so managing the
-            audience needs a <span className="font-medium">full-access</span>{" "}
-            key: resend.com → API Keys → Create → Permission &ldquo;Full
-            access&rdquo;. Pasted once, stored encrypted server-side, never
-            shown again.
-          </p>
-          {listMsg && <p className="mt-2 text-sm text-neutral-600">{listMsg}</p>}
-        </Card>
-      )}
-      {listConfigured === true && listMsg && (
-        <Card className="p-3 border-emerald-200 bg-emerald-50/50">
-          <p className="text-sm text-emerald-800">{listMsg}</p>
+          {bcOpen && (
+            <div className="mt-3 space-y-2">
+              <input
+                value={bcSubject}
+                onChange={(e) => setBcSubject(e.target.value)}
+                placeholder="Subject"
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              />
+              <textarea
+                value={bcMessage}
+                onChange={(e) => setBcMessage(e.target.value)}
+                placeholder="Message — blank lines become paragraphs. Every email includes an unsubscribe link automatically."
+                rows={6}
+                className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+              />
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={sendBroadcast}
+                  disabled={bcBusy || !bcSubject.trim() || !bcMessage.trim()}
+                  className="bg-mathitude-purple text-white hover:bg-mathitude-purple/90"
+                >
+                  {bcBusy ? "Sending…" : `Send to ${subscribers ?? "…"} subscribers`}
+                </Button>
+                {bcMsg && <p className="text-sm text-neutral-600">{bcMsg}</p>}
+              </div>
+            </div>
+          )}
         </Card>
       )}
 
@@ -358,13 +371,9 @@ export default function ContactsPage() {
                   <Badge className="bg-neutral-100 text-neutral-600 border-neutral-200">
                     {SOURCE_LABEL[c.source]}
                   </Badge>
-                  {c.mailingListSyncedAt ? (
-                    <span className="text-xs text-emerald-700">Mailing list ✓</span>
-                  ) : c.mailingListError ? (
-                    <span className="text-xs text-amber-600" title={c.mailingListError}>
-                      Mailing list ⚠
-                    </span>
-                  ) : null}
+                  {c.unsubscribed && (
+                    <span className="text-xs text-amber-600">unsubscribed</span>
+                  )}
                   <span className="text-xs text-neutral-400">{fmt(c.updatedAt)}</span>
                 </button>
 

@@ -47,9 +47,13 @@ export async function GET() {
         email: "",
         phone: undefined,
         log: [],
-        mailingListError: undefined,
+        unsubToken: undefined,
       }));
   }
+
+  // Unsubscribe tokens never leave the server — they'd let anyone with page
+  // access silently unsubscribe a contact.
+  contacts = contacts.map((c) => ({ ...c, unsubToken: undefined }));
 
   return Response.json({ contacts });
 }
