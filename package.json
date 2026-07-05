@@ -1,0 +1,10 @@
+{
+  "name": "paula-root",
+  "private": true,
+  "description": "Convenience proxies — the real app lives in website/. Run any other npm script from inside website/.",
+  "scripts": {
+    "demos": "npm --prefix website run demos",
+    "demos:auth": "npm --prefix website run demos:auth",
+    "test": "npm --prefix website test"
+  }
+}
