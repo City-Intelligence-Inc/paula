@@ -12,7 +12,19 @@ import {
   DynamoDBClient,
   CreateTableCommand,
   DeleteTableCommand,
+  DescribeTableCommand,
 } from "@aws-sdk/client-dynamodb";
+
+// Tight local poll — the SDK's built-in table waiters have a 20s minDelay,
+// which is absurd against an in-memory dynalite.
+async function poll(check: () => Promise<boolean>, timeoutMs = 10_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    if (await check()) return;
+    if (Date.now() > deadline) throw new Error("poll timed out");
+    await new Promise((r) => setTimeout(r, 100));
+  }
+}
 import { DynamoDBDocumentClient, PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import {
   listSessionNotes,
@@ -48,21 +60,43 @@ before(async () => {
   deps = { db, tables };
 
   // Drop + recreate for a clean slate, so the suite is idempotent whether
-  // dynalite is fresh or warm from a previous run.
+  // dynalite is fresh or warm from a previous run. Delete → create is NOT
+  // atomic even on dynalite — wait out the DELETING/CREATING transitions or
+  // the suite flakes with ResourceInUse/ResourceNotFound.
   const mk = async (name: string, keys: { name: string; key: "HASH" | "RANGE" }[]) => {
     await raw
       .send(new DeleteTableCommand({ TableName: name }))
       .catch((e) => {
         if (!/not found|ResourceNotFound|does not exist/i.test(String(e))) throw e;
       });
-    await raw.send(
-      new CreateTableCommand({
-        TableName: name,
-        BillingMode: "PAY_PER_REQUEST",
-        AttributeDefinitions: keys.map((k) => ({ AttributeName: k.name, AttributeType: "S" })),
-        KeySchema: keys.map((k) => ({ AttributeName: k.name, KeyType: k.key })),
-      }),
-    );
+    await poll(async () => {
+      try {
+        await raw.send(new DescribeTableCommand({ TableName: name }));
+        return false; // still exists (DELETING)
+      } catch {
+        return true; // gone
+      }
+    });
+    await poll(async () => {
+      try {
+        await raw.send(
+          new CreateTableCommand({
+            TableName: name,
+            BillingMode: "PAY_PER_REQUEST",
+            AttributeDefinitions: keys.map((k) => ({ AttributeName: k.name, AttributeType: "S" })),
+            KeySchema: keys.map((k) => ({ AttributeName: k.name, KeyType: k.key })),
+          }),
+        );
+        return true;
+      } catch (e) {
+        if (/ResourceInUse/i.test(String(e))) return false; // old table still DELETING — retry
+        throw e;
+      }
+    });
+    await poll(async () => {
+      const d = await raw.send(new DescribeTableCommand({ TableName: name }));
+      return d.Table?.TableStatus === "ACTIVE";
+    });
   };
 
   await mk(tables.sessions, [

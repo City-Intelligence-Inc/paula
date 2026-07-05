@@ -37,9 +37,18 @@ export async function GET() {
         .map((s) => s.familyId)
         .filter(Boolean) as string[],
     );
-    contacts = contacts.filter(
-      (c) => c.familyId && myFamilies.has(c.familyId),
-    );
+    contacts = contacts
+      .filter((c) => c.familyId && myFamilies.has(c.familyId))
+      // R-5: tutors never see parent emails/phones or the correspondence
+      // log — they get the name and enough context to know who the family
+      // is; all communication goes through the site.
+      .map((c) => ({
+        ...c,
+        email: "",
+        phone: undefined,
+        log: [],
+        mailchimpError: undefined,
+      }));
   }
 
   return Response.json({ contacts });
