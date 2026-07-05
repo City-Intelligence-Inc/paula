@@ -18,7 +18,12 @@ const BASE = process.env.DEMO_BASE || "https://website-sage-three-98.vercel.app"
 const suffix = /localhost|127\.0\.0\.1/.test(BASE) ? ".local" : "";
 const dest = join(here, "demos", `auth-${kind}${suffix}.json`);
 
-const browser = await chromium.launch({ headless: false });
+// Use the real installed Chrome when available — Clerk's bot-protection
+// CAPTCHA often refuses to load in Playwright's bundled Chromium, which
+// blocks sign-up/sign-in. Fall back to bundled Chromium if Chrome is absent.
+const browser = await chromium
+  .launch({ headless: false, channel: "chrome" })
+  .catch(() => chromium.launch({ headless: false }));
 const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
 const page = await context.newPage();
 await page.goto(`${BASE}/sign-in`);
