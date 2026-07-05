@@ -57,11 +57,11 @@ export default function SignInPage() {
             appearance={{
               variables: {
                 colorPrimary: "#7030A0",
-                colorText: "#171717",
-                colorTextSecondary: "#737373",
+                colorForeground: "#171717",
+                colorMutedForeground: "#737373",
                 colorBackground: "#ffffff",
-                colorInputBackground: "#fafafa",
-                colorInputText: "#171717",
+                colorInput: "#fafafa",
+                colorInputForeground: "#171717",
                 borderRadius: "8px",
                 fontFamily: "'Avenir Next', 'Avenir', system-ui, sans-serif",
                 fontSize: "14px",
