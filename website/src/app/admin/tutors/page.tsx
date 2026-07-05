@@ -22,6 +22,7 @@ interface AssignedStudent {
   firstName?: string;
   lastName?: string;
   grade?: string;
+  familyId?: string;
 }
 
 const inputClass =
@@ -333,6 +334,14 @@ export default function TutorsPage() {
                                   </span>
                                 ) : null}
                               </a>
+                              {s.familyId && (
+                                <a
+                                  href={`/admin/families/${s.familyId}`}
+                                  className="text-xs text-[#7030A0] hover:underline underline-offset-2"
+                                >
+                                  Family
+                                </a>
+                              )}
                             </li>
                           ))}
                         </ul>

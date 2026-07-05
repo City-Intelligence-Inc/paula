@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 interface QueueRow {
   studentId: string;
   chargeStudentId?: string | null;
+  sessionStatus?: string; // completed | failed (retry) | hold
+  lastBillingError?: string | null;
   dateTime: string;
   date: string;
   duration: number;
@@ -64,6 +66,134 @@ function formatDate(iso: string): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+// Flat-rate charge — group classes (8–12 weeks, paid upfront by the payer)
+// and one-off group events. Charges the student's resolved payer directly via
+// the locked-down /api/stripe/charge path; no session row required.
+function FlatRateChargeCard() {
+  const fetchApi = useApi();
+  const [students, setStudents] = useState<
+    { id: string; firstName: string; lastName: string }[]
+  >([]);
+  const [studentId, setStudentId] = useState("");
+  const [amount, setAmount] = useState("");
+  const [label, setLabel] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(
+    null,
+  );
+
+  useEffect(() => {
+    fetchApi("/api/students")
+      .then((r) => r.json())
+      .then((j: { students?: { id: string; firstName: string; lastName: string }[] }) => {
+        const list = (j.students || []).slice();
+        list.sort((a, b) =>
+          `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`),
+        );
+        setStudents(list);
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const amountCents = Math.round(Number(amount) * 100);
+  const student = students.find((s) => s.id === studentId);
+  const ready = !!student && amountCents > 0 && label.trim().length > 0;
+
+  async function charge() {
+    if (!ready || !student) return;
+    const confirmed = window.confirm(
+      `Charge ${formatAmount(amountCents)} to ${student.firstName} ${student.lastName}'s payer for "${label.trim()}"?\n\nThis runs a live Stripe charge.`,
+    );
+    if (!confirmed) return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      const res = await fetchApi("/api/stripe/charge", {
+        method: "POST",
+        body: JSON.stringify({
+          studentId: student.id,
+          amount: amountCents,
+          offering: "group-class",
+          label: label.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Charge failed");
+      setMessage({
+        ok: true,
+        text: `Charged ${formatAmount(amountCents)} — ${data.status || "succeeded"}.`,
+      });
+      setAmount("");
+      setLabel("");
+    } catch (err) {
+      setMessage({
+        ok: false,
+        text: err instanceof Error ? err.message : String(err),
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card className="border border-neutral-200 rounded-lg">
+      <CardHeader>
+        <CardTitle className="text-base">Flat-rate charge</CardTitle>
+        <p className="text-sm text-neutral-500">
+          Group classes and events, paid upfront by the payer. Same privacy
+          guardrails: the bank statement always reads MATHITUDE.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <select
+            value={studentId}
+            onChange={(e) => setStudentId(e.target.value)}
+            className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm sm:w-56"
+          >
+            <option value="">Select student…</option>
+            {students.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.firstName} {s.lastName}
+              </option>
+            ))}
+          </select>
+          <input
+            type="number"
+            min="1"
+            step="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Amount ($)"
+            className="rounded-md border border-neutral-200 px-3 py-2 text-sm sm:w-32"
+          />
+          <input
+            type="text"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="What for — e.g. Fall 2026 geometry class (10 weeks)"
+            className="flex-1 rounded-md border border-neutral-200 px-3 py-2 text-sm"
+          />
+          <Button
+            onClick={charge}
+            disabled={busy || !ready}
+            className="bg-mathitude-purple text-white hover:bg-mathitude-purple/90"
+          >
+            <CreditCard className="h-3 w-3" />
+            {busy ? "Charging…" : "Charge"}
+          </Button>
+        </div>
+        {message && (
+          <p className={`text-sm ${message.ok ? "text-emerald-600" : "text-red-600"}`}>
+            {message.text}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function AdminBillingPage() {
@@ -112,10 +242,32 @@ export default function AdminBillingPage() {
     });
   };
 
+  const selectable = queue.filter((r) => r.sessionStatus !== "hold");
   const toggleAll = () => {
-    if (selected.size === queue.length) setSelected(new Set());
-    else setSelected(new Set(queue.map((r) => rowKey(r))));
+    if (selected.size === selectable.length) setSelected(new Set());
+    else setSelected(new Set(selectable.map((r) => rowKey(r))));
   };
+
+  // Park a session out of the charge run, or release it back.
+  async function toggleHold(row: QueueRow) {
+    setError(null);
+    const hold = row.sessionStatus !== "hold";
+    try {
+      const res = await fetchApi("/api/billing/hold", {
+        method: "POST",
+        body: JSON.stringify({
+          studentId: row.studentId,
+          dateTime: row.dateTime,
+          hold,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Hold failed");
+      await loadQueue();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  }
 
   const selectedRows = queue.filter((r) => selected.has(rowKey(r)));
   const selectedTotal = selectedRows.reduce((sum, r) => sum + r.amountCents, 0);
@@ -169,8 +321,9 @@ export default function AdminBillingPage() {
           Billing approval queue
         </h1>
         <p className="text-sm text-neutral-500 mt-1">
-          Completed sessions waiting to be charged. Review, deselect any
-          holds, then approve.
+          Completed sessions waiting to be charged, plus failed charges ready
+          to retry. Hold a session to park it out of the run until you release
+          it.
         </p>
       </div>
 
@@ -245,9 +398,11 @@ export default function AdminBillingPage() {
             variant="outline"
             size="sm"
             onClick={toggleAll}
-            disabled={loading || charging || queue.length === 0}
+            disabled={loading || charging || selectable.length === 0}
           >
-            {selected.size === queue.length ? "Deselect all" : "Select all"}
+            {selected.size === selectable.length && selectable.length > 0
+              ? "Deselect all"
+              : "Select all"}
           </Button>
         </div>
         <Button
@@ -361,7 +516,7 @@ export default function AdminBillingPage() {
           {!loading && queue.length === 0 && (
             <div className="text-center py-12 text-neutral-500">
               <p className="text-sm">
-                No completed sessions waiting to be billed.
+                No sessions waiting to be billed or retried.
               </p>
               <p className="text-xs mt-1 text-neutral-400">
                 Mark a session as <code>completed</code> in the calendar to
@@ -374,16 +529,18 @@ export default function AdminBillingPage() {
             queue.map((r) => {
               const key = rowKey(r);
               const isSelected = selected.has(key);
+              const onHold = r.sessionStatus === "hold";
+              const isRetry = r.sessionStatus === "failed";
               return (
                 <div
                   key={key}
-                  className="grid grid-cols-1 sm:grid-cols-[40px_1fr_120px_80px_120px_120px_100px] gap-2 sm:gap-4 items-center px-4 py-3"
+                  className={`grid grid-cols-1 sm:grid-cols-[40px_1fr_120px_80px_120px_120px_100px] gap-2 sm:gap-4 items-center px-4 py-3 ${onHold ? "opacity-60" : ""}`}
                 >
                   <input
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => toggleRow(key)}
-                    disabled={charging}
+                    disabled={charging || onHold}
                     className="h-4 w-4 rounded border-neutral-300 text-mathitude-purple focus:ring-mathitude-purple"
                   />
                   <div>
@@ -394,7 +551,30 @@ export default function AdminBillingPage() {
                           {r.splitLabel}
                         </span>
                       )}
+                      {isRetry && (
+                        <Badge className="ml-2 bg-red-50 text-red-600 border-red-200 align-middle">
+                          retry
+                        </Badge>
+                      )}
+                      {onHold && (
+                        <Badge className="ml-2 bg-amber-50 text-amber-700 border-amber-200 align-middle">
+                          on hold
+                        </Badge>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => toggleHold(r)}
+                        disabled={charging}
+                        className="ml-2 text-[11px] text-neutral-400 underline underline-offset-2 hover:text-[#7030A0] align-middle"
+                      >
+                        {onHold ? "Release" : "Hold"}
+                      </button>
                     </p>
+                    {isRetry && r.lastBillingError && (
+                      <p className="text-xs text-red-500 truncate max-w-md">
+                        Last attempt: {r.lastBillingError}
+                      </p>
+                    )}
                     {r.notes && (
                       <p className="text-xs text-neutral-400 truncate max-w-md">
                         {r.notes}
@@ -429,6 +609,8 @@ export default function AdminBillingPage() {
             })}
         </div>
       </Card>
+
+      <FlatRateChargeCard />
     </div>
   );
 }

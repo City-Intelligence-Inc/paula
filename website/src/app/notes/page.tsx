@@ -28,6 +28,7 @@ interface FamilyStudent {
   lastName: string;
   grade?: string;
   school?: string;
+  sharedFiles?: { id: string; name: string; url: string; createdAt: string }[];
 }
 
 export default function NotesPage() {
@@ -97,6 +98,62 @@ export default function NotesPage() {
         .filter((n) => n.studentId === student.id)
         .sort((a, b) => b.dateTime.localeCompare(a.dateTime))
     : [];
+
+  // N-6: append to the shared comment thread on a note.
+  async function handleAddComment(noteId: string, text: string) {
+    const list = isLive ? liveNotes : demoNotes;
+    const note = list.find((n) => n.id === noteId);
+    if (!note) return;
+    if (isLive) {
+      setLiveError(null);
+      try {
+        const res = await fetchApi(
+          `/api/students/${note.studentId}/session-notes/comments`,
+          {
+            method: "POST",
+            body: JSON.stringify({ dateTime: note.dateTime, text }),
+          },
+        );
+        const j = await res.json() as {
+          comment?: NonNullable<SessionNote["comments"]>[number];
+          error?: string;
+        };
+        if (!res.ok || !j.comment) {
+          setLiveError(j.error || "Comment failed to post");
+          return;
+        }
+        setLiveNotes((prev) =>
+          prev.map((n) =>
+            n.id === noteId
+              ? { ...n, comments: [...(n.comments || []), j.comment!] }
+              : n,
+          ),
+        );
+      } catch (e) {
+        setLiveError(String(e));
+      }
+      return;
+    }
+    setDemoNotes((prev) =>
+      prev.map((n) =>
+        n.id === noteId
+          ? {
+              ...n,
+              comments: [
+                ...(n.comments || []),
+                {
+                  id: `c_${Date.now().toString(36)}`,
+                  authorName: "You",
+                  authorRole: "parent" as const,
+                  text,
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+            }
+          : n,
+      ),
+    );
+  }
 
   async function handleReply(noteId: string, text: string) {
     if (isLive) {
@@ -214,6 +271,26 @@ export default function NotesPage() {
           </p>
         )}
 
+        {/* F-2: files the team shared with this family */}
+        {isLive && student && (student.sharedFiles?.length ?? 0) > 0 && (
+          <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-2 px-4 pt-4">
+            <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+              Shared files
+            </span>
+            {student.sharedFiles!.map((f) => (
+              <a
+                key={f.id}
+                href={f.url}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-border-warm bg-white px-3 py-1 text-xs font-medium text-mathitude-purple hover:bg-surface-paper"
+              >
+                {f.name}
+              </a>
+            ))}
+          </div>
+        )}
+
         {isLive && liveLoading ? (
           <p className="mx-auto max-w-3xl px-4 py-16 text-center text-sm text-text-muted">
             Loading notes…
@@ -224,6 +301,8 @@ export default function NotesPage() {
             notes={notes}
             canReply={role === "parent"}
             onSaveReply={handleReply}
+            canComment={role === "parent"}
+            onAddComment={handleAddComment}
           />
         ) : (
           <p className="mx-auto max-w-3xl px-4 py-16 text-center text-sm text-text-muted">

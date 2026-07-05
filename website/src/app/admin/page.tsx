@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useApi } from "@/hooks/use-api";
-import { Clock, User, Users } from "lucide-react";
+import { Clock, Copy as CopyIcon, User, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -128,6 +128,38 @@ export default function AdminSchedulePage() {
   const [sessions, setSessions] = useState<ScheduleSession[]>([]);
   const [studentNameById, setStudentNameById] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [copying, setCopying] = useState(false);
+  const [copyResult, setCopyResult] = useState<string | null>(null);
+
+  // D-2: duplicate last week's schedule into this week (admin copies the
+  // whole schedule; tutors have the same button scoped to their own sessions
+  // on the tutor portal). Idempotent server-side.
+  const copyLastWeek = async () => {
+    if (!window.confirm("Copy all of last week's sessions into this week?")) return;
+    setCopying(true);
+    setCopyResult(null);
+    try {
+      const res = await fetchApi("/api/sessions/copy-last-week", { method: "POST" });
+      const j = await res.json();
+      setCopyResult(
+        res.ok
+          ? `${j.created} copied${j.skipped ? `, ${j.skipped} already on the books` : ""}`
+          : j.error || "Copy failed",
+      );
+      if (res.ok && j.created > 0) {
+        const r = await fetchApi("/api/sessions").then((x) => x.json());
+        setSessions(
+          ((r.sessions || []) as Record<string, unknown>[]).filter(
+            (s) => s.type !== "note",
+          ) as unknown as ScheduleSession[],
+        );
+      }
+    } catch {
+      setCopyResult("Copy failed");
+    } finally {
+      setCopying(false);
+    }
+  };
 
   useEffect(() => {
     Promise.all([
@@ -200,14 +232,29 @@ export default function AdminSchedulePage() {
       <CommandDeck />
 
       {/* Weekly schedule header */}
-      <div>
-        <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">
-          Weekly Schedule
-        </h2>
-        <p className="text-sm text-neutral-500 mt-1">
-          {totalSessions} sessions &middot; {individualCount} individual &middot;{" "}
-          {groupCount} group
-        </p>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-neutral-900 tracking-tight">
+            Weekly Schedule
+          </h2>
+          <p className="text-sm text-neutral-500 mt-1">
+            {totalSessions} sessions &middot; {individualCount} individual &middot;{" "}
+            {groupCount} group
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {copyResult && (
+            <span className="text-xs text-neutral-500">{copyResult}</span>
+          )}
+          <button
+            onClick={copyLastWeek}
+            disabled={copying}
+            className="inline-flex items-center gap-1.5 rounded-md border border-[color:var(--color-border-warm)] px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
+          >
+            <CopyIcon className="h-3.5 w-3.5" />
+            {copying ? "Copying…" : "Copy last week"}
+          </button>
+        </div>
       </div>
 
       {sessions.length === 0 && (

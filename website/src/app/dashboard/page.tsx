@@ -1,8 +1,38 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
-import { BookOpen, Calendar, FolderOpen, Newspaper, CreditCard, ArrowRight, ShieldCheck } from "lucide-react";
+import { BookOpen, Calendar, FolderOpen, Newspaper, CreditCard, ArrowRight, ShieldCheck, NotebookPen } from "lucide-react";
+import { useApi } from "@/hooks/use-api";
+
+interface FamilyOverview {
+  students: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    grade?: string;
+    sharedFiles?: { id: string; name: string; url: string }[];
+  }[];
+  notes: { studentId: string; dateTime: string }[];
+  upcomingSessions: {
+    studentId: string;
+    studentName: string;
+    dateTime: string;
+    duration: number;
+    type: string;
+  }[];
+}
+
+function formatSessionTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 const steps = [
   {
@@ -44,7 +74,23 @@ const steps = [
 
 export default function DashboardPage() {
   const { user } = useUser();
+  const fetchApi = useApi();
   const firstName = user?.firstName || "there";
+  const [overview, setOverview] = useState<FamilyOverview | null>(null);
+
+  // Live family data (D-3) — children, next sessions, latest notes. Only
+  // renders when the signed-in user maps to a family; staff and unlinked
+  // accounts just see the checklist.
+  useEffect(() => {
+    fetchApi("/api/me/notes")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: FamilyOverview | null) => {
+        if (j && Array.isArray(j.students) && j.students.length > 0) {
+          setOverview(j);
+        }
+      })
+      .catch(() => {});
+  }, [fetchApi]);
 
   return (
     <div className="page-enter">
@@ -56,6 +102,67 @@ export default function DashboardPage() {
           Your Mathitude home base. Here&apos;s how to get started:
         </p>
       </div>
+
+      {overview && (
+        <div className="mb-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-5 rounded-lg border border-neutral-200 bg-white">
+            <div className="flex items-center gap-2 text-xs text-neutral-500 uppercase tracking-wide">
+              <Calendar className="w-3 h-3" />
+              Upcoming sessions
+            </div>
+            {overview.upcomingSessions.length === 0 ? (
+              <p className="mt-2 text-sm text-neutral-500">
+                Nothing on the calendar yet.
+              </p>
+            ) : (
+              <ul className="mt-2 space-y-1.5">
+                {overview.upcomingSessions.map((s) => (
+                  <li
+                    key={`${s.studentId}#${s.dateTime}`}
+                    className="flex items-baseline gap-2 text-sm"
+                  >
+                    <span className="font-medium text-neutral-900">
+                      {s.studentName}
+                    </span>
+                    <span className="text-neutral-500">
+                      {formatSessionTime(s.dateTime)} · {s.duration} min
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="p-5 rounded-lg border border-neutral-200 bg-white">
+            <div className="flex items-center gap-2 text-xs text-neutral-500 uppercase tracking-wide">
+              <NotebookPen className="w-3 h-3" />
+              Session notes
+            </div>
+            <ul className="mt-2 space-y-1.5">
+              {overview.students.map((st) => {
+                const latest = overview.notes.find((n) => n.studentId === st.id);
+                return (
+                  <li key={st.id} className="flex items-baseline gap-2 text-sm">
+                    <span className="font-medium text-neutral-900">
+                      {st.firstName} {st.lastName}
+                    </span>
+                    <span className="text-neutral-500">
+                      {latest
+                        ? `last note ${new Date(latest.dateTime).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                        : "no notes yet"}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            <Link
+              href="/notes"
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-[#7030A0] hover:underline underline-offset-4"
+            >
+              Read notes <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-4">
         {/* Step 0 — always complete, non-interactive */}

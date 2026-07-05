@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useApi } from "@/hooks/use-api";
-import { UserCheck, Mail, Phone, BookOpen, CalendarClock } from "lucide-react";
+import { UserCheck, Mail, Phone, BookOpen, CalendarClock, Copy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { gradeLabel } from "@/lib/grades";
@@ -38,8 +38,10 @@ function SevenDaySchedule() {
   const fetchApi = useApi();
   const [days, setDays] = useState<ScheduleDay[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copying, setCopying] = useState(false);
+  const [copyResult, setCopyResult] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = () => {
     fetchApi("/api/tutor/schedule?days=7")
       .then((r) => r.json())
       .then((j) => {
@@ -47,7 +49,31 @@ function SevenDaySchedule() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [fetchApi]);
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(load, [fetchApi]);
+
+  // D-2: duplicate last week's schedule into this week. Idempotent
+  // server-side — sessions that already exist this week are skipped.
+  const copyLastWeek = async () => {
+    if (!window.confirm("Copy your sessions from last week into this week?")) return;
+    setCopying(true);
+    setCopyResult(null);
+    try {
+      const res = await fetchApi("/api/sessions/copy-last-week", { method: "POST" });
+      const j = await res.json();
+      setCopyResult(
+        res.ok
+          ? `${j.created} copied${j.skipped ? `, ${j.skipped} already on the books` : ""}`
+          : j.error || "Copy failed",
+      );
+      if (res.ok) load();
+    } catch {
+      setCopyResult("Copy failed");
+    } finally {
+      setCopying(false);
+    }
+  };
 
   const total = days.reduce((n, d) => n + d.sessions.length, 0);
 
@@ -58,11 +84,24 @@ function SevenDaySchedule() {
         <h2 className="text-lg font-semibold text-neutral-900">
           Next 7 days
         </h2>
-        {!loading && (
-          <span className="ml-auto text-xs text-neutral-500">
-            {total} session{total === 1 ? "" : "s"}
-          </span>
-        )}
+        <div className="ml-auto flex items-center gap-3">
+          {copyResult && (
+            <span className="text-xs text-neutral-500">{copyResult}</span>
+          )}
+          <button
+            onClick={copyLastWeek}
+            disabled={copying}
+            className="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 px-2.5 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
+          >
+            <Copy className="h-3.5 w-3.5" />
+            {copying ? "Copying…" : "Copy last week"}
+          </button>
+          {!loading && (
+            <span className="text-xs text-neutral-500">
+              {total} session{total === 1 ? "" : "s"}
+            </span>
+          )}
+        </div>
       </div>
       {loading ? (
         <div className="p-6 text-sm text-neutral-400">Loading schedule…</div>

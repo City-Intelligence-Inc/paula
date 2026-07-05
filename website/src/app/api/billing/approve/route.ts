@@ -1,6 +1,7 @@
 import {
   GetCommand,
   PutCommand,
+  QueryCommand,
   ScanCommand,
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
@@ -151,17 +152,84 @@ export async function POST(request: Request) {
   const stripe = await getStripe();
   const results: RowResult[] = [];
   // Track per-session outcome so we can set status once at the end.
-  const sessionOutcome = new Map<string, { anyFailed: boolean; anyCharged: boolean }>();
-  const noteSession = (key: string, charged: boolean, failed: boolean) => {
+  const sessionOutcome = new Map<string, { anyFailed: boolean; anyCharged: boolean; lastError?: string }>();
+  const noteSession = (key: string, charged: boolean, failed: boolean, error?: string) => {
     const cur = sessionOutcome.get(key) || { anyFailed: false, anyCharged: false };
     if (charged) cur.anyCharged = true;
     if (failed) cur.anyFailed = true;
+    if (error) cur.lastError = error;
     sessionOutcome.set(key, cur);
   };
+
+  // Guard: only sessions currently chargeable (completed, or failed → retry)
+  // may be charged. Blocks double-charging a "billed" session on a replayed
+  // request, and blocks charging a session an admin parked on hold.
+  const sessionStatusCache = new Map<string, string>();
+  async function chargeableStatusError(row: QueueRow): Promise<string | null> {
+    const key = `${row.studentId}#${row.dateTime}`;
+    if (!sessionStatusCache.has(key)) {
+      const sr = await c.send(
+        new GetCommand({
+          TableName: Tables.sessions,
+          Key: { studentId: row.studentId, dateTime: row.dateTime },
+        }),
+      );
+      sessionStatusCache.set(
+        key,
+        ((sr.Item as { status?: string } | undefined)?.status) || "missing",
+      );
+    }
+    const status = sessionStatusCache.get(key)!;
+    if (status === "completed" || status === "failed") return null;
+    if (status === "missing") return "Session not found";
+    if (status === "hold") return "On hold — release it from the queue first";
+    if (status === "billed" || status === "paid") return "Already billed";
+    return `Session is "${status}" — not chargeable`;
+  }
+
+  // Guard: when retrying a partially-failed split session, rows that already
+  // charged successfully have a paid Payment record — skip them instead of
+  // charging the family twice.
+  async function alreadyPaid(row: QueueRow, attribId: string): Promise<boolean> {
+    try {
+      const pr = await c.send(
+        new QueryCommand({
+          TableName: Tables.payments,
+          KeyConditionExpression: "studentId = :sid",
+          FilterExpression:
+            "sessionDateTime = :dt AND paymentStatus = :paid",
+          ExpressionAttributeValues: {
+            ":sid": attribId,
+            ":dt": row.dateTime,
+            ":paid": "paid",
+          },
+        }),
+      );
+      const items = (pr.Items || []) as { splitLabel?: string }[];
+      return items.some(
+        (p) => (p.splitLabel || "") === (row.splitLabel || ""),
+      );
+    } catch {
+      return false; // fail open — Stripe idempotency is not at stake here
+    }
+  }
 
   for (const row of rows) {
     const sessionKey = `${row.studentId}#${row.dateTime}`;
     try {
+      const statusError = await chargeableStatusError(row);
+      if (statusError) {
+        noteSession(sessionKey, false, false);
+        results.push({
+          studentId: row.studentId,
+          dateTime: row.dateTime,
+          splitIndex: row.splitIndex,
+          splitLabel: row.splitLabel,
+          ok: false,
+          error: statusError,
+        });
+        continue;
+      }
       // Resolve the student that the charge is attributed to (for the Payment
       // record + description) — the attendee for a group row, else primary.
       const attribId = row.chargeStudentId || row.studentId;
@@ -178,6 +246,19 @@ export async function POST(request: Request) {
       );
       const familyId = (studentForFamily.Item as { familyId?: string } | undefined)?.familyId;
 
+      if (await alreadyPaid(row, attribId)) {
+        noteSession(sessionKey, true, false);
+        results.push({
+          studentId: row.studentId,
+          dateTime: row.dateTime,
+          splitIndex: row.splitIndex,
+          splitLabel: row.splitLabel,
+          ok: true,
+          status: "already-paid",
+        });
+        continue;
+      }
+
       const { customerId, offline } = await resolveCustomerId(c, row);
 
       if (offline) {
@@ -193,7 +274,7 @@ export async function POST(request: Request) {
         continue;
       }
       if (!customerId) {
-        noteSession(sessionKey, false, true);
+        noteSession(sessionKey, false, true, "No card on file");
         results.push({
           studentId: row.studentId,
           dateTime: row.dateTime,
@@ -236,7 +317,12 @@ export async function POST(request: Request) {
 
       const now = new Date().toISOString();
       const succeeded = intent.status === "succeeded";
-      noteSession(sessionKey, succeeded, !succeeded);
+      noteSession(
+        sessionKey,
+        succeeded,
+        !succeeded,
+        succeeded ? undefined : `Charge ${intent.status}`,
+      );
 
       await c.send(
         new PutCommand({
@@ -270,7 +356,7 @@ export async function POST(request: Request) {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error("[billing/approve]", row, err);
-      noteSession(sessionKey, false, true);
+      noteSession(sessionKey, false, true, message);
       results.push({
         studentId: row.studentId,
         dateTime: row.dateTime,
@@ -297,9 +383,18 @@ export async function POST(request: Request) {
         new UpdateCommand({
           TableName: Tables.sessions,
           Key: { studentId, dateTime },
-          UpdateExpression: "SET #s = :s, billedAt = :n",
+          UpdateExpression:
+            status === "failed"
+              ? "SET #s = :s, billedAt = :n, lastBillingError = :e"
+              : "SET #s = :s, billedAt = :n REMOVE lastBillingError",
           ExpressionAttributeNames: { "#s": "status" },
-          ExpressionAttributeValues: { ":s": status, ":n": new Date().toISOString() },
+          ExpressionAttributeValues: {
+            ":s": status,
+            ":n": new Date().toISOString(),
+            ...(status === "failed"
+              ? { ":e": outcome.lastError || "Charge failed" }
+              : {}),
+          },
         }),
       );
     } catch {

@@ -13,7 +13,7 @@ import {
   DeleteCommand,
   type DynamoDBDocumentClient,
 } from "@aws-sdk/lib-dynamodb";
-import type { Session, Student } from "@/lib/types";
+import type { NoteComment, Session, Student } from "@/lib/types";
 
 export interface NoteActor {
   userId: string;
@@ -208,6 +208,58 @@ export async function deleteSessionNote(
     }),
   );
   return { status: 200, body: { deleted: { studentId: id, dateTime } } };
+}
+
+// N-6: append to a session note's shared comment thread. Staff, assigned
+// tutors, and the family (parents of that student) can all comment; the
+// thread is family-visible, so staff-only discussion belongs in privateNotes.
+export async function addNoteComment(
+  actor: NoteActor,
+  parentStudentIds: string[],
+  id: string,
+  body: { dateTime?: string; text?: string; authorName?: string },
+  deps: NoteDeps,
+): Promise<CoreResult> {
+  // Authorize: staff/tutors via the staff path, parents via family membership.
+  if (actor.isAdmin || actor.role === "tutor") {
+    const authz = await authorize(actor, id, deps);
+    if ("deny" in authz) return authz.deny;
+  } else if (!parentStudentIds.includes(id)) {
+    return deny(403, "You can only comment on your own child's sessions.");
+  }
+
+  const dateTime = body.dateTime || "";
+  if (!dateTime) return deny(400, "dateTime is required");
+  const text = String(body.text ?? "").trim().slice(0, 4000);
+  if (!text) return deny(400, "Comment text is required");
+
+  const existing = await deps.db.send(
+    new GetCommand({
+      TableName: deps.tables.sessions,
+      Key: { studentId: id, dateTime },
+    }),
+  );
+  const note = existing.Item as Session | undefined;
+  if (!note || note.type !== "session-note") {
+    return deny(404, "Session note not found");
+  }
+
+  const comment: NoteComment = {
+    id: `c_${Date.now().toString(36)}_${(note.comments?.length ?? 0) + 1}`,
+    authorId: actor.userId,
+    authorName: String(body.authorName || "").slice(0, 120) || actor.userId,
+    authorRole: actor.isAdmin ? "staff" : actor.role === "tutor" ? "tutor" : "parent",
+    text,
+    createdAt: new Date().toISOString(),
+  };
+  const updated: Session = {
+    ...note,
+    comments: [...(note.comments || []), comment],
+  };
+  await deps.db.send(
+    new PutCommand({ TableName: deps.tables.sessions, Item: updated }),
+  );
+  return { status: 201, body: { comment, note: visibleFor(actor, updated) } };
 }
 
 // N-5: a parent's reply on a completed session. Parents may only touch notes

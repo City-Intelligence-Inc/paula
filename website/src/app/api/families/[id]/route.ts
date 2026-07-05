@@ -48,12 +48,15 @@ export async function GET(
 
 interface PutBody {
   primaryPayerId?: string;
+  depositCents?: number; // B-4 ledger: upfront deposit for the academic year
+  depositNote?: string;
 }
 
 // PUT /api/families/[id]
-// Currently used to change which parent is the family's Primary Payer
-// (the parent whose Stripe customer is the source of truth for charges
-// when a student doesn't override it via Student.primaryPayerParentId).
+// Updates the family's Primary Payer (the parent whose Stripe customer is
+// the source of truth for charges when a student doesn't override it via
+// Student.primaryPayerParentId) and/or the recorded upfront deposit that the
+// ledger view (B-4) draws down against the year's first sessions.
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -69,9 +72,32 @@ export async function PUT(
     return Response.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  if (!body.primaryPayerId) {
+  const sets: string[] = ["updatedAt = :u"];
+  const values: Record<string, unknown> = { ":u": new Date().toISOString() };
+
+  if (body.primaryPayerId) {
+    sets.push("primaryPayerId = :p");
+    values[":p"] = body.primaryPayerId;
+  }
+  if (typeof body.depositCents === "number") {
+    if (!Number.isFinite(body.depositCents) || body.depositCents < 0) {
+      return Response.json(
+        { error: "depositCents must be a non-negative number" },
+        { status: 400 },
+      );
+    }
+    sets.push("depositCents = :d", "depositReceivedAt = :dr");
+    values[":d"] = Math.round(body.depositCents);
+    values[":dr"] = new Date().toISOString();
+  }
+  if (typeof body.depositNote === "string") {
+    sets.push("depositNote = :dn");
+    values[":dn"] = body.depositNote.trim();
+  }
+
+  if (sets.length === 1) {
     return Response.json(
-      { error: "primaryPayerId is required" },
+      { error: "Nothing to update — send primaryPayerId, depositCents, or depositNote." },
       { status: 400 },
     );
   }
@@ -80,12 +106,8 @@ export async function PUT(
     new UpdateCommand({
       TableName: Tables.families,
       Key: { id },
-      UpdateExpression:
-        "SET primaryPayerId = :p, updatedAt = :u",
-      ExpressionAttributeValues: {
-        ":p": body.primaryPayerId,
-        ":u": new Date().toISOString(),
-      },
+      UpdateExpression: `SET ${sets.join(", ")}`,
+      ExpressionAttributeValues: values,
       ReturnValues: "ALL_NEW",
     }),
   );

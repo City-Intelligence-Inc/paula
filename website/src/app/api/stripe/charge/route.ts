@@ -12,6 +12,9 @@ interface Body {
   amount?: number; // cents
   description?: string; // ignored — descriptor is locked
   offering?: string;
+  // Optional internal label (e.g. "Fall 2026 geometry class — 10 weeks").
+  // Shown in the Payment record + Stripe metadata; NEVER statement-visible.
+  label?: string;
 }
 
 export async function POST(request: Request) {
@@ -129,6 +132,8 @@ export async function POST(request: Request) {
     studentName,
     offering: body.offering,
   });
+  const label = (body.label || "").trim().slice(0, 200);
+  if (label) fields.metadata.label = label;
 
   try {
     const intent = await stripe.paymentIntents.create({
@@ -152,7 +157,9 @@ export async function POST(request: Request) {
           createdAt: now,
           amount: body.amount,
           paymentStatus: intent.status === "succeeded" ? "paid" : "pending",
-          description: fields.description,
+          description: label
+            ? `${fields.description} — ${label}`
+            : fields.description,
           stripePaymentIntentId: intent.id,
           stripeChargeId:
             (intent.latest_charge as string | undefined) || undefined,

@@ -59,6 +59,7 @@ function apiNoteToSessionNote(n: Record<string, unknown>): SessionNote {
     noteGroupId: n.noteGroupId as string | undefined,
     groupLabel: n.groupLabel as string | undefined,
     familyReply: n.familyReply as string | undefined,
+    comments: n.comments as SessionNote["comments"],
   };
 }
 
@@ -275,6 +276,62 @@ export default function StaffLogSessionPage() {
     }
     setDemoNotes((prev) => {
       const updated = prev.filter((n) => n.id !== note.id);
+      try { localStorage.setItem(NOTES_KEY, JSON.stringify(updated)); } catch {}
+      return updated;
+    });
+  }
+
+  // N-6: append to a note's shared comment thread.
+  async function handleAddComment(note: SessionNote, text: string) {
+    if (isSignedIn) {
+      setLiveError(null);
+      try {
+        const res = await fetchApi(
+          `/api/students/${note.studentId}/session-notes/comments`,
+          {
+            method: "POST",
+            body: JSON.stringify({ dateTime: note.dateTime, text }),
+          },
+        );
+        const j = await res.json() as { comment?: NonNullable<SessionNote["comments"]>[number]; error?: string };
+        if (!res.ok || !j.comment) {
+          setLiveError(j.error || "Comment failed to post");
+          return;
+        }
+        const append = (n: SessionNote): SessionNote =>
+          n.id === note.id
+            ? { ...n, comments: [...(n.comments || []), j.comment!] }
+            : n;
+        setLiveNotes((prev) => prev.map(append));
+        setLiveFamilyNotes((prev) => prev.map(append));
+      } catch (e) {
+        setLiveError(String(e));
+      }
+      return;
+    }
+    setDemoNotes((prev) => {
+      const updated = prev.map((n) =>
+        n.id === note.id
+          ? {
+              ...n,
+              comments: [
+                ...(n.comments || []),
+                {
+                  id: `c_${Date.now().toString(36)}`,
+                  authorName: "You",
+                  authorRole:
+                    demoRole === "parent" || demoRole === "student"
+                      ? ("parent" as const)
+                      : demoRole === "tutor"
+                        ? ("tutor" as const)
+                        : ("staff" as const),
+                  text,
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+            }
+          : n,
+      );
       try { localStorage.setItem(NOTES_KEY, JSON.stringify(updated)); } catch {}
       return updated;
     });
@@ -525,6 +582,11 @@ export default function StaffLogSessionPage() {
                 notes={notes}
                 canReply={role === "parent"}
                 onSaveReply={handleReply}
+                canComment={role === "parent"}
+                onAddComment={(noteId, text) => {
+                  const n = notes.find((x) => x.id === noteId);
+                  if (n) return handleAddComment(n, text);
+                }}
               />
             </>
           ) : (
@@ -565,6 +627,7 @@ export default function StaffLogSessionPage() {
                 onSaveNote={handleSave}
                 onCreateShortcut={handleCreateShortcut}
                 onDeleteNote={handleDelete}
+                onAddComment={handleAddComment}
                 layout={noteLayout}
               />
             </>

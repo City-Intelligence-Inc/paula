@@ -1,19 +1,28 @@
 import { QueryCommand, ScanCommand, BatchGetCommand } from "@aws-sdk/lib-dynamodb";
-import { ddb, Tables, requireUser } from "@/lib/server/ddb";
+import { ddb, Tables } from "@/lib/server/ddb";
+import { resolveActor, forbidden } from "@/lib/server/access";
 import { expandSessionToChargeRows } from "@/lib/billing";
 import type { Session } from "@/lib/types";
 
 // GET /api/billing/queue?days=14&limit=200
 //
-// Returns sessions where status=completed, newest first, scoped to a recent
-// window so the page doesn't try to render thousands of historical imports.
+// Returns billable sessions newest first, scoped to a recent window so the
+// page doesn't try to render thousands of historical imports. Three statuses
+// surface here: "completed" (ready to charge), "failed" (a previous charge
+// run failed — retry), and "hold" (parked by an admin; excluded from charge
+// runs until released).
 //
 // The by-status GSI is hash=status, range=dateTime; we use a key condition
 // `dateTime > since` so the GSI itself does the date filter (cheap), then
 // page through the latest items first (ScanIndexForward=false).
+
+const QUEUE_STATUSES = ["completed", "failed", "hold"] as const;
+
 export async function GET(request: Request) {
-  const auth = await requireUser();
-  if (auth.response) return auth.response;
+  // Queue rows carry names + amounts for every family — admin only (R-4).
+  const { actor, response } = await resolveActor();
+  if (response) return response;
+  if (!actor!.isAdmin) return forbidden("Admin access required.");
 
   const { searchParams } = new URL(request.url);
   const days = Math.max(
@@ -31,32 +40,49 @@ export async function GET(request: Request) {
   let sessionItems: Record<string, unknown>[] = [];
   let truncated = false;
   try {
-    const r = await c.send(
-      new QueryCommand({
-        TableName: Tables.sessions,
-        IndexName: "by-status",
-        KeyConditionExpression: "#s = :s AND #d > :since",
-        ExpressionAttributeNames: { "#s": "status", "#d": "dateTime" },
-        ExpressionAttributeValues: { ":s": "completed", ":since": since },
-        ScanIndexForward: false, // newest first
-        Limit: limit,
-      }),
+    const perStatus = await Promise.all(
+      QUEUE_STATUSES.map((status) =>
+        c.send(
+          new QueryCommand({
+            TableName: Tables.sessions,
+            IndexName: "by-status",
+            KeyConditionExpression: "#s = :s AND #d > :since",
+            ExpressionAttributeNames: { "#s": "status", "#d": "dateTime" },
+            ExpressionAttributeValues: { ":s": status, ":since": since },
+            ScanIndexForward: false, // newest first
+            Limit: limit,
+          }),
+        ),
+      ),
     );
-    sessionItems = r.Items || [];
-    truncated = !!r.LastEvaluatedKey;
+    sessionItems = perStatus.flatMap((r) => r.Items || []);
+    truncated = perStatus.some((r) => !!r.LastEvaluatedKey);
   } catch (err) {
     console.warn("[billing/queue] by-status GSI query failed, scanning", err);
     const r = await c.send(
       new ScanCommand({
         TableName: Tables.sessions,
-        FilterExpression: "#s = :s AND #d > :since",
+        FilterExpression: "#s IN (:s1, :s2, :s3) AND #d > :since",
         ExpressionAttributeNames: { "#s": "status", "#d": "dateTime" },
-        ExpressionAttributeValues: { ":s": "completed", ":since": since },
+        ExpressionAttributeValues: {
+          ":s1": "completed",
+          ":s2": "failed",
+          ":s3": "hold",
+          ":since": since,
+        },
         Limit: limit,
       }),
     );
     sessionItems = r.Items || [];
     truncated = !!r.LastEvaluatedKey;
+  }
+  // Merge the three status streams newest-first and re-apply the cap.
+  sessionItems.sort((a, b) =>
+    String(b.dateTime || "").localeCompare(String(a.dateTime || "")),
+  );
+  if (sessionItems.length > limit) {
+    sessionItems = sessionItems.slice(0, limit);
+    truncated = true;
   }
 
   // Collect every referenced student id — primary AND group attendees — so we
@@ -109,6 +135,8 @@ export async function GET(request: Request) {
       return {
         studentId: s.studentId as string,
         chargeStudentId: row.chargeStudentId ?? null,
+        sessionStatus: (s.status as string) || "completed",
+        lastBillingError: (s.lastBillingError as string | undefined) ?? null,
         dateTime: s.dateTime as string,
         date: s.date as string,
         duration: (s.duration as number | undefined) ?? 60,

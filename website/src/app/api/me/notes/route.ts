@@ -20,6 +20,11 @@ function safeStudent(s: Student) {
     grade: s.grade,
     school: s.school,
     familyId: s.familyId,
+    // F-2: only family-audience links reach the family; who added them and
+    // any staff-only links stay internal.
+    sharedFiles: (s.sharedFiles || [])
+      .filter((f) => f.audience === "family")
+      .map((f) => ({ id: f.id, name: f.name, url: f.url, createdAt: f.createdAt })),
   };
 }
 
@@ -52,22 +57,43 @@ export async function GET() {
           new QueryCommand({
             TableName: Tables.sessions,
             KeyConditionExpression: "studentId = :sid",
-            FilterExpression: "#t = :sn",
-            ExpressionAttributeNames: { "#t": "type" },
-            ExpressionAttributeValues: { ":sid": s.id, ":sn": "session-note" },
+            ExpressionAttributeValues: { ":sid": s.id },
           }),
         )
         .then((r) => (r.Items as Session[]) || []),
     ),
   );
-  const notes = perStudent
-    .flat()
+  const allItems = perStudent.flat();
+  const notes = allItems
+    .filter((n) => n.type === "session-note")
     .sort((a, b) => (b.dateTime || "").localeCompare(a.dateTime || ""))
     .map((n) => stripStaffOnlyNoteFields(n));
+
+  // Upcoming scheduled sessions (D-3: the family dashboard shows what's next).
+  // Only safe fields — no rates, no staff notes.
+  const nowIso = new Date().toISOString();
+  const nameById = new Map(students.map((s) => [s.id, `${s.firstName} ${s.lastName}`]));
+  const upcomingSessions = allItems
+    .filter(
+      (x) =>
+        (x.type === "individual" || x.type === "group") &&
+        x.status === "scheduled" &&
+        (x.dateTime || "") > nowIso,
+    )
+    .sort((a, b) => (a.dateTime || "").localeCompare(b.dateTime || ""))
+    .slice(0, 5)
+    .map((x) => ({
+      studentId: x.studentId,
+      studentName: nameById.get(x.studentId) || "",
+      dateTime: x.dateTime,
+      duration: x.duration,
+      type: x.type,
+    }));
 
   return Response.json({
     role: isStudent ? "student" : "parent",
     students: students.map(safeStudent),
     notes,
+    upcomingSessions,
   });
 }

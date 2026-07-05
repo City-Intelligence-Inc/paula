@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useApi } from "@/hooks/use-api";
 import { ArrowLeft, FileText, CalendarClock, Plus, PenLine } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { SharedFilesPanel } from "@/components/shared-files-panel";
 import { gradeLabel } from "@/lib/grades";
 
 // Tutor-facing, read-mostly student view. The /admin pages redirect non-admins
@@ -258,6 +259,9 @@ export default function TutorStudentDetailPage({
                 )}
               </div>
             </Card>
+
+            {/* F-1: share worksheets/recaps with the family (links) */}
+            <SharedFilesPanel studentId={student.id} />
           </>
         )}
       </div>

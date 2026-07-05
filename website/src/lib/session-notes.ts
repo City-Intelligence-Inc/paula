@@ -84,6 +84,17 @@ export interface SessionNote extends SessionNoteFields {
   noteGroupId?: string; // set on group sessions; shared fields match across the group
   groupLabel?: string; // display only, e.g. "Group: Robin + Milo"
   familyReply?: string; // N-5: a parent's note back on a completed session (parents edit; staff/students read)
+  comments?: NoteCommentEntry[]; // N-6: shared thread — staff, tutors, family
+}
+
+// One entry in a note's shared comment thread (mirrors NoteComment in types.ts).
+export interface NoteCommentEntry {
+  id: string;
+  authorId?: string;
+  authorName: string;
+  authorRole: "staff" | "tutor" | "parent";
+  text: string;
+  createdAt: string;
 }
 
 // N-5 shortcut library entry (mirrors NoteResource in types.ts).

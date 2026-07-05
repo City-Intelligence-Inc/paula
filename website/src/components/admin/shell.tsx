@@ -25,6 +25,7 @@ import {
   DollarSign,
   Stethoscope,
   Package,
+  Wallet,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -85,6 +86,11 @@ const navItems: NavItem[] = [
     label: "Payments",
     href: "/admin/payments",
     icon: CreditCard,
+  },
+  {
+    label: "Family Ledger",
+    href: "/admin/ledger",
+    icon: Wallet,
   },
   {
     label: "Billing Diagnostics",

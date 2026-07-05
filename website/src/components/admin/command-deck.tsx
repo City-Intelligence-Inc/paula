@@ -72,12 +72,24 @@ function formatTime12(t: string): string {
   return `${hour}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
+interface CardUpdateNtf {
+  id: string;
+  createdAt: string;
+  kind?: string;
+  parentName?: string;
+  parentId?: string;
+  brand?: string;
+  last4?: string;
+  read?: boolean;
+}
+
 export function CommandDeck() {
   const fetchApi = useApi();
   const { user } = useUser();
   const [data, setData] = useState<TodayData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cardUpdates, setCardUpdates] = useState<CardUpdateNtf[]>([]);
 
   const firstName = titleCase(user?.firstName || "");
 
@@ -92,7 +104,29 @@ export function CommandDeck() {
         setError(err instanceof Error ? err.message : String(err)),
       )
       .finally(() => setLoading(false));
+    // Recent payment-method updates (Week 12 dashboard spec) — unread card
+    // changes an admin should acknowledge (confirm the new default is right).
+    fetchApi("/api/admin/notifications")
+      .then((r) => r.json())
+      .then((j: { notifications?: CardUpdateNtf[] }) => {
+        setCardUpdates(
+          (j.notifications || [])
+            .filter((n) => n.kind === "payment_method.updated" && !n.read)
+            .slice(0, 5),
+        );
+      })
+      .catch(() => {});
   }, [fetchApi]);
+
+  async function acknowledgeCardUpdate(id: string) {
+    setCardUpdates((prev) => prev.filter((n) => n.id !== id));
+    try {
+      await fetchApi("/api/admin/notifications", {
+        method: "POST",
+        body: JSON.stringify({ id, read: true }),
+      });
+    } catch {}
+  }
 
   // Skeleton while loading — preserves layout so cards don't pop in.
   if (loading) {
@@ -324,6 +358,41 @@ export function CommandDeck() {
                   <span className="text-xs text-neutral-500 font-tabular">
                     {s.duration} min
                   </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recent payment-method updates — acknowledge so the list stays short. */}
+      {cardUpdates.length > 0 && (
+        <Card className="border border-[color:var(--color-border-warm)] rounded-lg">
+          <CardContent className="py-3">
+            <p className="text-xs text-neutral-500 uppercase tracking-wide mb-2">
+              Card updates
+            </p>
+            <ul className="divide-y divide-[color:var(--color-border-warm)]">
+              {cardUpdates.map((n) => (
+                <li key={n.id} className="flex items-center gap-3 py-2 text-sm">
+                  <span className="flex-1 text-neutral-900 truncate">
+                    <span className="font-medium">{n.parentName || "A parent"}</span>{" "}
+                    saved a new {n.brand || "card"}
+                    {n.last4 ? ` ending ${n.last4}` : ""} — now the default.
+                  </span>
+                  <span className="text-xs text-neutral-500 font-tabular shrink-0">
+                    {new Date(n.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => acknowledgeCardUpdate(n.id)}
+                    className="shrink-0 rounded-md border border-[color:var(--color-border-warm)] px-2.5 py-1 text-xs text-neutral-700 hover:bg-neutral-50"
+                  >
+                    Confirm
+                  </button>
                 </li>
               ))}
             </ul>

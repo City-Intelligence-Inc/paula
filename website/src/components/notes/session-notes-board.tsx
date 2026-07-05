@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, CalendarDays, LayoutList } from "lucide-reac
 import { cn } from "@/lib/utils";
 import { Switch } from "@/components/ui/switch";
 import { RichTextEditor, RichTextView, type MentionShortcut } from "./rich-text";
+import { CommentThread } from "./comment-thread";
 import {
   type PortalRole,
   type SessionNote,
@@ -73,6 +74,7 @@ export function SessionNotesBoard({
   onSaveNote,
   onCreateShortcut,
   onDeleteNote,
+  onAddComment,
   layout = "notes-column",
 }: {
   role: PortalRole;
@@ -88,6 +90,8 @@ export function SessionNotesBoard({
   onCreateShortcut?: (shortcut: string, href: string) => MentionShortcut | void;
   // Delete a past session (super admin + tutors — callers omit it otherwise).
   onDeleteNote?: (note: SessionNote) => void;
+  // N-6: append to the shared comment thread on a past session.
+  onAddComment?: (note: SessionNote, text: string) => Promise<void> | void;
   // Single-session layout variant (7/4 feedback — two options to compare):
   //  "notes-column"    — Plan | Activities | (Private over Public) as a 3rd wide column
   //  "notes-fullwidth" — Plan | Activities on top (thin), Private then Public full-width below
@@ -482,12 +486,31 @@ export function SessionNotesBoard({
         <p className="px-5 py-16 text-center text-[15px] text-[#8b8589]">No session notes yet.</p>
       ) : !onEditPane ? (
         /* Old session (read-only): Plan · Activities · Private · Public side by side. */
-        <div
-          className="grid items-start gap-4 px-5 pb-5 pt-4"
-          style={{ gridTemplateColumns: `repeat(${readFields.length}, minmax(0, 1fr))` }}
-        >
-          {readFields.map((c) => fieldColumn(c, "min-h-[56vh]"))}
-        </div>
+        <>
+          <div
+            className="grid items-start gap-4 px-5 pb-2 pt-4"
+            style={{ gridTemplateColumns: `repeat(${readFields.length}, minmax(0, 1fr))` }}
+          >
+            {readFields.map((c) => fieldColumn(c, "min-h-[52vh]"))}
+          </div>
+          {pastNote && (
+            <div className="px-5 pb-5">
+              {pastNote.familyReply && (
+                <p className="mb-1 rounded-md bg-surface-paper px-3 py-2 text-sm text-black">
+                  <span className="font-semibold text-[#b45309]">Family reply:</span>{" "}
+                  {pastNote.familyReply}
+                </p>
+              )}
+              <CommentThread
+                comments={pastNote.comments}
+                canComment={!!onAddComment}
+                onAddComment={
+                  onAddComment ? (text) => onAddComment(pastNote, text) : undefined
+                }
+              />
+            </div>
+          )}
+        </>
       ) : layout === "notes-fullwidth" ? (
         /* Plan | Activities on top (thin & short); Private then Public full-width below. */
         <div className="px-5 pb-5 pt-4">

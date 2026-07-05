@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { RichTextView } from "./rich-text";
+import { CommentThread } from "./comment-thread";
 import type { SessionNote } from "@/lib/session-notes";
 
 // Parent/student notes view (N-5) — compact spreadsheet matching the staff side
@@ -73,11 +74,15 @@ export function ParentNotesView({
   notes,
   canReply = false,
   onSaveReply,
+  canComment = false,
+  onAddComment,
 }: {
   studentName: string;
   notes: SessionNote[]; // most-recent-first, already limited to shared fields
   canReply?: boolean;
   onSaveReply?: (noteId: string, text: string) => void;
+  canComment?: boolean;
+  onAddComment?: (noteId: string, text: string) => Promise<void> | void;
 }) {
   const grid = "120px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)";
   return (
@@ -147,6 +152,13 @@ export function ParentNotesView({
                     note={n}
                     canReply={canReply}
                     onSaveReply={onSaveReply}
+                  />
+                  <CommentThread
+                    comments={n.comments}
+                    canComment={canComment}
+                    onAddComment={
+                      onAddComment ? (text) => onAddComment(n.id, text) : undefined
+                    }
                   />
                 </div>
               </div>

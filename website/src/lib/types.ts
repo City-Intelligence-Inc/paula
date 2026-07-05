@@ -53,8 +53,22 @@ export interface Student {
   // adds it when the student is old enough to receive session notes directly.
   // Set via admin student detail page, including inline during a session.
   studentEmail?: string;
+  // F-1/F-2: files shared with this student's family — links to Drive/Dropbox/
+  // etc. (no upload storage; the team already shares via Drive). "family"
+  // audience shows on the family's notes page; "staff" stays internal.
+  sharedFiles?: SharedFile[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SharedFile {
+  id: string;
+  name: string;
+  url: string;
+  audience: "family" | "staff";
+  addedBy: string; // Clerk user id
+  addedByName: string;
+  createdAt: string;
 }
 
 export type TutorScope = "full" | "limited";
@@ -80,6 +94,16 @@ export interface SessionPayerSplit {
   pct: number; // 0–100
 }
 
+// One entry in a session note's shared comment thread (N-6).
+export interface NoteComment {
+  id: string;
+  authorId: string; // Clerk user id
+  authorName: string; // display name resolved server-side at write time
+  authorRole: "staff" | "tutor" | "parent";
+  text: string;
+  createdAt: string;
+}
+
 export interface Session {
   studentId: string;
   dateTime: string; // ISO string, sort key
@@ -87,7 +111,15 @@ export interface Session {
   time: string; // HH:MM for GSI
   duration: number; // minutes
   type: "individual" | "group" | "note" | "session-note";
-  status: "scheduled" | "completed" | "cancelled";
+  // Full lifecycle (SessionStatus below): scheduled → completed → billed →
+  // paid, with hold (parked out of the billing run), failed (charge failed —
+  // resurfaces in the queue for retry), and cancelled.
+  status: SessionStatus;
+  // Set by billing/approve when a charge fails, cleared when billed — shown
+  // in the queue so the admin knows why a retry row is there.
+  lastBillingError?: string;
+  holdAt?: string; // when an admin parked this session
+  holdBy?: string; // admin email that parked it
   notes?: string;
   privateNotes?: string;
   content?: string; // for session notes
@@ -109,6 +141,10 @@ export interface Session {
   familyReply?: string;
   familyReplyAt?: string; // ISO timestamp of the last reply edit
   familyReplyBy?: string; // Clerk user id of the replying parent
+  // N-6: shared comment thread on a session note — staff, tutors, and the
+  // family talk in one place. Family-visible (staff-only discussion belongs
+  // in privateNotes), so it survives stripStaffOnlyNoteFields.
+  comments?: NoteComment[];
   students?: string[]; // for group sessions, list of student IDs
   // Post-session form extensions (5/17 spec):
   offering?: SessionOffering;
@@ -196,6 +232,12 @@ export interface Family {
     zip: string;
   };
   notes?: string;
+  // B-4 per-family ledger: the upfront deposit (typically $500) collected at
+  // the start of the academic year. The ledger view draws it down against the
+  // family's first sessions; recorded here manually by an admin.
+  depositCents?: number;
+  depositReceivedAt?: string; // ISO timestamp the deposit was recorded
+  depositNote?: string;
   createdAt: string;
   updatedAt: string;
 }

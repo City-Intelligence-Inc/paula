@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Mail, Phone, CreditCard, Plus, UserCheck, Trash2, X } from "lucide-react";
 import { PaymentMethodsPanel } from "@/components/stripe/payment-methods-panel";
 import { SaveCardForm } from "@/components/stripe/save-card-form";
-import type { Family, Parent, Student, GuardianRelationship } from "@/lib/types";
+import type { Family, Parent, Session, Student, GuardianRelationship } from "@/lib/types";
 import {
   familyDisplayName,
   parentDisplayName,
@@ -53,6 +53,9 @@ export default function FamilyDetailPage({
     Record<string, { firstName: string; lastName: string }>
   >({});
   const [savingPayer, setSavingPayer] = useState<string | null>(null);
+  const [savingStudentPayer, setSavingStudentPayer] = useState<string | null>(null);
+  const [sessions, setSessions] = useState<(Session & { studentName: string })[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
   const [inviting, setInviting] = useState<string | null>(null);
   const [inviteMsg, setInviteMsg] = useState<{ parentId: string; text: string; ok: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -109,6 +112,67 @@ export default function FamilyDetailPage({
       cancelled = true;
     };
   }, [fetchApi, id]);
+
+  // Session history across every student in the family (C-rows: the family
+  // page is the CRM home — parents, students, payment, and sessions together).
+  useEffect(() => {
+    if (students.length === 0) return;
+    let cancelled = false;
+    setSessionsLoading(true);
+    Promise.all(
+      students.map((s) =>
+        fetchApi(`/api/students/${s.id}/sessions`)
+          .then((r) => r.json())
+          .then((j: { sessions?: Session[] }) =>
+            (j.sessions || [])
+              .filter((x) => x.type === "individual" || x.type === "group")
+              .map((x) => ({
+                ...x,
+                studentName: `${s.firstName} ${s.lastName}`,
+              })),
+          )
+          .catch(() => [] as (Session & { studentName: string })[]),
+      ),
+    )
+      .then((per) => {
+        if (cancelled) return;
+        const merged = per
+          .flat()
+          .sort((a, b) => (b.dateTime || "").localeCompare(a.dateTime || ""))
+          .slice(0, 100);
+        setSessions(merged);
+      })
+      .finally(() => {
+        if (!cancelled) setSessionsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [students.map((s) => s.id).join(",")]);
+
+  // Per-student Primary Payer override (falls back to the family payer).
+  async function setStudentPayer(studentId: string, parentId: string) {
+    setSavingStudentPayer(studentId);
+    try {
+      const res = await fetchApi(`/api/students/${studentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ primaryPayerParentId: parentId || null }),
+      });
+      if (res.ok) {
+        setStudents((prev) =>
+          prev.map((s) =>
+            s.id === studentId
+              ? { ...s, primaryPayerParentId: parentId || undefined }
+              : s,
+          ),
+        );
+      }
+    } finally {
+      setSavingStudentPayer(null);
+    }
+  }
 
   async function setPrimaryPayer(parentId: string) {
     if (!family || family.primaryPayerId === parentId) return;
@@ -417,10 +481,97 @@ export default function FamilyDetailPage({
                       {student.status}
                     </Badge>
                   </Link>
+                  <div className="flex items-center gap-2 border-t border-neutral-100 px-4 py-2.5">
+                    <CreditCard className="h-3 w-3 text-[#7030A0]" />
+                    <label className="flex items-center gap-2 text-xs text-neutral-500">
+                      Payer
+                      <select
+                        value={student.primaryPayerParentId || ""}
+                        onChange={(e) => setStudentPayer(student.id, e.target.value)}
+                        disabled={savingStudentPayer === student.id}
+                        className="rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs text-neutral-900"
+                      >
+                        <option value="">
+                          Family default{(() => {
+                            const fp = parents.find((p) => p.id === family.primaryPayerId);
+                            return fp ? ` (${parentDisplayName(fp)})` : "";
+                          })()}
+                        </option>
+                        {parents.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {parentDisplayName(p)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {student.primaryPayerParentId && (
+                      <span className="text-[10px] text-[#7030A0] bg-[#7030A0]/5 border border-[#7030A0]/10 rounded-full px-2 py-0.5">
+                        per-student override
+                      </span>
+                    )}
+                  </div>
                 </Card>
               );
             })}
           </div>
+        )}
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-neutral-900 mb-3">
+          Session history
+        </h2>
+        {sessionsLoading ? (
+          <p className="text-sm text-neutral-400">Loading sessions…</p>
+        ) : sessions.length === 0 ? (
+          <p className="text-sm text-neutral-400">No sessions yet.</p>
+        ) : (
+          <Card className="py-0 overflow-hidden border border-neutral-200 rounded-lg">
+            <div className="hidden sm:grid grid-cols-[110px_1fr_90px_80px_100px] gap-4 px-4 py-2.5 bg-neutral-50 border-b border-neutral-200">
+              {["Date", "Student", "Type", "Duration", "Status"].map((h) => (
+                <span
+                  key={h}
+                  className="text-xs font-medium text-neutral-500 uppercase tracking-wider"
+                >
+                  {h}
+                </span>
+              ))}
+            </div>
+            <div className="divide-y divide-neutral-100 max-h-96 overflow-y-auto">
+              {sessions.map((s) => (
+                <div
+                  key={`${s.studentId}#${s.dateTime}`}
+                  className="grid grid-cols-2 sm:grid-cols-[110px_1fr_90px_80px_100px] gap-2 sm:gap-4 items-center px-4 py-2.5 text-sm"
+                >
+                  <span className="text-neutral-600">
+                    {new Date(s.dateTime).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                  <span className="text-neutral-900 font-medium truncate">
+                    {s.studentName}
+                  </span>
+                  <span className="text-neutral-600 capitalize">{s.type}</span>
+                  <span className="text-neutral-600">{s.duration} min</span>
+                  <Badge
+                    className={
+                      s.status === "paid" || s.status === "billed"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 w-fit"
+                        : s.status === "failed"
+                          ? "bg-red-50 text-red-600 border-red-200 w-fit"
+                          : s.status === "cancelled"
+                            ? "bg-neutral-100 text-neutral-500 border-neutral-200 w-fit"
+                            : "bg-neutral-900/5 text-neutral-900 border-neutral-200 w-fit"
+                    }
+                  >
+                    {s.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </Card>
         )}
       </div>
     </div>

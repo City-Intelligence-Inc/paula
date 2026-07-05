@@ -68,6 +68,24 @@ export function gradeShort(g: string | undefined): string {
   return g;
 }
 
+// Next grade for the automatic August-1 school-year rollover (C-6).
+// PK→K→1…→12→UG1…→UG4→GRAD. GRAD, OTHER, and unrecognized values stay put —
+// never guess on a grade we can't place.
+export function advanceGrade(g: string | undefined): string | null {
+  if (!g) return null;
+  const u = g.toUpperCase();
+  if (u === "PK" || u === "PK3" || u === "PK4") return "K";
+  if (u === "K" || u === "KG") return "1";
+  if (u === "UG1" || u === "13") return "UG2";
+  if (u === "UG2" || u === "14") return "UG3";
+  if (u === "UG3" || u === "15") return "UG4";
+  if (u === "UG4" || u === "16") return "GRAD";
+  const n = parseInt(g, 10);
+  if (Number.isFinite(n) && n >= 1 && n <= 11) return String(n + 1);
+  if (n === 12) return "UG1";
+  return null;
+}
+
 // Sort rank: Pre-K < K < 1..12 < UG1..UG4 < Grad < Other/unknown.
 export function gradeRank(g: string | undefined): number {
   if (!g) return 999;
