@@ -2,6 +2,7 @@ import { PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { currentUser } from "@clerk/nextjs/server";
 import { ddb, Tables } from "@/lib/server/ddb";
 import { sendAdminNotification } from "@/lib/server/notify";
+import { splitFullName } from "@/lib/names";
 
 function slugify(s: string): string {
   return (s || "")
@@ -158,6 +159,13 @@ export async function POST(request: Request) {
   const parentFirstName = body.parentFirstName?.trim() || clerkUser.firstName || email.split("@")[0];
   const parentLastName = body.parentLastName?.trim() || clerkUser.lastName || "";
   const parentName = [parentFirstName, parentLastName].filter(Boolean).join(" ");
+  // The parents `by-family` GSI keys on (familyId, lastName); an empty-string
+  // sort key is rejected by DynamoDB. splitFullName guarantees a non-empty
+  // lastName from the display name above (parentFirstName always resolves to
+  // at least the email local-part), so a self-enroller who gives only a first
+  // name still writes cleanly (QA bug #3, generalized to this path).
+  const { firstName: safeParentFirst, lastName: safeParentLast } =
+    splitFullName(parentName);
 
   const family = {
     id: familyId,
@@ -170,8 +178,8 @@ export async function POST(request: Request) {
     id: parentId,
     familyId,
     clerkUserId: clerkUser.id,
-    firstName: parentFirstName,
-    lastName: parentLastName,
+    firstName: safeParentFirst,
+    lastName: safeParentLast,
     email,
     phone: body.parentPhone?.trim() || "",
     createdAt: now,

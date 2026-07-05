@@ -3,6 +3,7 @@ import type { ScanCommandInput } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables, requireUser } from "@/lib/server/ddb";
 import { resolveActor, forbidden } from "@/lib/server/access";
 import { notifyAction } from "@/lib/server/notify";
+import { splitFullName } from "@/lib/names";
 
 // Find an existing family by a caregiver's email so a new student with the
 // same parent email JOINS that family instead of splintering into a new one
@@ -105,6 +106,23 @@ export async function POST(request: Request) {
     if (existing) resolvedFamilyId = existing;
   }
   const useExistingFamily = !!resolvedFamilyId;
+
+  // When creating a fresh family we also write a parent row, and the
+  // `by-family` GSI keys on (familyId, lastName) — DynamoDB rejects an
+  // empty-string sort key, so the parent must resolve to a non-empty
+  // lastName. splitFullName routes a single-word name to lastName; a fully
+  // blank name still yields none, so require one up front with a friendly
+  // message instead of leaking the raw DynamoDB error (QA bug #3).
+  const { firstName: parentFirst, lastName: parentLast } = splitFullName(
+    body.parentName,
+  );
+  if (!useExistingFamily && !parentLast) {
+    return Response.json(
+      { error: "Parent name is required to create a new family." },
+      { status: 400 },
+    );
+  }
+
   const familyId = useExistingFamily
     ? resolvedFamilyId
     : `fam_${baseSlug}_${suffix}`;
@@ -119,14 +137,13 @@ export async function POST(request: Request) {
         updatedAt: now,
       };
 
-  const [parentFirst, ...parentRest] = (body.parentName || "").trim().split(/\s+/);
   const parent = useExistingFamily
     ? null
     : {
         id: parentId,
         familyId,
-        firstName: parentFirst || body.parentName || "",
-        lastName: parentRest.join(" "),
+        firstName: parentFirst,
+        lastName: parentLast,
         email: body.parentEmail || "",
         phone: body.parentPhone || "",
         createdAt: now,
@@ -183,9 +200,11 @@ export async function POST(request: Request) {
 
     return Response.json({ student }, { status: 201 });
   } catch (err) {
+    // Log the full exception server-side; never surface raw AWS/DynamoDB
+    // internals (table + index names) to the admin UI (QA bug #3b).
     console.error("[POST /api/students] failed:", err);
     return Response.json(
-      { error: "Create failed", detail: String(err) },
+      { error: "Couldn't save the student. Please try again or contact support." },
       { status: 500 },
     );
   }

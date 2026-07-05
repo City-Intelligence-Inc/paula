@@ -29,6 +29,25 @@ interface TutorShape extends Named {
   id: string;
 }
 
+// Split a free-text "Parent Name" ("Jane Smith", "Smith", "") into
+// { firstName, lastName }. A single token becomes the last name, NOT the
+// first: the `parents`/`students` tables index families on the `by-family`
+// GSI keyed by (familyId, lastName), and DynamoDB rejects an empty-string
+// key attribute. A single-word name like "asd" used to derive an empty
+// lastName and surface a raw "IndexKey: lastName" ValidationException to the
+// admin (QA 2026-07-05 bug #3). Routing the lone token to lastName keeps the
+// GSI key non-empty for any non-blank input, and renders cleanly through
+// fullName() above.
+export function splitFullName(full?: string | null): {
+  firstName: string;
+  lastName: string;
+} {
+  const parts = (full || "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { firstName: "", lastName: "" };
+  if (parts.length === 1) return { firstName: "", lastName: parts[0] };
+  return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
+}
+
 function fullName(n: Named | null | undefined): string {
   if (!n) return "";
   const fn = titleCase(n.firstName || "");
