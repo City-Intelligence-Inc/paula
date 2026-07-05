@@ -58,6 +58,7 @@ export default function TutorsPage() {
     tutorId: string;
     ok: boolean;
     text: string;
+    url?: string;
   } | null>(null);
 
   const loadTutors = useCallback(async () => {
@@ -158,10 +159,18 @@ export default function TutorsPage() {
         method: "POST",
       });
       const data = await res.json().catch(() => ({}));
+      // #11: on email failure the route still returns the link, so offer a
+      // copy-link fallback instead of a dead error.
+      const emailSent = res.ok && data.emailSent !== false;
       setInviteMsg({
         tutorId: t.id,
         ok: res.ok,
-        text: res.ok ? "Invite sent" : data.error || "Could not send invite",
+        text: !res.ok
+          ? data.error || "Could not send invite"
+          : emailSent
+            ? "Invite sent"
+            : "Email didn't send — copy this single-use link and share it:",
+        url: !emailSent ? data.inviteUrl : undefined,
       });
     } finally {
       setInviting(null);
@@ -387,11 +396,32 @@ export default function TutorsPage() {
                   </div>
 
                   {inviteMsg?.tutorId === t.id && (
-                    <p
-                      className={`mt-2 text-xs ${inviteMsg.ok ? "text-emerald-600" : "text-red-600"}`}
-                    >
-                      {inviteMsg.text}
-                    </p>
+                    <div className="mt-2 space-y-1.5">
+                      <p
+                        className={`text-xs ${inviteMsg.ok ? (inviteMsg.url ? "text-amber-600" : "text-emerald-600") : "text-red-600"}`}
+                      >
+                        {inviteMsg.text}
+                      </p>
+                      {inviteMsg.url && (
+                        <div className="flex items-center gap-2">
+                          <input
+                            readOnly
+                            value={inviteMsg.url}
+                            onFocus={(e) => e.currentTarget.select()}
+                            className="flex-1 rounded-md border border-neutral-300 bg-white px-2 py-1 text-xs font-mono text-neutral-700 focus:outline-none focus:ring-2 focus:ring-mathitude-purple/30"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              navigator.clipboard?.writeText(inviteMsg.url!)
+                            }
+                          >
+                            Copy
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   {editing === t.id && (

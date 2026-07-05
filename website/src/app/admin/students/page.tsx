@@ -87,6 +87,21 @@ export default function AdminStudentsPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // #6: soft duplicate-name guard. A real family can have same-named kids,
+    // so warn rather than block.
+    const dupe = students.find(
+      (s) =>
+        `${s.firstName} ${s.lastName}`.trim().toLowerCase() ===
+        `${firstName} ${lastName}`.trim().toLowerCase(),
+    );
+    if (
+      dupe &&
+      !window.confirm(
+        `A student named ${firstName.trim()} ${lastName.trim()} already exists. Add another anyway?`,
+      )
+    ) {
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetchApi("/api/students", {

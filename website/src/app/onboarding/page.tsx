@@ -211,7 +211,7 @@ export default function OnboardingPage() {
 
                 {/* Student section */}
                 <div className="px-6 pt-5 pb-6 space-y-4">
-                  <SectionDivider title="Your student" />
+                  <SectionDivider title="Your child" />
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>

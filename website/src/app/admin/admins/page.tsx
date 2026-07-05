@@ -12,6 +12,8 @@ import {
   UserPlus,
   AlertCircle,
   Crown,
+  Copy,
+  Check,
 } from "lucide-react";
 
 type AdminRole = "master_admin" | "admin";
@@ -44,6 +46,10 @@ export default function AdminAdminsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [inviteInfo, setInviteInfo] = useState<
+    { url: string; emailSent: boolean } | null
+  >(null);
+  const [copied, setCopied] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -72,6 +78,8 @@ export default function AdminAdminsPage() {
     setBusy(true);
     setError(null);
     setSuccess(null);
+    setInviteInfo(null);
+    setCopied(false);
     try {
       const res = await fetchApi("/api/admin/admins", {
         method: "POST",
@@ -80,9 +88,15 @@ export default function AdminAdminsPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed");
       setData(json);
+      const added = email.trim().toLowerCase();
       setSuccess(
-        `Added ${email.trim().toLowerCase()} as ${roleLabel(newRole)}.`,
+        json.inviteEmailSent
+          ? `Added ${added} as ${roleLabel(newRole)}. We emailed them a sign-up link.`
+          : `Added ${added} as ${roleLabel(newRole)}.`,
       );
+      if (json.inviteUrl) {
+        setInviteInfo({ url: json.inviteUrl, emailSent: !!json.inviteEmailSent });
+      }
       setEmail("");
       setNewRole("admin");
     } catch (err) {
@@ -166,8 +180,8 @@ export default function AdminAdminsPage() {
               Add an admin
             </h2>
             <p className="text-sm text-neutral-500">
-              The user must sign in with this exact email to access the
-              portal. Pick a tier:
+              We&apos;ll email them a personal sign-up link. They must use this
+              exact email to access the portal. Pick a tier:
             </p>
             <div className="flex flex-col gap-2">
               <div className="flex flex-col sm:flex-row gap-2">
@@ -214,6 +228,38 @@ export default function AdminAdminsPage() {
             {success && (
               <div className="rounded-md border-0 badge-success px-3 py-2 text-sm slide-down-in">
                 {success}
+              </div>
+            )}
+            {inviteInfo && (
+              <div className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm slide-down-in space-y-2">
+                <p className="text-neutral-600 text-xs">
+                  {inviteInfo.emailSent
+                    ? "Sign-up link (in case the email doesn't arrive — it's single-use and expires in 7 days):"
+                    : "The invite email couldn't be sent. Copy this single-use sign-up link and share it directly:"}
+                </p>
+                <div className="flex items-center gap-2">
+                  <input
+                    readOnly
+                    value={inviteInfo.url}
+                    onFocus={(e) => e.currentTarget.select()}
+                    className="flex-1 rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-xs font-mono text-neutral-700 focus:outline-none focus:ring-2 focus:ring-mathitude-purple/30"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(inviteInfo.url);
+                      setCopied(true);
+                    }}
+                  >
+                    {copied ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
+                    {copied ? "Copied" : "Copy link"}
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>

@@ -77,6 +77,22 @@ export default function DashboardPage() {
   const fetchApi = useApi();
   const firstName = user?.firstName || "there";
   const [overview, setOverview] = useState<FamilyOverview | null>(null);
+  // #9: let parents dismiss the setup checklist (the staff/admin tour already
+  // has a skip). Persisted so it stays hidden across visits; reversible.
+  const CHECKLIST_HIDDEN_KEY = "mathitude_dashboard_checklist_hidden";
+  const [checklistHidden, setChecklistHidden] = useState(false);
+  useEffect(() => {
+    try {
+      setChecklistHidden(localStorage.getItem(CHECKLIST_HIDDEN_KEY) === "1");
+    } catch {}
+  }, []);
+  function setChecklistVisibility(hidden: boolean) {
+    setChecklistHidden(hidden);
+    try {
+      if (hidden) localStorage.setItem(CHECKLIST_HIDDEN_KEY, "1");
+      else localStorage.removeItem(CHECKLIST_HIDDEN_KEY);
+    } catch {}
+  }
 
   // Live family data (D-3) — children, next sessions, latest notes. Only
   // renders when the signed-in user maps to a family; staff and unlinked
@@ -184,31 +200,50 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {steps.map((step, i) => (
-          <Link
-            key={step.href}
-            href={step.href}
-            className="group flex items-center gap-5 p-5 rounded-lg border border-neutral-200 bg-white hover:shadow-sm hover:border-neutral-300 transition-all"
-            style={{ animationDelay: `${i * 80}ms` }}
-          >
-            <div className="shrink-0 w-10 h-10 rounded-lg bg-neutral-100 flex items-center justify-center group-hover:bg-neutral-900 group-hover:text-white transition-colors">
-              <step.icon className="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-neutral-400">Step {i + 1}</span>
+        {!checklistHidden &&
+          steps.map((step, i) => (
+            <Link
+              key={step.href}
+              href={step.href}
+              className="group flex items-center gap-5 p-5 rounded-lg border border-neutral-200 bg-white hover:shadow-sm hover:border-neutral-300 transition-all"
+              style={{ animationDelay: `${i * 80}ms` }}
+            >
+              <div className="shrink-0 w-10 h-10 rounded-lg bg-neutral-100 flex items-center justify-center group-hover:bg-neutral-900 group-hover:text-white transition-colors">
+                <step.icon className="w-5 h-5 text-neutral-400 group-hover:text-white transition-colors" />
               </div>
-              <h2 className="text-base font-medium text-neutral-900 mt-0.5">
-                {step.title}
-              </h2>
-              <p className="text-sm text-neutral-500 mt-0.5">{step.description}</p>
-            </div>
-            <div className="shrink-0 flex items-center gap-1 text-sm font-medium text-neutral-400 group-hover:text-neutral-900 transition-colors">
-              <span className="hidden sm:inline">{step.cta}</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </Link>
-        ))}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-neutral-400">Step {i + 1}</span>
+                </div>
+                <h2 className="text-base font-medium text-neutral-900 mt-0.5">
+                  {step.title}
+                </h2>
+                <p className="text-sm text-neutral-500 mt-0.5">{step.description}</p>
+              </div>
+              <div className="shrink-0 flex items-center gap-1 text-sm font-medium text-neutral-400 group-hover:text-neutral-900 transition-colors">
+                <span className="hidden sm:inline">{step.cta}</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+          ))}
+
+        {checklistHidden ? (
+          <button
+            type="button"
+            onClick={() => setChecklistVisibility(false)}
+            className="text-sm text-neutral-500 hover:text-neutral-900 underline underline-offset-4"
+          >
+            Show setup steps
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setChecklistVisibility(true)}
+            className="text-sm text-neutral-400 hover:text-neutral-700 underline underline-offset-4"
+          >
+            Skip for now
+          </button>
+        )}
       </div>
 
       <div className="mt-10 p-5 rounded-lg bg-neutral-50 border border-neutral-200">

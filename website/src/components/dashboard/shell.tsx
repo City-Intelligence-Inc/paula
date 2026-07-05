@@ -126,6 +126,7 @@ export function DashboardShell({
           <Link
             href="/admin"
             onClick={() => setMobileOpen(false)}
+            title="Go to the admin portal (staff schedules, students, billing)"
             className="mb-4 flex items-center justify-between gap-2 rounded-lg bg-[#7030A0] hover:bg-[#5d288a] text-white px-3 py-2.5 text-sm font-semibold uppercase tracking-wide transition-colors"
           >
             <span className="flex items-center gap-2">

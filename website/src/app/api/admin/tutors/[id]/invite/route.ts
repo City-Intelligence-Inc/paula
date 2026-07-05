@@ -2,7 +2,7 @@ import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables } from "@/lib/server/ddb";
 import { resolveActor, forbidden } from "@/lib/server/access";
 import { notifyAction } from "@/lib/server/notify";
-import { createInvite, sendInviteEmail } from "@/lib/server/invites";
+import { createInvite, sendInviteEmail, registrationUrl } from "@/lib/server/invites";
 import type { Tutor } from "@/lib/types";
 
 // POST /api/admin/tutors/[id]/invite — email a tutor a link to create their
@@ -46,14 +46,8 @@ export async function POST(
     lastName: tutor.lastName,
     invitedBy: actor!.email || actor!.userId,
   });
+  const inviteUrl = registrationUrl(invite.token);
   const emailRes = await sendInviteEmail(invite);
-
-  if (!emailRes.ok) {
-    return Response.json(
-      { error: `Could not send invite: ${emailRes.error}` },
-      { status: 502 },
-    );
-  }
 
   await notifyAction({
     kind: "tutor.invited",
@@ -61,5 +55,13 @@ export async function POST(
     details: { tutorId: tutor.id, email: tutor.email },
   }).catch(() => {});
 
-  return Response.json({ ok: true });
+  // QA bug #11: a failed invite email used to hard-error (502). Keep the
+  // invite and hand back the link so the admin can copy it — same fallback
+  // the Users page already offers.
+  return Response.json({
+    ok: true,
+    emailSent: emailRes.ok,
+    emailError: emailRes.ok ? undefined : emailRes.error,
+    inviteUrl,
+  });
 }

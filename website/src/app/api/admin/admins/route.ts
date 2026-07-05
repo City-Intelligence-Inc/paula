@@ -9,6 +9,7 @@ import {
   type AdminRole,
 } from "@/lib/server/admins";
 import { notifyAction } from "@/lib/server/notify";
+import { createInvite, sendInviteEmail, registrationUrl } from "@/lib/server/invites";
 
 async function actorEmail(): Promise<string> {
   try {
@@ -79,19 +80,45 @@ export async function POST(request: Request) {
     return Response.json({ error: "email required" }, { status: 400 });
   }
   const role: AdminRole = body.role === "master_admin" ? "master_admin" : "admin";
+  const email = body.email.trim().toLowerCase();
   try {
     await addAdminEmail(body.email, gate.actor, role);
+
+    // QA bug #1: adding an admin row used to be a dead end — no Clerk identity
+    // and no invite, so the new admin hit "Couldn't find your account" at
+    // sign-in. Send them a tokenized "office" invite (the /register flow
+    // re-confirms admin access on consume, and /api/onboarding routes them to
+    // /admin). If the email fails, we still return the link so the master
+    // admin can copy it manually (mirrors the Users-page fallback, #11).
+    let inviteUrl: string | null = null;
+    let inviteEmailSent = false;
+    try {
+      const invite = await createInvite({
+        email,
+        role: "office",
+        invitedBy: gate.actor,
+      });
+      inviteUrl = registrationUrl(invite.token);
+      const sent = await sendInviteEmail(invite);
+      inviteEmailSent = sent.ok;
+    } catch (inviteErr) {
+      console.warn("[POST /api/admin/admins] invite send failed:", inviteErr);
+    }
+
     await notifyAction({
       kind: "admin.added",
-      summary: `${role === "master_admin" ? "Master admin" : "Admin"} added: ${body.email.toLowerCase()} (by ${gate.actor})`,
+      summary: `${role === "master_admin" ? "Master admin" : "Admin"} added: ${email} (by ${gate.actor})`,
       details: {
-        email: body.email.toLowerCase(),
+        email,
         role,
         actor: gate.actor,
       },
     }).catch(() => {});
     const data = await listAllAdmins();
-    return Response.json(data, { status: 201 });
+    return Response.json(
+      { ...data, inviteUrl, inviteEmailSent },
+      { status: 201 },
+    );
   } catch (err) {
     return Response.json(
       { error: err instanceof Error ? err.message : "Failed" },
