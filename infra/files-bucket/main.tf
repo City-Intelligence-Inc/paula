@@ -93,6 +93,55 @@ resource "aws_s3_bucket_cors_configuration" "files" {
   }
 }
 
+# ---------------------------------------------------------------------------
+# App IAM access (QA 2026-07-05 bug #4)
+#
+# The Vercel app authenticates to AWS as the `mathitude-app` IAM user and
+# signs the presigned upload/download URLs with that principal's credentials.
+# That user only had a DynamoDB policy, so S3 rejected every presigned PUT
+# with a bare 403 ("presign returns 200, the PUT to S3 fails"). Grant it
+# exactly the object-level access the file-sharing flow needs on THIS bucket
+# and nothing else:
+#   - PutObject  → /api/files/presign direct-to-bucket uploads (F-1)
+#   - GetObject  → /api/files/object server-side streaming (F-2)
+#   - ListBucket → so a GET on a missing key returns 404, not 403
+# No DeleteObject: the app's file "delete" only drops the link record from the
+# student row, it never removes the S3 object.
+# ---------------------------------------------------------------------------
+
+variable "app_iam_user" {
+  description = "IAM user the Vercel app authenticates as (signs presigned S3 URLs)."
+  type        = string
+  default     = "mathitude-app"
+}
+
+resource "aws_iam_user_policy" "app_files_s3" {
+  name = "mathitude-files-s3"
+  user = var.app_iam_user
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "ObjectReadWrite"
+        Effect   = "Allow"
+        Action   = ["s3:PutObject", "s3:GetObject"]
+        Resource = "${aws_s3_bucket.files.arn}/*"
+      },
+      {
+        Sid      = "ListBucketForNotFound"
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket"]
+        Resource = aws_s3_bucket.files.arn
+      },
+    ]
+  })
+}
+
 output "bucket_name" {
   value = aws_s3_bucket.files.bucket
+}
+
+output "app_files_policy" {
+  value = aws_iam_user_policy.app_files_s3.name
 }
