@@ -106,7 +106,12 @@ export default function OnboardingPage() {
   useEffect(() => {
     fetch("/api/onboarding")
       .then((r) => r.json())
-      .then((j: { parentId?: string | null; hasCard?: boolean; needsInfo?: boolean }) => {
+      .then((j: { parentId?: string | null; hasCard?: boolean; needsInfo?: boolean; redirect?: string }) => {
+        if (j.redirect) {
+          // Staff/tutor accounts — their portal, never the family card gate.
+          router.replace(j.redirect);
+          return;
+        }
         if (j.parentId && j.hasCard) {
           router.replace("/dashboard");
           return;

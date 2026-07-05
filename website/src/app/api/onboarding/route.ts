@@ -39,6 +39,19 @@ export async function GET() {
   )?.emailAddress;
   const email = (primaryEmail || clerkUser.emailAddresses?.[0]?.emailAddress || "").toLowerCase();
 
+  // Staff and tutors are never card-gated (QA bug #5: team accounts were
+  // funneled into the family portal). Send them to their own portals.
+  if (email) {
+    const { isAdminEmail } = await import("@/lib/server/admins");
+    if (await isAdminEmail(email)) {
+      return Response.json({ redirect: "/admin" });
+    }
+    const { findTutorByEmail } = await import("@/lib/server/access");
+    if (await findTutorByEmail(clerkUser.id, email)) {
+      return Response.json({ redirect: "/tutor" });
+    }
+  }
+
   const r = await ddb().send(new ScanCommand({ TableName: Tables.parents }));
   const parents = (r.Items || []) as {
     id: string;
