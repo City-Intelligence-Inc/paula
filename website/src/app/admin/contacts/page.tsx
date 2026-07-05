@@ -63,6 +63,12 @@ export default function ContactsPage() {
   const [addName, setAddName] = useState("");
   const [addEmail, setAddEmail] = useState("");
   const [addPhone, setAddPhone] = useState("");
+  // Mailing-list bootstrap: creates the Resend audience server-side (where
+  // the API key lives), stores its id in the secrets table, and seeds the
+  // team so a first broadcast has recipients.
+  const [listConfigured, setListConfigured] = useState<boolean | null>(null);
+  const [listBusy, setListBusy] = useState(false);
+  const [listMsg, setListMsg] = useState<string | null>(null);
 
   const load = useCallback(() => {
     fetchApi("/api/admin/contacts")
@@ -74,6 +80,43 @@ export default function ContactsPage() {
       .catch(() => setLoading(false));
   }, [fetchApi]);
   useEffect(load, [load]);
+
+  useEffect(() => {
+    fetchApi("/api/admin/mailing-list/setup")
+      .then((r) => r.json())
+      .then((j: { configured?: boolean }) => setListConfigured(!!j.configured))
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function setupMailingList() {
+    setListBusy(true);
+    setListMsg(null);
+    try {
+      const res = await fetchApi("/api/admin/mailing-list/setup", {
+        method: "POST",
+        body: JSON.stringify({
+          seedEmails: [
+            { email: "phamilton@mathitude.com", name: "Paula Hamilton" },
+            { email: "sbell@mathitude.com", name: "Sara Bell" },
+            { email: "stardroplin@stanford.edu", name: "Nikki Lin" },
+            { email: "ari@coframe.com", name: "Ari Choudhary" },
+          ],
+        }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "Setup failed");
+      setListConfigured(true);
+      setListMsg(
+        `Mailing list ${j.created ? "created" : "verified"} — ${j.seeded} team member${j.seeded === 1 ? "" : "s"} seeded, ${j.resynced} contact${j.resynced === 1 ? "" : "s"} re-synced.`,
+      );
+      load();
+    } catch (err) {
+      setListMsg(err instanceof Error ? err.message : String(err));
+    } finally {
+      setListBusy(false);
+    }
+  }
 
   const filtered = contacts.filter((c) => {
     const needle = q.toLowerCase().trim();
@@ -202,6 +245,31 @@ export default function ContactsPage() {
           </Button>
         </div>
       </div>
+
+      {listConfigured === false && (
+        <Card className="p-4 border-amber-200 bg-amber-50/50">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-neutral-700">
+              <span className="font-medium">Mailing list not set up yet.</span>{" "}
+              One click creates the Resend audience and adds the team (Paula,
+              Sara, Nikki, Ari) plus every existing contact.
+            </p>
+            <Button
+              onClick={setupMailingList}
+              disabled={listBusy}
+              className="bg-mathitude-purple text-white hover:bg-mathitude-purple/90"
+            >
+              {listBusy ? "Setting up…" : "Set up mailing list"}
+            </Button>
+          </div>
+          {listMsg && <p className="mt-2 text-sm text-neutral-600">{listMsg}</p>}
+        </Card>
+      )}
+      {listConfigured === true && listMsg && (
+        <Card className="p-3 border-emerald-200 bg-emerald-50/50">
+          <p className="text-sm text-emerald-800">{listMsg}</p>
+        </Card>
+      )}
 
       {addOpen && (
         <Card className="p-4">

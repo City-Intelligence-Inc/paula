@@ -140,6 +140,54 @@ export async function appendContactLog(
 }
 
 // ---- Resend Audience ----
+// The audience ID lives in the DDB secrets table (row "resend-audience"),
+// same pattern as the Stripe keys — created once via the master-only
+// /api/admin/mailing-list/setup route, no env var required. An env override
+// (RESEND_AUDIENCE_ID) still wins if set.
+
+const AUDIENCE_ROW_ID = "resend-audience";
+const AUDIENCE_CACHE_MS = 60_000;
+let audienceCache: { value: string; expires: number } | null = null;
+
+export async function getResendAudienceId(): Promise<string> {
+  const env = (process.env.RESEND_AUDIENCE_ID || "").trim();
+  if (env) return env;
+  if (audienceCache && audienceCache.expires > Date.now()) {
+    return audienceCache.value;
+  }
+  try {
+    const r = await ddb().send(
+      new GetCommand({
+        TableName: Tables.secrets,
+        Key: { id: AUDIENCE_ROW_ID },
+      }),
+    );
+    const id = ((r.Item as { audienceId?: string } | undefined)?.audienceId || "").trim();
+    audienceCache = { value: id, expires: Date.now() + AUDIENCE_CACHE_MS };
+    return id;
+  } catch {
+    return "";
+  }
+}
+
+export async function setResendAudienceId(
+  audienceId: string,
+  updatedBy: string,
+): Promise<void> {
+  await ddb().send(
+    new PutCommand({
+      TableName: Tables.secrets,
+      Item: {
+        id: AUDIENCE_ROW_ID,
+        audienceId,
+        updatedAt: new Date().toISOString(),
+        updatedBy,
+      },
+    }),
+  );
+  audienceCache = null;
+}
+
 // Add the contact to the configured Resend audience. Subscribed-by-default
 // matches the inquiry form's fine print ("by submitting you are joining our
 // mailing list" — Paula 7/1); Resend handles unsubscribe links on
@@ -148,7 +196,7 @@ async function pushToResendAudience(
   contact: Contact,
 ): Promise<{ ok: boolean; error?: string }> {
   const apiKey = (process.env.RESEND_API_KEY || "").trim();
-  const audienceId = (process.env.RESEND_AUDIENCE_ID || "").trim();
+  const audienceId = await getResendAudienceId();
   if (!apiKey || !audienceId) {
     return { ok: false }; // not configured — silently skip, no error recorded
   }
