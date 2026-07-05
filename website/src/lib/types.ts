@@ -271,6 +271,7 @@ export interface Parent {
 }
 
 export interface Tutor {
+  phone?: string;
   id: string;
   firstName: string;
   lastName: string;

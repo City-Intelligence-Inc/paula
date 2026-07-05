@@ -14,6 +14,7 @@ interface Tutor {
   email?: string;
   phone?: string;
   active?: boolean;
+  clerkUserId?: string;
   createdAt?: string;
 }
 
@@ -45,6 +46,19 @@ export default function TutorsPage() {
   const [assignments, setAssignments] = useState<
     Record<string, AssignedStudent[] | "loading">
   >({});
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+  });
+  const [inviting, setInviting] = useState<string | null>(null);
+  const [inviteMsg, setInviteMsg] = useState<{
+    tutorId: string;
+    ok: boolean;
+    text: string;
+  } | null>(null);
 
   const loadTutors = useCallback(async () => {
     setLoading(true);
@@ -105,6 +119,53 @@ export default function TutorsPage() {
       return;
     }
     await loadTutors();
+  }
+
+  function startEdit(t: Tutor) {
+    setEditing(t.id);
+    setEditForm({
+      firstName: t.firstName || "",
+      lastName: t.lastName || "",
+      email: t.email || "",
+      phone: t.phone || "",
+    });
+  }
+
+  async function saveEdit(tutorId: string) {
+    setSaving(true);
+    try {
+      const res = await fetchApi(`/api/admin/tutors/${tutorId}`, {
+        method: "PUT",
+        body: JSON.stringify(editForm),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Save failed");
+        return;
+      }
+      setEditing(null);
+      await loadTutors();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function invite(t: Tutor) {
+    setInviting(t.id);
+    setInviteMsg(null);
+    try {
+      const res = await fetchApi(`/api/admin/tutors/${t.id}/invite`, {
+        method: "POST",
+      });
+      const data = await res.json().catch(() => ({}));
+      setInviteMsg({
+        tutorId: t.id,
+        ok: res.ok,
+        text: res.ok ? "Invite sent" : data.error || "Could not send invite",
+      });
+    } finally {
+      setInviting(null);
+    }
   }
 
   async function toggleExpand(tutor: Tutor) {
@@ -286,6 +347,25 @@ export default function TutorsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
+                      {t.email && !t.clerkUserId && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => invite(t)}
+                          disabled={inviting === t.id}
+                          className="border border-neutral-200 text-[#7030A0] hover:border-[#7030A0]/40 rounded-md text-xs"
+                        >
+                          {inviting === t.id ? "Sending…" : "Invite"}
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => (editing === t.id ? setEditing(null) : startEdit(t))}
+                        className="border border-neutral-200 text-neutral-600 hover:border-neutral-300 rounded-md text-xs"
+                      >
+                        {editing === t.id ? "Cancel" : "Edit"}
+                      </Button>
                       <Button
                         type="button"
                         variant="outline"
@@ -305,6 +385,60 @@ export default function TutorsPage() {
                       </Button>
                     </div>
                   </div>
+
+                  {inviteMsg?.tutorId === t.id && (
+                    <p
+                      className={`mt-2 text-xs ${inviteMsg.ok ? "text-emerald-600" : "text-red-600"}`}
+                    >
+                      {inviteMsg.text}
+                    </p>
+                  )}
+
+                  {editing === t.id && (
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+                      <input
+                        className={inputClass}
+                        value={editForm.firstName}
+                        onChange={(e) =>
+                          setEditForm((f) => ({ ...f, firstName: e.target.value }))
+                        }
+                        placeholder="First name"
+                      />
+                      <input
+                        className={inputClass}
+                        value={editForm.lastName}
+                        onChange={(e) =>
+                          setEditForm((f) => ({ ...f, lastName: e.target.value }))
+                        }
+                        placeholder="Last name"
+                      />
+                      <input
+                        className={inputClass}
+                        type="email"
+                        value={editForm.email}
+                        onChange={(e) =>
+                          setEditForm((f) => ({ ...f, email: e.target.value }))
+                        }
+                        placeholder="Email"
+                      />
+                      <input
+                        className={inputClass}
+                        value={editForm.phone}
+                        onChange={(e) =>
+                          setEditForm((f) => ({ ...f, phone: e.target.value }))
+                        }
+                        placeholder="Phone"
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => saveEdit(t.id)}
+                        disabled={saving || !editForm.firstName.trim() || !editForm.lastName.trim()}
+                        className="bg-neutral-900 text-white hover:bg-neutral-800 rounded-md"
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  )}
 
                   {expanded === t.id && (
                     <>

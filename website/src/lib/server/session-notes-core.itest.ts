@@ -19,6 +19,7 @@ import {
   upsertSessionNote,
   deleteSessionNote,
   setFamilyReply,
+  addNoteComment,
   type NoteActor,
   type NoteDeps,
 } from "./session-notes-core.ts";
@@ -251,5 +252,69 @@ describe("setFamilyReply (N-5 RBAC + persistence)", () => {
       dateTime: "1999-01-01T00:00:00.000Z", familyReply: "x",
     }, deps);
     assert.equal(r.status, 404);
+  });
+});
+
+// ─────────────────────────────────────────────
+// addNoteComment — N-6 shared thread
+// ─────────────────────────────────────────────
+describe("addNoteComment (N-6 RBAC + persistence)", () => {
+  const noteDT = "2026-06-21T12:00:00.000Z"; // tutor note on stu_robin
+
+  test("assigned tutor comments → 201, thread persists", async () => {
+    const r = await addNoteComment(tutorSam, [], "stu_robin", {
+      dateTime: noteDT, text: "Great progress on fractions today.", authorName: "Sam T",
+    }, deps);
+    assert.equal(r.status, 201);
+    const got = await deps.db.send(new GetCommand({
+      TableName: tables.sessions,
+      Key: { studentId: "stu_robin", dateTime: noteDT },
+    }));
+    const comments = got.Item?.comments as { authorName: string; authorRole: string }[];
+    assert.equal(comments.length, 1);
+    assert.equal(comments[0].authorName, "Sam T");
+    assert.equal(comments[0].authorRole, "tutor");
+  });
+
+  test("parent comments on own child → 201, appended after tutor's", async () => {
+    const r = await addNoteComment(parent, ["stu_robin"], "stu_robin", {
+      dateTime: noteDT, text: "Thank you!", authorName: "Pat P",
+    }, deps);
+    assert.equal(r.status, 201);
+    const got = await deps.db.send(new GetCommand({
+      TableName: tables.sessions,
+      Key: { studentId: "stu_robin", dateTime: noteDT },
+    }));
+    const comments = got.Item?.comments as { authorRole: string }[];
+    assert.equal(comments.length, 2);
+    assert.equal(comments[1].authorRole, "parent");
+  });
+
+  test("parent cannot comment on someone else's child → 403", async () => {
+    const r = await addNoteComment(parent, ["stu_other"], "stu_robin", {
+      dateTime: noteDT, text: "nope",
+    }, deps);
+    assert.equal(r.status, 403);
+  });
+
+  test("unassigned tutor → 403", async () => {
+    const r = await addNoteComment(tutorUnassigned, [], "stu_robin", {
+      dateTime: noteDT, text: "hi",
+    }, deps);
+    assert.equal(r.status, 403);
+  });
+
+  test("office staff (view-only on notes) CAN comment → 201", async () => {
+    const r = await addNoteComment(officeStaff, [], "stu_robin", {
+      dateTime: noteDT, text: "Scheduling note: next week moves to Tuesday.", authorName: "Sara",
+    }, deps);
+    assert.equal(r.status, 201);
+  });
+
+  test("empty text → 400", async () => {
+    const r = await addNoteComment(tutorSam, [], "stu_robin", {
+      dateTime: noteDT, text: "   ",
+    }, deps);
+    assert.equal(r.status, 400);
   });
 });
