@@ -294,9 +294,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="admin-shell flex min-h-screen">
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-[color:var(--color-border-warm)] lg:bg-[color:var(--color-surface-card)]">
+    <div className="admin-shell flex h-screen overflow-hidden">
+      {/* Desktop sidebar — pinned to viewport height so its own nav scrolls
+          internally (the ScrollArea below), instead of the whole page
+          scrolling just to reach the footer / user menu. */}
+      <aside className="hidden lg:flex lg:h-screen lg:w-64 lg:flex-col lg:border-r lg:border-[color:var(--color-border-warm)] lg:bg-[color:var(--color-surface-card)]">
         {sidebar}
       </aside>
 
