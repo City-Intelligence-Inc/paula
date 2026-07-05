@@ -251,3 +251,245 @@ export const SCENARIOS = [
     },
   },
 ];
+
+// ─────────────────────────────────────────────────────────────────────────
+// FULL-TASK scenarios (opt-in via `npm run demos -- --tasks`). These perform
+// the real workflow end to end — every step ASSERTS success (so each video
+// is also an e2e test run) and every scenario cleans up its own demo data
+// before the recording ends. Demo entities are clearly labeled and use
+// @example.com addresses. The runner ACCEPTS confirm() dialogs for these.
+
+const DEMO = {
+  inviteEmail: "demo-invite@example.com",
+  familyEmail: "demo-family@example.com",
+  contactEmail: "demo-contact@example.com",
+};
+
+// Call the app's own API from inside the recorded page (admin cookies ride
+// along). Throws on non-2xx so failures surface as scenario failures.
+async function api(page, path, opts = {}) {
+  const res = await page.evaluate(
+    async ({ path, opts }) => {
+      const r = await fetch(path, {
+        method: opts.method || "GET",
+        headers: { "Content-Type": "application/json" },
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
+      });
+      let json = null;
+      try {
+        json = await r.json();
+      } catch {}
+      return { ok: r.ok, status: r.status, json };
+    },
+    { path, opts },
+  );
+  if (!res.ok && !opts.allowFail) {
+    throw new Error(`${opts.method || "GET"} ${path} → ${res.status}: ${JSON.stringify(res.json)}`);
+  }
+  return res.json;
+}
+
+async function mustSee(page, text, timeout = 15000) {
+  await page.locator(`text=${text}`).first().waitFor({ state: "visible", timeout });
+}
+
+export const TASK_SCENARIOS = [
+  {
+    id: "R-8-full",
+    title: "FULL TASK: invite a user, see it pending, copy link, revoke",
+    auth: "admin",
+    task: true,
+    run: async (page, base) => {
+      await page.goto(`${base}/admin/users`);
+      await page.waitForLoadState("networkidle");
+      // Pre-clean any leftover from an aborted run.
+      const pre = await api(page, "/api/admin/invites").catch(() => null);
+      for (const inv of pre?.invites || []) {
+        if (inv.email === DEMO.inviteEmail && !inv.usedAt) {
+          await api(page, `/api/admin/invites?token=${encodeURIComponent(inv.token)}`, { method: "DELETE", allowFail: true });
+        }
+      }
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await pause(1500);
+
+      // Fill the invite form.
+      await page.fill("input[placeholder='parent@example.com']", DEMO.inviteEmail);
+      await page.locator("form select").first().selectOption("parent");
+      const nameInputs = page.locator("form input.w-32");
+      await nameInputs.nth(0).fill("Demo");
+      await nameInputs.nth(1).fill("Lead");
+      await pause(800);
+      await page.getByRole("button", { name: /send invitation/i }).click();
+
+      // Assert: pending row appears.
+      await mustSee(page, DEMO.inviteEmail);
+      await pause(2000);
+
+      // Copy link (clipboard call may be blocked headless — best effort).
+      await attempt(() => page.getByText("Copy link").first().click({ timeout: 3000 }));
+      await pause(1200);
+
+      // Revoke (confirm auto-accepted) and assert the row is gone.
+      await page.getByText("Revoke").first().click();
+      await page.locator(`text=${DEMO.inviteEmail}`).first().waitFor({ state: "hidden", timeout: 15000 });
+      await pause(2000);
+    },
+  },
+  {
+    id: "C-1-C-9-full",
+    title: "FULL TASK: approve → tokenized invite → registration → family created → offboarded",
+    auth: "admin",
+    task: true,
+    run: async (page, base) => {
+      await page.goto(`${base}/admin/users`);
+      await page.waitForLoadState("networkidle");
+
+      // Pre-clean leftovers from any aborted run.
+      const famsPre = await api(page, "/api/families");
+      for (const f of famsPre.families || []) {
+        if ((f.parents || []).some((p) => p.email === DEMO.familyEmail)) {
+          for (const s of f.students || []) {
+            await api(page, `/api/students/${s.id}`, { method: "DELETE", allowFail: true });
+          }
+          await api(page, `/api/families/${f.id}`, { method: "DELETE", allowFail: true });
+        }
+      }
+      await api(page, `/api/admin/contacts?email=${encodeURIComponent(DEMO.familyEmail)}`, { method: "DELETE", allowFail: true });
+
+      // C-1: create the tokenized invitation (as the admin approval would).
+      const created = await api(page, "/api/admin/invites", {
+        method: "POST",
+        body: { email: DEMO.familyEmail, role: "parent", firstName: "Demo", lastName: "Family" },
+      });
+      const token = created.invite.token;
+      await pause(1000);
+
+      // C-9: the family's side — hidden registration with the locked email.
+      await page.goto(`${base}/register?token=${token}`);
+      await page.waitForLoadState("networkidle");
+      const emailField = page.locator(`input[value='${DEMO.familyEmail}']`).first();
+      await emailField.waitFor({ timeout: 15000 });
+      if (!(await emailField.isDisabled())) throw new Error("C-9 violation: email field is editable");
+      await pause(2000);
+
+      await page.locator("input").nth(1).fill("Demo");
+      await page.locator("input").nth(2).fill("Family");
+      // Child card
+      const childInputs = page.locator(".rounded-lg.border input");
+      await childInputs.nth(0).fill("Demo");
+      await childInputs.nth(1).fill("Kid");
+      await childInputs.nth(2).fill("Demo School");
+      await page.locator(".rounded-lg.border select").first().selectOption("4");
+      await pause(1500);
+      await page.getByRole("button", { name: /complete registration/i }).click();
+      await mustSee(page, "all set");
+      await pause(2500);
+
+      // Single-use proof: reload the link → already used.
+      await page.goto(`${base}/register?token=${token}`);
+      await mustSee(page, "Invitation not available");
+      await pause(2000);
+
+      // Back office: the family + student exist.
+      const fams = await api(page, "/api/families");
+      const fam = (fams.families || []).find((f) =>
+        (f.parents || []).some((p) => p.email === DEMO.familyEmail),
+      );
+      if (!fam) throw new Error("registration did not create the family");
+      await page.goto(`${base}/admin/families/${fam.id}`);
+      await mustSee(page, "Demo Kid");
+      await pause(3000);
+
+      // R-8 offboarding: hard-delete student then family (super admin).
+      for (const s of fam.students || []) {
+        await api(page, `/api/students/${s.id}`, { method: "DELETE" });
+      }
+      await api(page, `/api/families/${fam.id}`, { method: "DELETE" });
+      await api(page, `/api/admin/contacts?email=${encodeURIComponent(DEMO.familyEmail)}`, { method: "DELETE", allowFail: true });
+      await page.goto(`${base}/admin/families`);
+      await page.waitForLoadState("networkidle");
+      await pause(2500);
+    },
+  },
+  {
+    id: "B-4-full",
+    title: "FULL TASK: record a $500 deposit, watch the drawdown, restore",
+    auth: "admin",
+    task: true,
+    run: async (page, base) => {
+      await page.goto(`${base}/admin/ledger`);
+      await page.waitForLoadState("networkidle");
+      const ledger = await api(page, "/api/admin/ledger");
+      const fam = (ledger.families || [])[0];
+      if (!fam) throw new Error("no families in the ledger to demo on");
+      const original = fam.depositCents || 0;
+      await pause(1500);
+
+      // Record the deposit through the UI.
+      const cell = page
+        .locator("tbody tr")
+        .first()
+        .locator("button")
+        .first();
+      await cell.click();
+      const input = page.locator("tbody input").first();
+      await input.fill("500");
+      await page.getByRole("button", { name: /^save$/i }).first().click();
+      await mustSee(page, "$500");
+      await pause(1500);
+
+      // Expand the drawdown detail.
+      await page.locator("tbody tr").first().click();
+      await pause(3000);
+
+      // Restore the family's original deposit.
+      await api(page, `/api/families/${fam.familyId}`, {
+        method: "PUT",
+        body: { depositCents: original },
+      });
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await pause(2000);
+    },
+  },
+  {
+    id: "C-2-full",
+    title: "FULL TASK: add a contact, log a staff response, remove it",
+    auth: "admin",
+    task: true,
+    run: async (page, base) => {
+      await page.goto(`${base}/admin/contacts`);
+      await page.waitForLoadState("networkidle");
+      await api(page, `/api/admin/contacts?email=${encodeURIComponent(DEMO.contactEmail)}`, { method: "DELETE", allowFail: true });
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await pause(1000);
+
+      // Add the contact through the UI.
+      await page.getByRole("button", { name: /add contact/i }).click();
+      const form = page.locator("form");
+      await form.locator("input").nth(0).fill("Demo Contact");
+      await form.locator("input").nth(1).fill(DEMO.contactEmail);
+      await form.locator("input").nth(2).fill("(555) 000-0000");
+      await page.getByRole("button", { name: /save contact/i }).click();
+      await mustSee(page, DEMO.contactEmail);
+      await pause(1500);
+
+      // Open the profile and log a response (C-4).
+      await page.locator(`button:has-text("${DEMO.contactEmail}")`).first().click();
+      await page
+        .locator("textarea[placeholder*='Log a response']")
+        .fill("Called — interested in fall tutoring. Sending details Monday.");
+      await page.getByRole("button", { name: /log response/i }).click();
+      await mustSee(page, "interested in fall tutoring");
+      await pause(2500);
+
+      // Clean up: remove the demo contact entirely.
+      await api(page, `/api/admin/contacts?email=${encodeURIComponent(DEMO.contactEmail)}`, { method: "DELETE" });
+      await page.reload();
+      await page.waitForLoadState("networkidle");
+      await pause(1500);
+    },
+  },
+];

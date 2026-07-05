@@ -1,8 +1,9 @@
-import { ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DeleteCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, Tables } from "@/lib/server/ddb";
 import { resolveActor, forbidden } from "@/lib/server/access";
 import {
   appendContactLog,
+  getContactByEmail,
   listContacts,
   upsertContact,
 } from "@/lib/server/contacts";
@@ -112,4 +113,27 @@ export async function POST(request: Request) {
     },
   });
   return Response.json({ contact }, { status: 201 });
+}
+
+// DELETE /api/admin/contacts?email=… — remove a contact entirely (R-8
+// offboarding for leads: bad data, spam, or a family asking to be forgotten).
+// Also drops them from the self-hosted mailing list, since broadcasts read
+// from this table. Admin-only.
+export async function DELETE(request: Request) {
+  const { actor, response } = await resolveActor();
+  if (response) return response;
+  if (!actor!.isAdmin) return forbidden("Admin access required.");
+
+  const email = new URL(request.url).searchParams.get("email")?.trim().toLowerCase();
+  if (!email) {
+    return Response.json({ error: "email query param required" }, { status: 400 });
+  }
+  const existing = await getContactByEmail(email);
+  if (!existing) {
+    return Response.json({ error: "Contact not found" }, { status: 404 });
+  }
+  await ddb().send(
+    new DeleteCommand({ TableName: Tables.bookings, Key: { id: existing.id } }),
+  );
+  return Response.json({ ok: true });
 }

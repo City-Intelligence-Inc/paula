@@ -288,3 +288,40 @@ npm run test:integration      # 25 RBAC/persistence tests: note writes, N-5
 ```
 
 Both suites green as of commit this file ships in.
+
+---
+
+## 11. Added 7/5 — hard offboarding, self-hosted mailing list, contact removal
+
+**T-DEL-01 — hard-delete student (R-8, super admin only).** Create a throwaway
+student with a few sessions. As a non-master admin, `DELETE /api/students/<id>`
+→ 403. As master admin → 200 with `deletedSessions` count; student gone,
+their session rows gone, **payment rows retained**. **P0 if payments vanish.**
+
+**T-DEL-02 — hard-delete family refuses while students attached.** On a family
+with a student, `DELETE /api/families/<id>` → 409 with a clear message. Move
+or delete the student, retry → 200; caregiver rows removed; Stripe customer
+still exists in Stripe (financial record).
+
+**T-DEL-03 — contact removal.** Add a contact, then
+`DELETE /api/admin/contacts?email=…` → 200; row gone from `/admin/contacts`
+and from future broadcasts. Non-admin → 403. Unknown email → 404.
+
+**T-MAIL-01 — self-hosted mailing list (replaces Mailchimp).** Submit the
+inquiry form → contact appears with an unsubscribe token **that never appears
+in any API response** (inspect the GET payload — `unsubToken` must be absent;
+**P0 if present**). Send a broadcast from the admin mailing-list UI → contact
+receives it with a working one-click unsubscribe link; after unsubscribing
+they're excluded from the next broadcast.
+
+**T-MAIL-02 — Aug-1 cron without CRON_SECRET.** The grade-advance cron no
+longer requires `CRON_SECRET`; confirm the route still refuses plain
+unauthenticated browser GETs (check its current auth guard) and that a manual
+admin POST works as in T-ROLL-01/02.
+
+**T-E2E — full-task demo recordings double as end-to-end tests.**
+`npm run demos -- --tasks` runs four self-verifying workflows against the
+live site (R-8-full invite lifecycle, C-1-C-9-full invite→register→offboard,
+B-4-full deposit drawdown, C-2-full contact lifecycle). Each asserts every
+step and cleans up its own demo data; a FAILED row in `manifest.csv` is a
+real regression.

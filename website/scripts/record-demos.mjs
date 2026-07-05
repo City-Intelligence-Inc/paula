@@ -17,7 +17,7 @@ import { chromium } from "playwright";
 import { existsSync, mkdirSync, renameSync, writeFileSync, readdirSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { SCENARIOS } from "./demos/scenarios.mjs";
+import { SCENARIOS, TASK_SCENARIOS } from "./demos/scenarios.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const demosDir = join(here, "demos");
@@ -28,6 +28,9 @@ const baseIdx = args.indexOf("--base");
 const BASE = baseIdx >= 0 ? args[baseIdx + 1] : "https://website-sage-three-98.vercel.app";
 const onlyIdx = args.indexOf("--only");
 const ONLY = onlyIdx >= 0 ? new Set(args[onlyIdx + 1].split(",").map((s) => s.trim())) : null;
+// Full-task scenarios perform real (self-cleaning) workflows — opt-in only.
+const WITH_TASKS = args.includes("--tasks");
+const ALL_SCENARIOS = WITH_TASKS ? [...SCENARIOS, ...TASK_SCENARIOS] : SCENARIOS;
 
 const authFile = (kind) => join(demosDir, `auth-${kind}.json`);
 
@@ -38,7 +41,7 @@ const browser = await chromium.launch();
 // the end so partial --only runs never clobber earlier recordings' rows.
 const notes = new Map();
 
-for (const s of SCENARIOS) {
+for (const s of ALL_SCENARIOS) {
   if (ONLY && !ONLY.has(s.id)) continue;
 
   if (s.auth && !existsSync(authFile(s.auth))) {
@@ -55,8 +58,9 @@ for (const s of SCENARIOS) {
     ...(s.auth ? { storageState: authFile(s.auth) } : {}),
   });
   const page = await context.newPage();
-  // Backstop: never accept a confirm() — demos must not mutate anything.
-  page.on("dialog", (d) => d.dismiss().catch(() => {}));
+  // Read-only scenarios: never accept a confirm(). Task scenarios perform
+  // the real workflow (self-cleaning), so their confirms are accepted.
+  page.on("dialog", (d) => (s.task ? d.accept() : d.dismiss()).catch(() => {}));
 
   process.stdout.write(`REC  ${s.id} — ${s.title} … `);
   try {
@@ -78,7 +82,7 @@ for (const s of SCENARIOS) {
 await browser.close();
 
 const manifest = [["row_id", "title", "file", "status"]];
-for (const s of SCENARIOS) {
+for (const s of [...SCENARIOS, ...TASK_SCENARIOS]) {
   const onDisk = existsSync(join(outDir, `${s.id}.webm`));
   manifest.push([
     s.id,
