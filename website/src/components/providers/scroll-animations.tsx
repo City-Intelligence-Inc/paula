@@ -1,9 +1,16 @@
 "use client";
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+×÷=√πΣ∫Δ∞0123456789";
 
 export function ScrollAnimations() {
+  // This provider lives in the root layout, so it does NOT remount on client-
+  // side navigation. Keying the effect to pathname re-queries + re-observes the
+  // NEW page's [data-reveal] elements after each route change — otherwise
+  // elements mounted after the first load start at opacity:0 and never get
+  // .revealed, so the page renders blank (e.g. navigating back to home).
+  const pathname = usePathname();
   useEffect(() => {
     const cleanups: (() => void)[] = [];
 
@@ -159,7 +166,7 @@ export function ScrollAnimations() {
     cleanups.push(() => scrambleObs.disconnect());
 
     return () => cleanups.forEach((fn) => fn());
-  }, []);
+  }, [pathname]);
 
   return null;
 }
