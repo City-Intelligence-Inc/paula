@@ -76,6 +76,7 @@ export function SessionNotesBoard({
   onDeleteNote,
   onAddComment,
   layout = "notes-column",
+  readOnly = false,
 }: {
   role: PortalRole;
   students: DemoStudent[];
@@ -96,8 +97,12 @@ export function SessionNotesBoard({
   //  "notes-column"    — Plan | Activities | (Private over Public) as a 3rd wide column
   //  "notes-fullwidth" — Plan | Activities on top (thin), Private then Public full-width below
   layout?: "notes-column" | "notes-fullwidth";
+  // Preview mode: an admin is viewing this board AS another role. Force the
+  // whole board read-only (no authoring/delete) regardless of the role's own
+  // edit rights — they're inspecting visibility, not acting.
+  readOnly?: boolean;
 }) {
-  const canEdit = CAN_EDIT_NOTES[role];
+  const canEdit = !readOnly && CAN_EDIT_NOTES[role];
   const hasPrivate = VISIBLE_FIELDS[role].includes("privateNotes");
   const [showPrivate, setShowPrivate] = React.useState(true);
   const columns = columnsFor(role, hasPrivate && !showPrivate);

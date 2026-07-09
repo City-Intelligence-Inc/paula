@@ -79,6 +79,10 @@ export default function StaffLogSessionPage() {
 
   // ── Live (authenticated) state ───────────────────────────────────────────
   const [liveRole, setLiveRole] = React.useState<PortalRole | null>(null);
+  const [liveIsAdmin, setLiveIsAdmin] = React.useState(false);
+  // Admin "preview as" — see exactly what each role sees, on real data, without
+  // logging in as five separate accounts. null = the admin's own view.
+  const [previewRole, setPreviewRole] = React.useState<PortalRole | null>(null);
   const [liveStudents, setLiveStudents] = React.useState<DemoStudent[]>([]);
   const [liveNotes, setLiveNotes] = React.useState<SessionNote[]>([]);
   // Family live mode: all children's notes from /api/me/notes (filtered per
@@ -137,6 +141,7 @@ export default function StaffLogSessionPage() {
           isMaster: boolean;
         };
         let role = ROLE_ALIASES[me.role] ?? "parent";
+        setLiveIsAdmin(!!me.isAdmin);
 
         // 2. Fetch students based on role.
         let students: DemoStudent[] = [];
@@ -412,11 +417,27 @@ export default function StaffLogSessionPage() {
     }
   }, [isLive, demoVisibleStudents, selectedStudentId]);
 
-  const role: PortalRole = isLive ? (liveRole ?? "parent") : demoRole;
+  // Admins can preview any role; everyone else is locked to their own.
+  const canPreview = isLive && liveIsAdmin;
+  const role: PortalRole = isLive
+    ? canPreview && previewRole
+      ? previewRole
+      : liveRole ?? "parent"
+    : demoRole;
+  // True when an admin is actively looking through another role's eyes — the
+  // whole board goes read-only so they inspect visibility without mutating.
+  const isPreview = canPreview && previewRole != null && previewRole !== liveRole;
   const students: DemoStudent[] = isLive ? liveStudents : demoVisibleStudents;
   const notes: SessionNote[] = React.useMemo(() => {
     if (isLive) {
-      if (role === "parent" || role === "student") {
+      // Admins fetch the full note set for the selected student (staff endpoint);
+      // gate the fields client-side to whatever role is being viewed/previewed.
+      if (liveIsAdmin) {
+        return [...liveNotes]
+          .sort((a, b) => b.dateTime.localeCompare(a.dateTime))
+          .map((n) => visibleNote(role, n));
+      }
+      if (liveRole === "parent" || liveRole === "student") {
         return liveFamilyNotes.filter((n) => n.studentId === selectedStudentId);
       }
       return liveNotes;
@@ -425,7 +446,7 @@ export default function StaffLogSessionPage() {
       .filter((n) => n.studentId === selectedStudentId)
       .sort((a, b) => b.dateTime.localeCompare(a.dateTime))
       .map((n) => visibleNote(demoRole, n));
-  }, [isLive, role, liveNotes, liveFamilyNotes, demoNotes, selectedStudentId, demoRole]);
+  }, [isLive, liveIsAdmin, role, liveRole, liveNotes, liveFamilyNotes, demoNotes, selectedStudentId, demoRole]);
   const shortcuts = isLive ? liveShortcuts : demoShortcuts;
 
   const selStudent = students.find((s) => s.id === selectedStudentId) ?? students[0];
@@ -446,7 +467,9 @@ export default function StaffLogSessionPage() {
             </h1>
             <p className="mt-1 text-sm text-[#8b8589]">
               {isLive
-                ? `Signed in · ${ROLES[role]?.label ?? role}`
+                ? isPreview
+                  ? `Previewing as ${ROLES[role]?.label ?? role} · your account is ${ROLES[liveRole ?? "parent"]?.label ?? liveRole}`
+                  : `Signed in · ${ROLES[role]?.label ?? role}`
                 : "Log a session and review history. MVP on synthetic data — no real student information."}
             </p>
           </header>
@@ -532,6 +555,47 @@ export default function StaffLogSessionPage() {
             </div>
           )}
 
+          {/* Admin "preview as" — see each role's view on real data, one account */}
+          {canPreview && (
+            <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border-warm bg-surface-paper px-4 py-3">
+              <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                Preview as
+              </span>
+              <button
+                type="button"
+                onClick={() => setPreviewRole(null)}
+                className="rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors"
+                style={
+                  previewRole === null
+                    ? { backgroundColor: "#7030A0", color: "#fff", borderColor: "#7030A0" }
+                    : { color: "#7030A0", borderColor: "var(--color-border-warm)" }
+                }
+              >
+                Your view
+              </button>
+              {ALL_ROLES.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setPreviewRole(r)}
+                  className="rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors"
+                  style={
+                    previewRole === r
+                      ? { backgroundColor: ROLES[r].accent, color: "#fff", borderColor: ROLES[r].accent }
+                      : { color: ROLES[r].accent, borderColor: "var(--color-border-warm)" }
+                  }
+                >
+                  {ROLES[r].label}
+                </button>
+              ))}
+              <span className="ml-auto text-[11px] text-text-muted">
+                {isPreview
+                  ? "Read-only preview — this is exactly what that role sees."
+                  : "See what each role sees, on real data."}
+              </span>
+            </div>
+          )}
+
           {/* Error banner */}
           {liveError && (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -580,9 +644,9 @@ export default function StaffLogSessionPage() {
               <ParentNotesView
                 studentName={selStudent ? `${selStudent.firstName} ${selStudent.lastName}` : ""}
                 notes={notes}
-                canReply={role === "parent"}
+                canReply={!isPreview && role === "parent"}
                 onSaveReply={handleReply}
-                canComment={role === "parent"}
+                canComment={!isPreview && role === "parent"}
                 onAddComment={(noteId, text) => {
                   const n = notes.find((x) => x.id === noteId);
                   if (n) return handleAddComment(n, text);
@@ -625,10 +689,11 @@ export default function StaffLogSessionPage() {
                 notes={notes}
                 shortcuts={shortcuts}
                 onSaveNote={handleSave}
-                onCreateShortcut={handleCreateShortcut}
-                onDeleteNote={handleDelete}
-                onAddComment={handleAddComment}
+                onCreateShortcut={isPreview ? undefined : handleCreateShortcut}
+                onDeleteNote={isPreview ? undefined : handleDelete}
+                onAddComment={isPreview ? undefined : handleAddComment}
                 layout={noteLayout}
+                readOnly={isPreview}
               />
             </>
           )}
