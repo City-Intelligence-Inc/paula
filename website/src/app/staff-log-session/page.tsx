@@ -4,6 +4,7 @@ import * as React from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Navbar } from "@/components/sections/navbar";
 import { Footer } from "@/components/sections/footer";
+import { AdminShell } from "@/components/admin/shell";
 import { SessionNotesBoard } from "@/components/notes/session-notes-board";
 import { ParentNotesView } from "@/components/notes/parent-notes-view";
 import type { MentionShortcut } from "@/components/notes/rich-text";
@@ -453,11 +454,8 @@ export default function StaffLogSessionPage() {
   const isFamily = role === "parent" || role === "student";
 
   // ── Render ────────────────────────────────────────────────────────────────
-  return (
+  const content = (
     <>
-      <Navbar />
-      <main className="flex-1 bg-white">
-        <div className="mx-auto max-w-[1600px] px-4 py-8">
           <header className="mb-5">
             <h1
               className="text-3xl text-[#7030A0]"
@@ -697,7 +695,19 @@ export default function StaffLogSessionPage() {
               />
             </>
           )}
-        </div>
+    </>
+  );
+
+  // Admins keep the left admin sidebar (AdminShell) so navigating here from the
+  // sidebar doesn't drop it. Tutors/parents/students get the marketing chrome.
+  if (isLive && liveIsAdmin) {
+    return <AdminShell>{content}</AdminShell>;
+  }
+  return (
+    <>
+      <Navbar />
+      <main className="flex-1 bg-white">
+        <div className="mx-auto max-w-[1600px] px-4 py-8">{content}</div>
       </main>
       <Footer />
     </>
