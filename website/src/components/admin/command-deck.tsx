@@ -48,6 +48,24 @@ function dollars(cents: number): string {
   })}`;
 }
 
+// Compact form for the KPI tiles so a large figure can't outgrow its card and
+// bleed into the neighbour. Exact value stays available via title= on hover.
+// Everyday amounts (< $100k) render in full; only genuinely big numbers abbreviate.
+function dollarsCompact(cents: number): string {
+  const d = cents / 100;
+  const abs = Math.abs(d);
+  const sign = d < 0 ? "-" : "";
+  if (abs >= 1_000_000) {
+    return `${sign}$${(abs / 1_000_000).toLocaleString(undefined, {
+      maximumFractionDigits: 1,
+    })}M`;
+  }
+  if (abs >= 100_000) {
+    return `${sign}$${Math.round(abs / 1000).toLocaleString()}K`;
+  }
+  return dollars(cents);
+}
+
 function greetingFor(name: string | undefined): string {
   const hour = new Date().getHours();
   const slot =
@@ -185,7 +203,7 @@ export function CommandDeck() {
       {/* 5-card command deck */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 admin-stagger">
         {/* Today's sessions */}
-        <Card className="border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
+        <Card className="min-w-0 border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
           <CardContent className="py-4 flex flex-col h-full">
             <div className="flex items-center gap-2 text-xs text-neutral-500 uppercase tracking-wide">
               <Calendar className="h-3 w-3" />
@@ -205,14 +223,17 @@ export function CommandDeck() {
         </Card>
 
         {/* This week revenue + delta */}
-        <Card className="border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
+        <Card className="min-w-0 border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
           <CardContent className="py-4 flex flex-col h-full">
             <div className="flex items-center gap-2 text-xs text-neutral-500 uppercase tracking-wide">
               <Receipt className="h-3 w-3" />
               This week
             </div>
-            <p className="text-2xl font-semibold text-neutral-900 mt-1 leading-none font-tabular">
-              {dollars(data.thisWeek.paidCents)}
+            <p
+              className="text-2xl font-semibold text-neutral-900 mt-1 leading-none font-tabular truncate"
+              title={dollars(data.thisWeek.paidCents)}
+            >
+              {dollarsCompact(data.thisWeek.paidCents)}
             </p>
             <p
               className={`text-xs mt-1 inline-flex items-center gap-1 ${
@@ -244,7 +265,7 @@ export function CommandDeck() {
         </Card>
 
         {/* Pending consultations */}
-        <Card className="border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
+        <Card className="min-w-0 border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
           <CardContent className="py-4 flex flex-col h-full">
             <div className="flex items-center gap-2 text-xs text-neutral-500 uppercase tracking-wide">
               <Mail className="h-3 w-3" />
@@ -268,14 +289,17 @@ export function CommandDeck() {
         </Card>
 
         {/* Unbilled completed sessions */}
-        <Card className="border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
+        <Card className="min-w-0 border border-[color:var(--color-border-warm)] rounded-lg hover-lift">
           <CardContent className="py-4 flex flex-col h-full">
             <div className="flex items-center gap-2 text-xs text-neutral-500 uppercase tracking-wide">
               <Clock className="h-3 w-3" />
               Unbilled
             </div>
-            <p className="text-2xl font-semibold text-neutral-900 mt-1 leading-none font-tabular">
-              {dollars(data.unbilled.cents)}
+            <p
+              className="text-2xl font-semibold text-neutral-900 mt-1 leading-none font-tabular truncate"
+              title={dollars(data.unbilled.cents)}
+            >
+              {dollarsCompact(data.unbilled.cents)}
             </p>
             <p className="text-xs text-neutral-500 mt-1">
               {data.unbilled.count} session{data.unbilled.count === 1 ? "" : "s"}
@@ -292,7 +316,7 @@ export function CommandDeck() {
 
         {/* Overdue + failed — only show if there's actually something to act on */}
         <Card
-          className={`border rounded-lg hover-lift ${
+          className={`min-w-0 border rounded-lg hover-lift ${
             data.attention.overdueOrFailedCount > 0
               ? "border-[color:var(--color-state-error)]/30 bg-[color:var(--color-state-error-soft)]/40"
               : "border-[color:var(--color-border-warm)]"
@@ -304,14 +328,19 @@ export function CommandDeck() {
               Attention
             </div>
             <p
-              className={`text-2xl font-semibold mt-1 leading-none font-tabular ${
+              className={`text-2xl font-semibold mt-1 leading-none font-tabular truncate ${
                 data.attention.overdueOrFailedCount > 0
                   ? "text-[color:var(--color-state-error)]"
                   : "text-neutral-900"
               }`}
+              title={
+                data.attention.overdueOrFailedCount > 0
+                  ? dollars(data.attention.overdueOrFailedCents)
+                  : undefined
+              }
             >
               {data.attention.overdueOrFailedCount > 0
-                ? dollars(data.attention.overdueOrFailedCents)
+                ? dollarsCompact(data.attention.overdueOrFailedCents)
                 : "All clear"}
             </p>
             <p className="text-xs text-neutral-500 mt-1">
