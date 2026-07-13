@@ -15,6 +15,12 @@ const selectClass =
 type StudentDraft = { firstName: string; lastName: string; grade: string; school: string };
 const emptyStudent = (): StudentDraft => ({ firstName: "", lastName: "", grade: "K", school: "" });
 
+// Additional parents / guardians the family adds up front. Each is invited to
+// the portal with their own tokenized link (they can't share a login), so we
+// only need a name and an email here — mirrors "Other caregivers" at /register.
+type CoParentDraft = { firstName: string; lastName: string; email: string };
+const emptyCoParent = (): CoParentDraft => ({ firstName: "", lastName: "", email: "" });
+
 const STEPS = [
   { label: "Your info",  sub: "Parent & student details" },
   { label: "Payment",   sub: "Secure card on file" },
@@ -92,6 +98,8 @@ export default function OnboardingPage() {
 
   // Student fields — a family can enroll one or more children up front.
   const [students, setStudents] = useState<StudentDraft[]>([emptyStudent()]);
+  // Extra parents / guardians — the family can grow horizontally too.
+  const [coParents, setCoParents] = useState<CoParentDraft[]>([]);
 
   function updateStudent(i: number, patch: Partial<StudentDraft>) {
     setStudents((prev) => prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
@@ -101,6 +109,16 @@ export default function OnboardingPage() {
   }
   function removeStudent(i: number) {
     setStudents((prev) => prev.filter((_, idx) => idx !== i));
+  }
+
+  function updateCoParent(i: number, patch: Partial<CoParentDraft>) {
+    setCoParents((prev) => prev.map((p, idx) => (idx === i ? { ...p, ...patch } : p)));
+  }
+  function addCoParent() {
+    setCoParents((prev) => [...prev, emptyCoParent()]);
+  }
+  function removeCoParent(i: number) {
+    setCoParents((prev) => prev.filter((_, idx) => idx !== i));
   }
 
   // Pre-fill parent name from Clerk once loaded
@@ -153,6 +171,13 @@ export default function OnboardingPage() {
             grade: s.grade,
             school: s.school.trim(),
           })),
+          caregivers: coParents
+            .filter((p) => p.email.trim())
+            .map((p) => ({
+              firstName: p.firstName.trim(),
+              lastName: p.lastName.trim(),
+              email: p.email.trim(),
+            })),
         }),
       });
       const json = await res.json();
@@ -215,6 +240,47 @@ export default function OnboardingPage() {
                   <div>
                     <Label>Phone number</Label>
                     <input type="tel" required value={parentPhone} onChange={(e) => setParentPhone(e.target.value)} className={inputClass} placeholder="e.g. 510-555-1234" />
+                  </div>
+
+                  {/* Additional parents / guardians — each gets their own invite */}
+                  {coParents.map((p, i) => (
+                    <div key={i} className="space-y-3 pt-1">
+                      <div className="flex items-center gap-3 py-1">
+                        <div className="flex-1 h-px bg-[#E8E3D9]" />
+                        <span className="text-xs font-semibold text-[#A8A29E] uppercase tracking-widest">
+                          Parent {i + 2}
+                        </span>
+                        <button type="button" onClick={() => removeCoParent(i)} className="text-xs font-medium text-[#A8A29E] hover:text-[#B0263C] transition-colors">
+                          Remove
+                        </button>
+                        <div className="flex-1 h-px bg-[#E8E3D9]" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>First name</Label>
+                          <input type="text" value={p.firstName} onChange={(e) => updateCoParent(i, { firstName: e.target.value })} className={inputClass} placeholder="First" />
+                        </div>
+                        <div>
+                          <Label>Last name</Label>
+                          <input type="text" value={p.lastName} onChange={(e) => updateCoParent(i, { lastName: e.target.value })} className={inputClass} placeholder="Last" />
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Email</Label>
+                        <input type="email" required value={p.email} onChange={(e) => updateCoParent(i, { email: e.target.value })} className={inputClass} placeholder="name@example.com" />
+                      </div>
+                    </div>
+                  ))}
+
+                  <div>
+                    <button type="button" onClick={addCoParent} className="flex items-center gap-1.5 text-sm font-semibold text-[#7030A0] hover:text-[#5B2680] transition-colors">
+                      <span className="text-base leading-none">+</span> Add a parent / guardian
+                    </button>
+                    {coParents.length > 0 && (
+                      <p className="mt-1.5 text-xs text-[#A8A29E]">
+                        Each parent you add gets their own invitation to the family portal.
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -292,7 +358,7 @@ export default function OnboardingPage() {
               </div>
 
               <p className="mt-4 text-xs text-center text-[#A8A29E]">
-                You can add siblings from the family portal after setup.
+                You can add more children or parents from the family portal after setup.
               </p>
             </form>
           )}

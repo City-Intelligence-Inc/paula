@@ -135,11 +135,18 @@ export async function POST(request: Request) {
     grade?: string;
     school?: string;
   };
+  type CaregiverInput = {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  };
   let body: {
     parentFirstName?: string;
     parentLastName?: string;
     parentPhone?: string;
     students?: StudentInput[];
+    // Additional parents / guardians — each invited to join the same family.
+    caregivers?: CaregiverInput[];
     // Legacy single-student payload (pre multi-child onboarding).
     studentFirstName?: string;
     studentLastName?: string;
@@ -163,6 +170,15 @@ export async function POST(request: Request) {
   if (studentInputs.length === 0) {
     return Response.json({ error: "At least one student's first and last name is required" }, { status: 400 });
   }
+
+  // Extra parents / guardians — keep only rows with a valid email, and never
+  // re-invite the person filling out this form.
+  const caregiverInputs = (body.caregivers || []).filter(
+    (g) =>
+      g.email &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(g.email) &&
+      g.email.trim().toLowerCase() !== email,
+  );
 
   const now = new Date().toISOString();
   const suffix = Math.random().toString(36).slice(2, 6);
@@ -235,6 +251,29 @@ export async function POST(request: Request) {
       ),
     ]);
 
+    // Additional parents each get their own tokenized invite to join this
+    // family (C-9) — they can't share the primary parent's login.
+    if (caregiverInputs.length > 0) {
+      const { createInvite, sendInviteEmail } = await import("@/lib/server/invites");
+      await Promise.all(
+        caregiverInputs.map(async (g) => {
+          try {
+            const invite = await createInvite({
+              email: g.email!.trim(),
+              role: "parent",
+              firstName: g.firstName?.trim(),
+              lastName: g.lastName?.trim(),
+              familyId,
+              invitedBy: `onboarding:${email}`,
+            });
+            await sendInviteEmail(invite);
+          } catch (e) {
+            console.error("[POST /api/onboarding] caregiver invite failed:", e);
+          }
+        }),
+      );
+    }
+
     const studentLine = (s: (typeof students)[number]) =>
       `${s.firstName} ${s.lastName}, Grade ${s.grade}${s.school ? `, ${s.school}` : ""}`;
     const label = students.length === 1 ? "Student" : "Students";
@@ -244,8 +283,9 @@ export async function POST(request: Request) {
 <p><strong>Parent:</strong> ${parentName} (${email})</p>
 <p><strong>${label}:</strong></p>
 <ul>${students.map((s) => `<li>${studentLine(s)}</li>`).join("")}</ul>
+${caregiverInputs.length > 0 ? `<p><strong>Also invited:</strong> ${caregiverInputs.map((g) => `${[g.firstName?.trim(), g.lastName?.trim()].filter(Boolean).join(" ") || g.email!.trim()} (${g.email!.trim()})`).join(", ")}</p>` : ""}
 <p>Their account is live — they may still need a rate and tutor assignment before sessions begin.</p>`,
-      text: `New family self-enrolled.\n\nParent: ${parentName} (${email})\n${label}:\n${students.map((s) => `  - ${studentLine(s)}`).join("\n")}\n\nSet their rate and tutor in the admin portal.`,
+      text: `New family self-enrolled.\n\nParent: ${parentName} (${email})\n${label}:\n${students.map((s) => `  - ${studentLine(s)}`).join("\n")}\n${caregiverInputs.length > 0 ? `Also invited: ${caregiverInputs.map((g) => `${[g.firstName?.trim(), g.lastName?.trim()].filter(Boolean).join(" ") || g.email!.trim()} (${g.email!.trim()})`).join(", ")}\n` : ""}\nSet their rate and tutor in the admin portal.`,
     }).catch(() => {});
 
     return Response.json({ parentId }, { status: 201 });
