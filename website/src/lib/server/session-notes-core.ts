@@ -89,13 +89,24 @@ export async function listSessionNotes(
   const authz = await authorize(actor, id, deps);
   if ("deny" in authz) return authz.deny;
 
+  // Return the student's whole session history — every attended/scheduled
+  // session (individual + group), plus any that already carry a written note
+  // (type "session-note"). Imported history lands as type "individual"/"group",
+  // so filtering to "session-note" alone hid years of real sessions and left
+  // "All sessions — full history" empty. Staff read this view; each row is a
+  // weekly session a tutor can open and attach a note to.
   const result = await deps.db.send(
     new QueryCommand({
       TableName: deps.tables.sessions,
       KeyConditionExpression: "studentId = :sid",
-      FilterExpression: "#t = :sn",
+      FilterExpression: "#t IN (:ind, :grp, :sn)",
       ExpressionAttributeNames: { "#t": "type" },
-      ExpressionAttributeValues: { ":sid": id, ":sn": "session-note" },
+      ExpressionAttributeValues: {
+        ":sid": id,
+        ":ind": "individual",
+        ":grp": "group",
+        ":sn": "session-note",
+      },
     }),
   );
   let notes = ((result.Items as Session[]) || []).sort((a, b) =>
